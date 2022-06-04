@@ -107,6 +107,8 @@ public:
     void print_incidence_vect_by_id(Graph::NodeId id) const;
     //gibt alle Inzidenz-Vektor auf Konsole aus, Knoten werden als _node_id ausgegeben
     void print_all_incidence_vect_by_id()  const;
+    //Hilfsfunktion zur Ausgabe von Knoten auf Konsole
+    void print_node(NodeId id);
 
     //fügt einen Knoten zum Graphen hinzu (!prüft aber nicht ob _node_name eindeutig!)
     void add_one_node(NodeName name, TerminalState t);

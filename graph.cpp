@@ -2,12 +2,11 @@
 // Created by Lukas on 30.05.2022.
 //
 
-#include "graph.h"
-
 #include <iostream>
 #include <sstream>
 #include <fstream>
 #include <limits>
+#include "graph.h"
 
 const Graph::EdgeWeight Graph::infinite_weight = std::numeric_limits<double>::max();
 const Graph::PathLength Graph::infinite_length = std::numeric_limits<double>::max();
@@ -129,6 +128,15 @@ void Graph::print_by_id() const{
     }
     std::cout << "\n";
 
+}
+
+// ? theoretisch müsste ich das in alle print Funktionen einfügen (oder brauche ich die Fktn nicht?)
+void Graph::print_node(Graph::NodeId id) {
+    if(id != Graph::invalid_node_id){
+        std::cout << id +1;
+    }else{
+     std::cout << " \" invalid_node \" ";
+    }
 }
 
 void Graph::Node::set_terminal(Graph::TerminalState t){
@@ -519,3 +527,4 @@ Graph::Graph(char const* filename){
     }
 
 }
+

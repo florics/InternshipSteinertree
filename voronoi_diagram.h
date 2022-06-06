@@ -17,17 +17,20 @@ public:
     Voronoi_diagram(std::vector<Graph::NodeId> set_of_b, Graph g);
 
     //Ausgabe auf Konsole für jeden Knoten: NodeId, Basis, Distanz zur Basis, Vorgängerknoten auf kürz. Weg von Basis
-    void print_simple();
+    void print_simple() const;
     //Ausgabe auf Konsole: Voronoi-Region der Basis var_base (var_base muss Basis sein)
-    void print_region(Graph::NodeId var_base);
+    void print_region(Graph::NodeId var_base) const;
     // Hilfsfunktion zur Ausgabe von Knoten auf Konsole
-    void print_node(Graph::NodeId id);
+    void print_node(Graph::NodeId id) const;
     // Hilfsfunktion zur Ausgabe von Weg-Längen auf Konsole
-    void print_pathlength(Graph::PathLength l);
+    void print_pathlength(Graph::PathLength l) const;
+
+    //setzt Menge der Basen auf new_set_of_bases und macht, dass alle Basen sich selbst als Basis haben sowie dass ihr Abstand zur Basis 0 ist
+    void assign_set_of_bases(std::vector<Graph::NodeId> new_set_of_bases);
 
     //prüft ob var_node Basis ist //(todo) evtl zu langsam
     //genauer: prüft, ob var_node sich selbst als Basis hat (und nicht, ob var_node in der Menge der Basen liegt)
-    bool check_if_base(Graph::NodeId var_node);
+    bool check_if_base(Graph::NodeId var_node) const;
 
 private:
     unsigned int _num_nodes;

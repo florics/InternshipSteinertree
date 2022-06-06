@@ -26,6 +26,7 @@ public:
     void print_pathlength(Graph::PathLength l);
 
     //prüft ob var_node Basis ist //(todo) evtl zu langsam
+    //genauer: prüft, ob var_node sich selbst als Basis hat (und nicht, ob var_node in der Menge der Basen liegt)
     bool check_if_base(Graph::NodeId var_node);
 
 private:

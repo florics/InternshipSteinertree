@@ -3,6 +3,8 @@
 
 int main() {
 
+    // C:\Users\Lukas\CLionProjects\PraktikumSteinerbaum\Test-Instanzen\graph-vd1.txt
+    // "C:\\Users\\Lukas\\CLionProjects\\PraktikumSteinerbaum\\Test-Instanzen\\test-graph1.txt
     Graph g("C:\\Users\\Lukas\\CLionProjects\\PraktikumSteinerbaum\\Test-Instanzen\\graph-vd1.txt");
     g.print();
 

@@ -35,6 +35,8 @@ public:
         NodeId get_other_node(NodeId curr_node) const;
         //kehrt die Reihenfolge um, in der die zur Kante inzidenten Knoten gespeichert sind (also _node_a, _node_b)
         void reverse_node_order();
+        //gibt die Knoten der Kanten in aufsteigender (entsprechend NodeId) Reihenfolge aus
+        std::array<Graph::NodeId, 2> get_nodes_orderedbyid();
 
     private:
         //Stelle, an der die Kante in _edges steht
@@ -108,7 +110,14 @@ public:
     //gibt alle Inzidenz-Vektor auf Konsole aus, Knoten werden als _node_id ausgegeben
     void print_all_incidence_vect_by_id()  const;
     //Hilfsfunktion zur Ausgabe von Knoten auf Konsole
-    void print_node(NodeId id);
+    void print_node(NodeId id) const;
+    // Hilfsfunktion zur Ausgabe von EdgeIds auf Konsole
+    void print_edgeid(Graph::EdgeId id) const;
+    // Hilfsfunktion zur Ausgabe von Weg-Längen auf Konsole
+    void print_pathlength(Graph::PathLength l) const;
+
+    // Hilfsfunktion zur Ausgabe von Kanten als Knotenpaar auf Konsole (Paar von NodeName's)
+    void print_edge_as_pair(Graph::EdgeId id) const;
 
     //fügt einen Knoten zum Graphen hinzu (!prüft aber nicht ob _node_name eindeutig!)
     void add_one_node(NodeName name, TerminalState t);

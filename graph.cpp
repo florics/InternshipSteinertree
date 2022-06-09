@@ -6,6 +6,8 @@
 #include <sstream>
 #include <fstream>
 #include <limits>
+#include <utility>
+#include <array>
 #include "graph.h"
 
 const Graph::EdgeWeight Graph::infinite_weight = std::numeric_limits<double>::max();
@@ -83,6 +85,17 @@ void Graph::Edge::reverse_node_order() {
     _node_b = _node_a;
 }
 
+std::array<Graph::NodeId, 2> Graph::Edge::get_nodes_orderedbyid() {
+    if(_node_a < _node_b){
+        return {_node_a, _node_b};
+    }else if(_node_a > _node_b){
+        return {_node_b, _node_a};
+    }else{
+        std::cout << "Fehler bei Kante mit EdgeId " << _edge_id << "\n";
+        throw std::runtime_error(" (std::array<Graph::NodeId, 2> Graph::Edge::get_nodes_orderedbyid) Kante ist Schleife ");
+    }
+}
+
 void Graph::print() const{
 
     std::cout << "SECTION Graph \n";
@@ -131,11 +144,42 @@ void Graph::print_by_id() const{
 }
 
 // ? theoretisch müsste ich das in alle print Funktionen einfügen (oder brauche ich die Fktn nicht?)
-void Graph::print_node(Graph::NodeId id) {
+void Graph::print_node(Graph::NodeId id) const{
     if(id != Graph::invalid_node_id){
         std::cout << id +1;
     }else{
      std::cout << " \" invalid_node \" ";
+    }
+}
+
+void Graph::print_edgeid(Graph::EdgeId id) const {
+    if(id != Graph::invalid_edge_id){
+        std::cout << id;
+    }else{
+        std::cout << " 'invalid_edge' ";
+    }
+}
+
+void Graph::print_edge_as_pair(Graph::EdgeId id) const {
+    if(id < _edges.size()) {
+        std::cout << "(";
+        Graph::print_node( _edges[ id ].node_a() ),
+        std::cout << ",";
+        Graph::print_node( _edges[ id ].node_b() ),
+        std::cout << ")";
+    } else if(id == Graph::invalid_edge_id) {
+        std::cout << " 'invalid_edge' ";
+    } else {
+        std::cout << "Fehler: Kante nicht im Graph.";
+    }
+}
+
+
+void Graph::print_pathlength(Graph::PathLength l) const {
+    if(l != Graph::infinite_length){
+        std::cout << l;
+    }else{
+        std::cout << " 'infinite_length' ";
     }
 }
 

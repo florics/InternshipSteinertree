@@ -220,7 +220,7 @@ Voronoi_diagram::Voronoi_diagram(std::vector<Graph::NodeId> set_of_b, Graph g){
     int debug_count_while_loop = 0;
     while( !candidates.empty() ) {
         debug_count_while_loop++;
-        std::cout << "Iteration while-Schleife nr. " << debug_count_while_loop << std::endl;
+        std::cout << "Iteration while-Schleife nr. " << debug_count_while_loop << "\n";
 
         //finde nächsten besten Kandidaten
         Graph::EdgeId next_cand_edge = candidates.top().second; //passt der Datentyp hier? (Referenz...)
@@ -230,10 +230,10 @@ Voronoi_diagram::Voronoi_diagram(std::vector<Graph::NodeId> set_of_b, Graph g){
         /*
         //debug begin
         if (dist_of_next_cand == _dist_to_base[next_node]) {
-            std::cout << dist_of_next_cand << " = " << _dist_to_base[next_node] << std::endl;
+            std::cout << dist_of_next_cand << " = " << _dist_to_base[next_node] << "\n";
         }
         if (dist_of_next_cand > _dist_to_base[next_node]) {
-            std::cout << dist_of_next_cand << " > " << _dist_to_base[next_node] << std::endl;
+            std::cout << dist_of_next_cand << " > " << _dist_to_base[next_node] << "\n";
         }
         //debug end
 

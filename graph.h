@@ -43,11 +43,11 @@ public:
         const EdgeId _edge_id;
 
         //die Knoten, mit denen die Kante inzident ist; die Werte sind hier die Stellen, an denen die Knoten in _nodes stehen
-        NodeId _node_a; //const?
+        NodeId _node_a;
         NodeId _node_b;
 
         //Kantengewicht
-        EdgeWeight _weight; //const?
+        EdgeWeight _weight;
     };
 
     class Node{
@@ -94,7 +94,7 @@ public:
     //Graph-constructor mit Einleseroutine
     Graph(char const* filename);
 
-    Graph(unsigned int n);
+    Graph(int n);
 
     unsigned int num_nodes() const;
     unsigned int num_edges() const;
@@ -115,7 +115,6 @@ public:
     void print_edgeid(Graph::EdgeId id) const;
     // Hilfsfunktion zur Ausgabe von Weg-Längen auf Konsole
     void print_pathlength(Graph::PathLength l) const;
-
     // Hilfsfunktion zur Ausgabe von Kanten als Knotenpaar auf Konsole (Paar von NodeName's)
     void print_edge_as_pair(Graph::EdgeId id) const;
 
@@ -124,12 +123,15 @@ public:
     //fügt existierenden Knoten zum Graphen hinzu (!prüft aber nicht ob _node_name eindeutig!)
     void add_one_existing_node(const Graph::Node& v);
     //fügt n Knoten hinzu (Knoten sind keine Terminale, _node_name wird einfach auf "1 + Stelle in _nodes, wo der neue Knoten gespeichert wird" gesetzt)
-    void add_nodes(unsigned int num_new_nodes);
+    void add_nodes(int num_new_nodes);
 
     //erstellt Kante entsprechend der Eingabe und fügt sie zum Graphen hinzu
     void add_edge(Graph::NodeId a, Graph::NodeId b, Graph::EdgeWeight w);
-    //fügt existierende Kante zu Graph hinzu
+    //fügt existierende Kante zu Graph hinzu (EdgeId wird nicht verändert)
     void add_existing_edge(Edge new_edge);
+    //fügt existierende Kante zu Graph hinzu, wobei die EdgeId angepasst wird //? eher unnötig: ggf. löschen!
+    void add_existing_edge_w_newid(Edge new_edge);
+
 
     //macht den Knoten v zu einem Terminal oder zu einem Nicht-Terminal
     void set_terminal(Graph::NodeId v, Graph::TerminalState t);
@@ -143,12 +145,23 @@ public:
 
     //gibt Referenz auf Kante mit EdgeId v aus
     const Graph::Edge& get_edge(Graph::EdgeId e) const;
-    std::vector<Graph::Edge> edges();
+    std::vector<Graph::Edge> edges() const;
+
+    //gibt Kopie des Graphen aus, aber ohne Kanten
+    Graph copygraph_wo_edges() const;
+    //gibt Kopie des Graphen aus, in der alle Knoten ohne Nachbarn entfernt wurden
+    Graph copygraph_wo_iso_nodes();
 
     //gibt 1 aus gdw. nicht-negative Kantengewichte vorliegen
     bool edgeweight_nonnegative() const;
     //gibt 1 aus gdw. alle Kanten Gewicht < infinite_weight haben
     bool edgeweight_finite() const;
+    //gibt 1 aus gdw. Graph einfach
+    bool check_if_simple() const;
+    //gibt 1 aus gdw. other_graph dem Graphen entspricht (Terminale werden nicht berücksichtigt)
+    //Eingabe: endliche Kantengewichte, einfache Graphen, NodeIds müssen "gleich" sein (d. h. wir prüfen nicht, ob Graphen ggf. nach Umnummerierung der Knoten gleich sind)
+    bool check_if_isomorph(const Graph& other_graph) const;
+
     static const EdgeWeight infinite_weight;
     static const PathLength infinite_length;
 

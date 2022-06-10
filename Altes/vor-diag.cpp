@@ -297,3 +297,57 @@ for (unsigned int i = 0; i < n; i++) {
 return;
 }
 */
+
+/*
+Funktion turn_into_subgraph (10.6.)
+ for( auto curr_edge : var_graph.edges() ) {
+        //zugehörige boundary edge hinzufügen
+        // ? wenn ich Graph gerichtet machen kann, könnte ich das hier ggf. benutzen (anstatt von der nächsten Zeile)
+        std::array<Graph::NodeId, 2> curr_edge_nodes = curr_edge.get_nodes_orderedbyid();
+        Graph::Edge edge_to_add = original_graph.get_edge( vect_min_bound_edges[curr_edge_nodes[1] - 1][curr_edge_nodes[0]].first );
+        output.add_edge(edge_to_add.node_a(), edge_to_add.node_b(), edge_to_add.weight());
+        added_edges[edge_to_add.edge_id()] = true;
+    }
+    //? bis hierhin scheint es zu funzen
+
+    for( auto curr_edge : var_graph.edges() ) {
+        //Kanten auf den jeweiligen kürz. Wegen von den Endpunkten der aktuellen Kante zu deren jeweiliger Basis hinzufügen
+        Graph::NodeId var_node = _set_of_bases[ curr_edge.node_a() ];
+        Graph::EdgeId edge_to_add_id = _predecessor[var_node].second;
+        while (edge_to_add_id != Graph::invalid_edge_id) {
+            if (not added_edges[edge_to_add_id]) {
+                //edge_to_add = original_graph.get_edge( edge_to_add_id );  //?
+                output.add_edge(original_graph.get_edge(edge_to_add_id).node_a(),
+                                original_graph.get_edge(edge_to_add_id).node_b(),
+                                original_graph.get_edge(edge_to_add_id).weight());
+                added_edges[edge_to_add_id] = true;
+            }
+            var_node = _predecessor[var_node].first;
+            edge_to_add_id = _predecessor[var_node].second;
+            // ? für Laufzeit sollte ich vll breaken, wenn invalid_edge erreicht
+        }
+    }
+
+    //debug
+    std::cout << "nach der Schleife fuer node_a: \n";
+    output.print();
+
+    for( auto curr_edge : var_graph.edges() ) {
+
+        Graph::NodeId var_node = _set_of_bases[ curr_edge.node_b() ];
+        Graph::EdgeId edge_to_add_id = _predecessor[var_node].second;
+        while( edge_to_add_id != Graph::invalid_edge_id  ){
+            if( not added_edges[ edge_to_add_id ] ){
+                //edge_to_add = original_graph.get_edge( edge_to_add_id );  //?
+                output.add_edge( original_graph.get_edge( edge_to_add_id ).node_a(),
+                                 original_graph.get_edge( edge_to_add_id ).node_b(),
+                                 original_graph.get_edge( edge_to_add_id ).weight() );
+                added_edges[ edge_to_add_id ] = true;
+            }
+            var_node = _predecessor[var_node].first;
+            edge_to_add_id = _predecessor[var_node].second;
+        }
+
+    }
+
+ */

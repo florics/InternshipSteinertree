@@ -12,7 +12,7 @@
 
 const Voronoi_diagram::BaseId Voronoi_diagram::invalid_base_id = std::numeric_limits<unsigned int>::max();
 
-Voronoi_diagram::Voronoi_diagram(Graph input_graph){
+Voronoi_diagram::Voronoi_diagram(Graph& input_graph){
     _num_nodes = input_graph.num_nodes();
     _num_bases = 0;
 
@@ -33,7 +33,7 @@ Voronoi_diagram::Voronoi_diagram(Graph input_graph){
     //original_graph = input_graph;
 }
 
-Voronoi_diagram::Voronoi_diagram(std::vector<Graph::NodeId> set_of_b, Graph input_graph){
+Voronoi_diagram::Voronoi_diagram(std::vector<Graph::NodeId> set_of_b, Graph& input_graph){
 
     //Prüfe, ob Eingabe Bedingungen erfüllt
     //für die Menge der Basen set_of_b
@@ -81,10 +81,6 @@ Voronoi_diagram::Voronoi_diagram(std::vector<Graph::NodeId> set_of_b, Graph inpu
             std::greater< std::pair<Graph::PathLength,Graph::NodeId> >
                 > candidates;
 
-    //? Alternative: alles in die while Schleife (also inkl. erste dijkstra-Iterationen für die Basen)
-    //? und _predecessor[basis] = basis, dann brauchen wir reached auch nicht mehr,
-    //? aber Nachteil weil diese Form von _predecessor Probleme machen könnte
-
     //erste dijkstra-Iterationen für die Basen
     for(auto curr_base : _set_of_bases) {
 
@@ -107,7 +103,7 @@ Voronoi_diagram::Voronoi_diagram(std::vector<Graph::NodeId> set_of_b, Graph inpu
     }
 
     int debug_count_while_loop = 0;
-    while( !candidates.empty() ) {
+    while( not candidates.empty() ) {
         /*
         debug_count_while_loop++;
         std::cout << "Iteration while-Schleife nr. " << debug_count_while_loop << "\n";
@@ -171,9 +167,9 @@ void Voronoi_diagram::assign_set_of_bases(std::vector<Graph::NodeId> new_set_of_
     }
 }
 
-void Voronoi_diagram::print_simple() const {
+void Voronoi_diagram::print_simple(Graph& original_graph) const {
     std::cout << "Ausgabe des Voronoi-Diagramms (als NodeNames ausgegeben)\n";
-    std::cout << "(Knoten) (Basis) (Distanz zur Basis) (Vorgaenger auf kuerz. Weg von Basis) \n";
+    std::cout << "(Knoten) (Basis) (Distanz zur Basis) (Vorgaengerknoten und -kante auf kuerz. Weg von Basis) \n";
     for(Graph::NodeId i = 0; i<_num_nodes; i++){
         print_node(i);
         std::cout << " ";
@@ -182,6 +178,8 @@ void Voronoi_diagram::print_simple() const {
         print_pathlength(_dist_to_base[i]);
         std::cout << " ";
         print_node(_predecessor[i].first);
+        std::cout << " ";
+        original_graph.print_edge_as_pair(_predecessor[i].second);
         std::cout << "\n";
     }
     std::cout << "\n";
@@ -230,7 +228,7 @@ bool Voronoi_diagram::check_if_base(Graph::NodeId var_node) const {
     }
 }
 
-std::vector<std::vector<std::pair<Graph::EdgeId, Graph::PathLength>>> Voronoi_diagram::min_bound_edges(Graph input_graph) const {
+std::vector<std::vector<std::pair<Graph::EdgeId, Graph::PathLength>>> Voronoi_diagram::min_bound_edges(Graph& input_graph) const {
 
     //Initialisierung der Ausgabe-Matrix: output[i][j] entspricht den Basen i+1, j
     std::vector<std::vector<std::pair<Graph::EdgeId, Graph::PathLength>>> output;
@@ -259,14 +257,14 @@ std::vector<std::vector<std::pair<Graph::EdgeId, Graph::PathLength>>> Voronoi_di
     return output;
 }
 
-void Voronoi_diagram::print_min_bound_edges(Graph input_graph) const {
+void Voronoi_diagram::print_min_bound_edges(Graph& input_graph) const {
     std::vector<std::vector<std::pair<Graph::EdgeId, Graph::PathLength>>> output = min_bound_edges(input_graph);
 
     std::cout << "Ausgabe von min_bound_edges \n";
 
     std::cout << "Kanten (EdgeIds): \n";
     std::cout << "Basis     ";
-    for(unsigned int j = 0; j < _num_bases-1; j++) { //-1?
+    for(unsigned int j = 0; j < _num_bases-1; j++) {
         std::cout << _set_of_bases[j]+1 << ", ";
     }
     std::cout << "\n";
@@ -281,7 +279,7 @@ void Voronoi_diagram::print_min_bound_edges(Graph input_graph) const {
 
     std::cout << "\n" << "Distanzen: \n";
     std::cout << "Basis     ";
-    for(unsigned int j = 0; j < _num_bases-1; j++){ //-1?
+    for(unsigned int j = 0; j < _num_bases-1; j++){
         std::cout << _set_of_bases[j]+1 << ", ";
     }
     std::cout << "\n";
@@ -336,4 +334,72 @@ bool Voronoi_diagram::check_if_bound_edge(Graph::Edge var_edge) const {
     }
 }
 
+Graph Voronoi_diagram::construct_aux_graph(Graph& input_graph) const{
+    Graph output(0);
 
+    //Basen als Knoten hinzufügen
+    for( auto curr_base : _set_of_bases){
+        output.add_one_node( curr_base+1, input_graph.get_node(curr_base).terminal_state() );
+    }
+
+    //Kanten hinzufügen
+    std::vector<std::vector<std::pair<Graph::EdgeId, Graph::PathLength>>> vect_min_bound_edges = min_bound_edges(input_graph);
+    for(unsigned int i = 0; i < _num_bases-1; i++){
+        for(unsigned int j = 0; j < i+1; j++){
+            if( vect_min_bound_edges[i][j].first != Graph::invalid_edge_id ){
+                output.add_edge( j, i+1, vect_min_bound_edges[i][j].second);
+            }
+        }
+    }
+
+    return output;
+}
+
+Graph Voronoi_diagram::turn_into_subgraph(Graph &var_graph, Graph &original_graph,
+                                          std::vector<std::vector<std::pair<Graph::EdgeId, Graph::PathLength>>> &vect_min_bound_edges) const {
+    Graph output = original_graph.copygraph_wo_edges();
+
+    //speichert die schon hinzugefügten Kanten, sodass wir keine Kanten mehrfach hinzufügen
+    std::vector<bool> added_edges(original_graph.num_edges(), false);
+
+    for( auto curr_edge : var_graph.edges() ) {
+        //zugehörige boundary edge des ursprünglichen Graphen finden
+        // ? wenn ich Graph gerichtet machen kann, könnte ich das hier ggf. benutzen (anstatt von der nächsten Zeile)
+        std::array<Graph::NodeId, 2> curr_edge_nodes = curr_edge.get_nodes_orderedbyid();
+        Graph::Edge original_bound_edge = original_graph.get_edge( vect_min_bound_edges[curr_edge_nodes[1] - 1][curr_edge_nodes[0]].first );
+
+        //diese Kante hinzufügen
+        output.add_edge(original_bound_edge.node_a(), original_bound_edge.node_b(), original_bound_edge.weight());
+        added_edges[original_bound_edge.edge_id()] = true;
+
+        //Kanten auf den jeweiligen kürz. Wegen von den Endpunkten der aktuellen Kante zu deren jeweiliger Basis hinzufügen
+        Graph::NodeId var_node_id = original_bound_edge.node_a();
+        Graph::EdgeId edge_to_add_id = _predecessor[var_node_id].second;
+        while( edge_to_add_id != Graph::invalid_edge_id && not added_edges[ edge_to_add_id ] ){
+            output.add_edge( original_graph.get_edge( edge_to_add_id ).node_a(),
+                             original_graph.get_edge( edge_to_add_id ).node_b(),
+                             original_graph.get_edge( edge_to_add_id ).weight() );
+            added_edges[ edge_to_add_id ] = true;
+
+            var_node_id = _predecessor[var_node_id].first;
+            edge_to_add_id = _predecessor[var_node_id].second;
+        }
+
+        var_node_id = original_bound_edge.node_b();
+        edge_to_add_id = _predecessor[var_node_id].second;
+        while( edge_to_add_id != Graph::invalid_edge_id && not added_edges[ edge_to_add_id ] ){
+            output.add_edge( original_graph.get_edge( edge_to_add_id ).node_a(),
+                             original_graph.get_edge( edge_to_add_id ).node_b(),
+                             original_graph.get_edge( edge_to_add_id ).weight() );
+            added_edges[ edge_to_add_id ] = true;
+
+            var_node_id = _predecessor[var_node_id].first;
+            edge_to_add_id = _predecessor[var_node_id].second;
+        }
+
+    }
+
+    output = output.copygraph_wo_iso_nodes();
+
+    return output;
+}

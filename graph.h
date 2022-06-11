@@ -150,7 +150,12 @@ public:
     //gibt Kopie des Graphen aus, aber ohne Kanten
     Graph copygraph_wo_edges() const;
     //gibt Kopie des Graphen aus, in der alle Knoten ohne Nachbarn entfernt wurden
-    Graph copygraph_wo_iso_nodes();
+    Graph copygraph_wo_iso_nodes() const;
+    //gibt Kopie des Graphen aus, in der alle Nicht-Terminale mit Knotengrad 1 entfernt wurden
+    Graph copygraph_wo_steinerleafs() const;
+
+    //berechnet min. Spannbaum der Zsmhangskomp. des Startknoten
+    Graph mst_prim(Graph::NodeId start_node) const;
 
     //gibt 1 aus gdw. nicht-negative Kantengewichte vorliegen
     bool edgeweight_nonnegative() const;
@@ -158,7 +163,7 @@ public:
     bool edgeweight_finite() const;
     //gibt 1 aus gdw. Graph einfach
     bool check_if_simple() const;
-    //gibt 1 aus gdw. other_graph dem Graphen entspricht (Terminale werden nicht berücksichtigt)
+    //gibt 1 aus gdw. die Kanten von other_graph bis auf Permutation der EdgeIds denen des Graphen entsprechen (Terminale werden nicht betrachtet)
     //Eingabe: endliche Kantengewichte, einfache Graphen, NodeIds müssen "gleich" sein (d. h. wir prüfen nicht, ob Graphen ggf. nach Umnummerierung der Knoten gleich sind)
     bool check_if_isomorph(const Graph& other_graph) const;
 

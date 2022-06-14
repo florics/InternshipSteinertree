@@ -5,7 +5,7 @@
 #ifndef PRAKTIKUMSTEINERBAUM_MEHLHORNS_ALGO_H
 #define PRAKTIKUMSTEINERBAUM_MEHLHORNS_ALGO_H
 
-#include "voronoi_diagram.cpp"
+#include "graph.h"
 
 Graph mehlhorns_algo(Graph& original_graph);
 

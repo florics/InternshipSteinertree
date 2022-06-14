@@ -7,9 +7,9 @@
 #include <fstream>
 #include <limits>
 #include <utility>
-#include <array>
-#include <queue>
+
 #include "graph.h"
+#include "graph_aux_functions.h"
 
 const Graph::EdgeWeight Graph::infinite_weight = std::numeric_limits<double>::max();
 const Graph::PathLength Graph::infinite_length = std::numeric_limits<double>::max();
@@ -19,6 +19,7 @@ const Graph::EdgeId Graph::invalid_edge_id = std::numeric_limits<unsigned int>::
 Graph::Graph(int n)
 {
     Graph::add_nodes(n);
+    //instance_name etc nicht definiert
 }
 
 Graph::Edge::Edge(Graph::EdgeId id, Graph::NodeId a, Graph::NodeId b, Graph::EdgeWeight w):
@@ -87,17 +88,17 @@ Graph::NodeId Graph::Edge::get_other_node(Graph::NodeId curr_node)  const{
 void Graph::Edge::reverse_node_order() {
     Graph::NodeId var_node = _node_a;
     _node_a = _node_b;
-    _node_b = _node_a;
+    _node_b = var_node;
 }
 
-std::array<Graph::NodeId, 2> Graph::Edge::get_nodes_orderedbyid() {
+std::pair<Graph::NodeId, Graph::NodeId> Graph::Edge::get_nodes_orderedbyid() {
     if(_node_a < _node_b){
         return {_node_a, _node_b};
     }else if(_node_a > _node_b){
         return {_node_b, _node_a};
     }else{
         std::cout << "Fehler bei Kante mit EdgeId " << _edge_id << "\n";
-        throw std::runtime_error(" (std::array<Graph::NodeId, 2> Graph::Edge::get_nodes_orderedbyid) Kante ist Schleife ");
+        throw std::runtime_error("(Graph::Edge::get_nodes_orderedbyid) Kante ist Schleife ");
     }
 }
 
@@ -106,19 +107,24 @@ void Graph::print() const{
     std::cout << "SECTION Graph \n";
     std::cout << "Nodes " << num_nodes() << "\n";
     std::cout << "Edges " << num_edges() << "\n";
-    for(auto var_edge : _edges){
-        Graph::NodeName a = _nodes[var_edge.node_a()].node_name();
-        Graph::NodeName b = _nodes[var_edge.node_b()].node_name();
-        Graph::EdgeWeight w = var_edge.weight();
-        std::cout << "E " << a << " " << b << " " << w << "\n";
+    for(auto var_edge : edges()){
+        std::cout << "E ";
+        print_nodename(var_edge.node_a());
+        std::cout << " ";
+        print_nodename(var_edge.node_b());
+        std::cout << " ";
+        print_edgeweight( var_edge.weight() );
+        std::cout << "\n";
     }
     std::cout << "\n";
 
     std::cout<< "SECTION Terminals \n";
     std::vector<Graph::NodeId> vect_term = get_vect_term();
     std::cout << "Terminals " << vect_term.size() << "\n";
-    for (unsigned int i : vect_term){
-        std::cout << "T " << _nodes[i].node_name() << "\n";
+    for (unsigned int id : vect_term){
+        std::cout << "T ";
+        print_nodename(id);
+        std::cout << "\n";
     }
     std::cout << "\n";
 
@@ -130,61 +136,51 @@ void Graph::print_by_id() const{
     std::cout << "SECTION Graph \n";
     std::cout << "Nodes " << num_nodes() << "\n";
     std::cout << "Edges " << num_edges() << "\n";
-    for (auto var_edge : _edges){
-        Graph::NodeId a = _nodes[var_edge.node_a()].node_id();
-        Graph::NodeId b = _nodes[var_edge.node_b()].node_id();
-        Graph::EdgeWeight w = var_edge.weight();
-        std::cout << "E " << a << " " << b << " " << w << "\n";
+    for (auto var_edge : edges()){
+        std::cout << "E ";
+        print_nodeid( var_edge.node_a() );
+        std::cout << " ";
+        print_nodeid( var_edge.node_b() );
+        std::cout << " ";
+        print_edgeweight( var_edge.weight() );
+        std::cout << "\n";
     }
     std::cout << "\n";
 
     std::cout<< "SECTION Terminals \n";
     std::vector<Graph::NodeId> vect_term = get_vect_term();
     std::cout << "Terminals " << vect_term.size() << "\n";
-    for (unsigned int i : vect_term){
-        std::cout << "T " << _nodes[i].node_id() << "\n";
+    for (unsigned int id : vect_term){
+        std::cout << "T ";
+        print_nodeid(id);
+        std::cout << "\n";
     }
     std::cout << "\n";
 
 }
 
 // ? theoretisch müsste ich das in alle print Funktionen einfügen (oder brauche ich die Fktn nicht?)
-void Graph::print_node(Graph::NodeId id) const{
-    if(id != Graph::invalid_node_id){
-        std::cout << id +1;
+void Graph::print_nodename(Graph::NodeId id) const{
+    if(id == Graph::invalid_node_id){
+        std::cout << " \" invalid_node \" ";
+    }else if(num_nodes() <= id) {
+        throw std::runtime_error("(Graph::print_nodename) Knoten mit NodeId id liegt nicht im Graph");
     }else{
-     std::cout << " \" invalid_node \" ";
-    }
-}
-
-void Graph::print_edgeid(Graph::EdgeId id) const {
-    if(id != Graph::invalid_edge_id){
-        std::cout << id;
-    }else{
-        std::cout << " 'invalid_edge' ";
+        get_node(id).print_nodename();
     }
 }
 
 void Graph::print_edge_as_pair(Graph::EdgeId id) const {
-    if(id < _edges.size()) {
+    if(id < num_edges()) {
         std::cout << "(";
-        Graph::print_node( _edges[ id ].node_a() ),
+        Graph::print_nodename(get_edge(id).node_a() ),
         std::cout << ",";
-        Graph::print_node( _edges[ id ].node_b() ),
+        Graph::print_nodename( get_edge(id).node_b() ),
         std::cout << ")";
     } else if(id == Graph::invalid_edge_id) {
         std::cout << " 'invalid_edge' ";
     } else {
-        std::cout << "Fehler: Kante nicht im Graph.";
-    }
-}
-
-
-void Graph::print_pathlength(Graph::PathLength l) const {
-    if(l != Graph::infinite_length){
-        std::cout << l;
-    }else{
-        std::cout << " 'infinite_length' ";
+        throw std::runtime_error("(Graph::print_edge_as_pair) Kante mit EdgeId id nicht im Graph");
     }
 }
 
@@ -204,8 +200,8 @@ Graph::TerminalState Graph::Node::terminal_state() const {
 }
 
 void Graph::set_terminal(Graph::NodeId v, Graph::TerminalState t){
-    if(v < _nodes.size()){
-        _nodes[v].set_terminal(t);
+    if(v < num_nodes()){
+        set_terminal(v,t);
     }else{
         std::cout << "v=" << v << "\n";
         throw std::runtime_error("Der Knoten v ist nicht im Graphen.");
@@ -214,23 +210,23 @@ void Graph::set_terminal(Graph::NodeId v, Graph::TerminalState t){
 
 std::vector<Graph::NodeId> Graph::get_vect_term() const{
     std::vector<Graph::NodeId> output;
-    for(unsigned int i = 0; i<num_nodes(); i++){
-        if(_nodes[i].check_terminal()){
-            output.push_back( (Graph::NodeId) i);
+    for(Graph::NodeId i = 0; i<num_nodes(); i++){
+        if(get_node(i).check_terminal()){
+            output.push_back(i);
         }
     }
     return output;
 }
 
 void Graph::add_one_node(Graph::NodeName name, Graph::TerminalState t){
-    NodeId id = _nodes.size();
-    Graph::Node v(id, name, t);
-    add_one_existing_node(v);
+    NodeId id = num_nodes();
+    Graph::Node new_node(id, name, t);
+    add_one_existing_node(new_node);
 }
 
-void Graph::add_one_existing_node(const Graph::Node& v){
-    Graph::NodeId id = v.node_id();
-    unsigned int new_n = _nodes.size();
+void Graph::add_one_existing_node(const Graph::Node& new_node){
+    Graph::NodeId id = new_node.node_id();
+    unsigned int new_n = num_nodes();
 
     if(id != new_n){
         std::cout << "Knoten mit NodeId " << id << " kann nicht hinzugefuegt werden, ";
@@ -238,7 +234,7 @@ void Graph::add_one_existing_node(const Graph::Node& v){
         throw std::runtime_error("Funktion add_one_existing_node");
     }
 
-    _nodes.push_back(v);
+    _nodes.push_back(new_node);
 }
 
 void Graph::add_nodes(int num_new_nodes){
@@ -246,7 +242,7 @@ void Graph::add_nodes(int num_new_nodes){
         throw std::runtime_error("(Graph::add_nodes) num_new_nodes<0");
     }
 
-    unsigned int num_old_nodes = _nodes.size();
+    unsigned int num_old_nodes = num_nodes();
     for(unsigned int i=0; i< (unsigned) num_new_nodes; i++){
         //_node_name wird einfach auf "1 + Stelle in _nodes, wo der neue Knoten gespeichert wird" gesetzt
         Graph::add_one_node( (Graph::NodeName) num_old_nodes +i +1, Graph::no_terminal);
@@ -274,15 +270,19 @@ void Graph::Node::set_node_name(Graph::NodeName new_name){
 
 /*  ?? siehe Header-Datei
 Graph::Node& Graph::get_node(Graph::NodeId v) const{
-    if(v >= _nodes.size() ){
+    if(v >= num_nodes() ){
         throw std::runtime_error("(Graph::Node& Graph::get_node) Knoten v liegt nicht im Graphen");
     }
     return _nodes[v];
 }
  */
 
+std::vector<Graph::Node> Graph::nodes() const {
+    return _nodes;
+}
+
 const Graph::Node& Graph::get_node(Graph::NodeId v) const{
-    if(v >= _nodes.size() ){
+    if(v >= num_nodes() ){
         throw std::runtime_error("(const Graph::Node& Graph::get_node) Knoten v liegt nicht im Graphen");
     }
     return _nodes[v];
@@ -290,37 +290,6 @@ const Graph::Node& Graph::get_node(Graph::NodeId v) const{
 
 std::vector<Graph::EdgeId> Graph::Node::incidence_vect() const{
     return _incidence_vect;
-}
-
-void Graph::print_incidence_vect(Graph::NodeId id) const{
-    const Graph::Node& v = get_node(id); //einfach auf _nodes zugreifen?
-    std::vector<Graph::EdgeId> inc_vect = v.incidence_vect();
-    unsigned int num_neighb = inc_vect.size();
-    std::cout << "Knoten " << v.node_name() << " ist zu " << num_neighb << " Kanten inzident: \n";
-    for(unsigned int i = 0; i < num_neighb; i++){
-        Graph::Edge curr_edge = _edges[i];
-        //finden der _node_name's der zu curr_edge inzidenten Knoten
-        const Graph::NodeName& name_a = get_node( curr_edge.node_a() ).node_name(); //einfach auf _nodes zugreifen?
-        const Graph::NodeName& name_b = get_node( curr_edge.node_b() ).node_name(); //einfach auf _nodes zugreifen?
-        std::cout << "E " << name_a << " " << name_b << " " << curr_edge.weight() << "\n";
-    }
-}
-
-void Graph::print_incidence_vect_by_id(Graph::NodeId id) const{
-    const Graph::Node& v = get_node(id); //einfach auf _nodes zugreifen?
-    std::vector<Graph::EdgeId> inc_vect = v.incidence_vect();
-    unsigned int num_neighb = inc_vect.size();
-    std::cout << "Knoten " << v.node_id() << " ist zu " << num_neighb << " Kanten inzident: (hier werden die _node_id's verwendet) \n";
-    for(unsigned int i = 0; i < num_neighb; i++){
-        Graph::Edge curr_edge = _edges[i];
-        std::cout << "E " << curr_edge.node_a() << " " << curr_edge.node_b() << " " << curr_edge.weight() << "\n";
-    }
-}
-
-void Graph::print_all_incidence_vect_by_id() const{
-    for(unsigned int i=0; i<_nodes.size(); i++){
-        print_incidence_vect_by_id((Graph::NodeId) i);
-    }
 }
 
 void Graph::Node::add_neighbor_edge(EdgeId e){
@@ -331,18 +300,64 @@ unsigned int Graph::Node::num_neighbors()  const{
     return _incidence_vect.size();
 }
 
+void Graph::Node::print_nodename() const {
+    std::cout << node_name();
+}
+
+//? nicht getestet
+void Graph::print_incidence_vect(Graph::NodeId id) const{
+    const Graph::Node& v = get_node(id);
+    std::cout << "Knoten ";
+    print_nodename(id);
+    std::cout << " ist zu " << v.num_neighbors() << " Kanten inzident: \n";
+    for(auto curr_edgeid : v.incidence_vect() ){
+        Graph::Edge curr_edge = get_edge(curr_edgeid);
+        std::cout << "E ";
+        print_nodename( curr_edge.node_a() );
+        std::cout << " ";
+        print_nodename( curr_edge.node_b() );
+        std::cout << " ";
+        print_edgeweight( curr_edge.weight() );
+        std::cout << "\n";
+    }
+}
+
+//? nicht getestet
+void Graph::print_incidence_vect_by_id(Graph::NodeId id) const{
+    const Graph::Node& v = get_node(id);
+    std::cout << "Knoten mit NodeId";
+    print_nodeid(id);
+    std::cout << " ist zu " << v.num_neighbors() << " Kanten inzident: (hier werden die _node_id's verwendet) \n";
+    for(auto curr_edgeid : v.incidence_vect() ){
+        Graph::Edge curr_edge = get_edge(curr_edgeid);
+        std::cout << "E ";
+        print_nodeid( curr_edge.node_a() );
+        std::cout << " ";
+        print_nodeid( curr_edge.node_b() );
+        std::cout << " ";
+        print_edgeweight( curr_edge.weight() );
+        std::cout << "\n";
+    }
+}
+
+void Graph::print_all_incidence_vect_by_id() const{
+    for(unsigned int i=0; i<num_nodes(); i++){
+        print_incidence_vect_by_id((Graph::NodeId) i);
+    }
+}
+
 const Graph::Edge& Graph::get_edge(Graph::EdgeId e) const {
-    if(e >= _edges.size() ){
+    if(e >= num_edges() ){
         throw std::runtime_error("(const Graph::Edge& Graph::get_edge) Kante e liegt nicht im Graphen");
     }
     return _edges[e];
 }
 
-void Graph::add_existing_edge(Edge e){
+void Graph::add_existing_edge(const Edge& e){
     Graph::NodeId a = e.node_a();
     Graph::NodeId b = e.node_b();
     Graph::EdgeId id = e.edge_id();
-    unsigned int new_m = _edges.size();
+    unsigned int new_m = num_edges();
 
     if(a >= Graph::num_nodes()){
         std::cout << "Kante (" << a << "," << b << ") kann nicht hinzugefuegt werden, da " << a  << " kein Knoten ist. \n";
@@ -373,7 +388,7 @@ void Graph::add_existing_edge(Edge e){
 }
 
 void Graph::add_edge(Graph::NodeId a, Graph::NodeId b, Graph::EdgeWeight w){
-    EdgeId id = _edges.size();
+    EdgeId id = num_edges();
     //Erstellen der Kante
     Edge e(id, a, b, w);
     //Hinzufügen der Kante zum Graphen (siehe add_existing_edge)
@@ -385,7 +400,14 @@ void Graph::add_existing_edge_w_newid(Graph::Edge new_edge) {
 }
 
 bool Graph::edgeweight_nonnegative() const{
-    for(auto var_edge : _edges){
+    /* ??
+    if( std::any_of(_edges, weight() < 0){
+        return false
+    } else {
+        return true
+    }
+     */
+    for(auto var_edge : edges()){
         if(var_edge.weight() < 0){
             return false;
         }
@@ -394,7 +416,7 @@ bool Graph::edgeweight_nonnegative() const{
 }
 
 bool Graph::edgeweight_finite() const{
-    for(auto var_edge : _edges){
+    for(auto var_edge : edges()){
         if( var_edge.weight() == Graph::infinite_weight ){
             return false;
         }
@@ -408,256 +430,23 @@ bool Graph::check_if_simple() const{
 
     //Initialisieren
     for(unsigned int i = 0; i < num_nodes()-1; i++){
-        std::vector<bool> var_bool_vector (i+1, 0);
+        std::vector<bool> var_bool_vector (i+1, false);
         adjacency_matrice.push_back(var_bool_vector);
     }
 
     //ausfüllen entsprechend der Kanten des Graphen und prüfen, ob Kante (bzw. Knotenpaar) doppelt
     for(auto curr_edge : edges() ){
-        std::array<Graph::NodeId, 2> curr_edge_nodes = curr_edge.get_nodes_orderedbyid();
-        if( adjacency_matrice[ curr_edge_nodes[1]-1 ][ curr_edge_nodes[0] ] ){
+        std::pair<Graph::NodeId, Graph::NodeId> curr_edge_nodes = curr_edge.get_nodes_orderedbyid();
+        if( adjacency_matrice[ curr_edge_nodes.second-1 ][ curr_edge_nodes.first ] ){
             std::cout << "(check_if_simple) Kante (bzw. Knotenpaar) ";
             print_edge_as_pair( curr_edge.edge_id() );
             std::cout << " ist doppelt. \n";
-            return 0;
+            return false;
         }
-        adjacency_matrice[ curr_edge_nodes[1]-1 ][ curr_edge_nodes[0] ] = 1;
+        adjacency_matrice[ curr_edge_nodes.second-1 ][ curr_edge_nodes.first ] = true;
     }
 
-    return 1;
-}
-
-// ? nicht sicher ob das funzt: die Instanzen der Uni sind alle isomorph laut dieser Methode
-bool Graph::check_if_isomorph(const Graph& other_graph) const{
-    //Eingabe prüfen
-    if(not edgeweight_finite()){
-        throw std::runtime_error("(check_if_isomorph) Graph hat unendliche Kantengewichte");
-    }
-    if(not other_graph.edgeweight_finite()){
-        throw std::runtime_error("(check_if_isomorph) eingegebener Graph hat unendliche Kantengewichte");
-    }
-    if(not check_if_simple() ){
-        throw std::runtime_error("(check_if_isomorph) Graph ist nicht einfach");
-    }
-    if(not other_graph.check_if_simple() ){
-        throw std::runtime_error("(check_if_isomorph) eingegebener Graph ist nicht einfach");
-    }
-
-    //leichte Checks
-    if( num_nodes() != other_graph.num_nodes() ){
-        std::cout << "(check_if_isomorph) Knotenanzahl nicht gleich \n";
-        return 0;
-    }
-    if( num_edges() != other_graph.num_edges() ){
-        std::cout << "(check_if_isomorph) Kantenanzahl nicht gleich \n";
-        return 0;
-    }
-
-    //Matrix für alle Knotenpaare, Adjazenzmatrix
-    // edge_weight_matrice[i][j] entspricht Knotenpaar i+1, j (wobei i >= j)
-    std::vector< std::vector<Graph::EdgeWeight> > edge_weight_matrice;
-    std::vector< std::vector<bool> > adjacency_matrice;
-
-    //Initialisieren
-    for(unsigned int i = 0; i < num_nodes()-1; i++){
-        std::vector<Graph::EdgeWeight> var_weight_vector (i+1, Graph::infinite_weight);
-        edge_weight_matrice.push_back(var_weight_vector);
-
-        std::vector<bool> var_bool_vector (i+1, 0);
-        adjacency_matrice.push_back(var_bool_vector);
-    }
-
-
-    //ausfüllen entsprechend der Kanten des aktuellen Graphen
-    for(auto curr_edge : edges() ){
-        std::array<Graph::NodeId, 2> curr_edge_nodes = curr_edge.get_nodes_orderedbyid();
-
-        edge_weight_matrice[ curr_edge_nodes[1]-1 ][ curr_edge_nodes[0] ] = curr_edge.weight();
-
-        adjacency_matrice[ curr_edge_nodes[1]-1 ][ curr_edge_nodes[0] ] = 1;
-    }
-
-    //Gleichheit der Kanten des eingegebenen Graphen prüfen
-    for(auto curr_edge : other_graph.edges() ){
-        std::array<Graph::NodeId, 2> curr_edge_nodes = curr_edge.get_nodes_orderedbyid();
-
-        if( not adjacency_matrice[ curr_edge_nodes[1]-1 ][ curr_edge_nodes[0] ] ){
-            std::cout << "(check_if_isomorph) Kante ";
-            other_graph.print_edge_as_pair( curr_edge.edge_id() );
-            std::cout << " liegt in eingegebenem Graph aber nicht im aktuellen. \n";
-            return 0;
-        }
-        if( edge_weight_matrice[ curr_edge_nodes[1]-1 ][ curr_edge_nodes[0] ] != curr_edge.weight() ){
-            std::cout << "(check_if_isomorph) Kantengewicht der Kante ";
-            other_graph.print_edge_as_pair( curr_edge.edge_id() );
-            std::cout << "ungleich. \n";
-            return 0;
-        }
-
-        //am Ende sollte die Adjazenz-Matrix nur Nullen enthalten
-        adjacency_matrice[ curr_edge_nodes[1]-1 ][ curr_edge_nodes[0] ] = 0;
-    }
-
-    for(unsigned int i = 0; i < num_nodes()-1; i++){
-        for(unsigned int j = 0; j < i+1; j++){
-            if( adjacency_matrice[i][j] ){
-                std::cout << "(check_if_isomorph) Kante (" << i+1 << "," << j << ") liegt im aktuellen Graph aber nicht im eingegebenen. \n";
-                return 0;
-            }
-        }
-    }
-
-    return 1;
-}
-
-Graph Graph::copygraph_wo_edges() const{
-    Graph output(0);
-    for( auto curr_node : _nodes){
-        output.add_one_node( curr_node.node_name(), curr_node.terminal_state() );
-    }
-    return output;
-}
-
-Graph Graph::copygraph_wo_iso_nodes() const{
-    Graph output_graph(0);
-    std::vector< Graph::NodeId > new_node_ids ( num_nodes(), Graph::invalid_node_id );
-
-    //Knoten hinzufügen
-    unsigned int output_graph_nodes = 0;
-    for(Graph::NodeId i=0; i<num_nodes(); i++){
-        Graph::Node curr_node = get_node(i);
-        if( curr_node.num_neighbors() != 0 ){
-            output_graph.add_one_node( curr_node.node_name(), curr_node.terminal_state() );
-
-            //merke node_id bzgl output-Graph des Knoten mit node_id i bzgl g
-            new_node_ids[ i ] = output_graph_nodes;
-            output_graph_nodes++;
-        }
-    }
-
-    //Kanten hinzufügen
-    for (auto var_edge : edges() ){
-        //"konstruiere" neue Kante
-        Graph::NodeId new_node_a =  new_node_ids[var_edge.node_a()];
-        Graph::NodeId new_node_b =  new_node_ids[var_edge.node_b()];
-
-        //füge sie zu output hinzu
-        output_graph.add_edge(new_node_a, new_node_b, var_edge.weight());
-    }
-
-    return output_graph;
-}
-
-Graph Graph::copygraph_wo_steinerleafs() const {
-    Graph output_graph(0);
-    std::vector< Graph::NodeId > new_node_ids ( num_nodes(), Graph::invalid_node_id );
-
-    //Knoten hinzufügen
-    unsigned int output_graph_nodes = 0;
-    for(Graph::NodeId i=0; i<num_nodes(); i++){
-        Graph::Node curr_node = get_node(i);
-        if( curr_node.num_neighbors() == 1 && not curr_node.check_terminal() ) {
-            continue;
-        } else {
-            output_graph.add_one_node( curr_node.node_name(), curr_node.terminal_state() );
-
-            //merke node_id bzgl output-Graph des Knoten mit node_id i bzgl g
-            new_node_ids[ i ] = output_graph_nodes;
-            output_graph_nodes++;
-        }
-    }
-
-    //Kanten hinzufügen
-    for (auto var_edge : edges() ){
-        //"konstruiere" neue Kante
-        Graph::NodeId new_node_a =  new_node_ids[var_edge.node_a()];
-        Graph::NodeId new_node_b =  new_node_ids[var_edge.node_b()];
-
-        //füge sie zu output hinzu
-        if( new_node_a != Graph::invalid_edge_id && new_node_b != Graph::invalid_edge_id){
-            output_graph.add_edge(new_node_a, new_node_b, var_edge.weight());
-        }
-    }
-
-    return output_graph;
-}
-
-Graph Graph::mst_prim(Graph::NodeId start_node) const {
-    Graph output = copygraph_wo_edges();
-
-    //Heap, mit dem wir jeweils den besten Kandidaten (Knoten) finden
-    std::priority_queue<
-            std::pair<Graph::EdgeWeight ,Graph::NodeId>,
-            std::vector< std::pair<Graph::EdgeWeight ,Graph::NodeId> >,
-            std::greater< std::pair<Graph::EdgeWeight ,Graph::NodeId> >
-    > candidates;
-    //speichert für jeden Knoten die aktuell beste bekannte Kante, wenn wir diesen Knoten hinzufügen wollen
-    std::vector<Graph::EdgeId> best_edges (num_nodes(), Graph::invalid_edge_id);
-    //speichert die bereits hinzugefügten Knoten
-    std::vector<bool> reached (num_nodes(), false);
-    reached [start_node] = true;
-
-    //erste Schleife über die Nachbarn des Startknoten
-    for(auto curr_edge_id: get_node(start_node).incidence_vect()){
-        Graph::Edge curr_edge = get_edge(curr_edge_id);
-        Graph::NodeId curr_neighbor = curr_edge.get_other_node(start_node);
-        if( best_edges[curr_neighbor] == Graph::invalid_edge_id ){
-            candidates.push( {curr_edge.weight(), curr_neighbor} );
-            best_edges[curr_neighbor] = curr_edge_id;
-        }else if( curr_edge.weight() < get_edge( best_edges[curr_neighbor] ).weight() ){
-            candidates.push( {curr_edge.weight(), curr_neighbor} );
-            best_edges[curr_neighbor] = curr_edge_id;
-        }
-    }
-
-    while( not candidates.empty() ){
-        Graph::NodeId next_cand = candidates.top().second;
-        Graph::EdgeWeight next_cand_weight = candidates.top().first;
-        candidates.pop();
-
-        //debug: der Fall kann eig nicht eintreten
-        if( best_edges[next_cand] == Graph::invalid_edge_id ){
-            throw std::runtime_error("mst_prim: best_edges[next_cand] == Graph::invalid_edge_id.");
-        }
-
-        //was ist, wenn next_cand_weight unendlich ??
-
-        //falls die Bedingung der if-Abfrage eintritt, haben wir tatsächlich den besten nächsten Kandidaten gefunden
-        //bemerke, dass get_edge( best_edges[next_cand] ) "wohldefiniert" ist,
-        // da jeder Knoten, der mind. einmal zu candidates hinzugefügt wird, eine valide Kante in best_edges erhält
-        if( next_cand_weight == get_edge( best_edges[next_cand] ).weight() ){
-            output.add_edge(
-                    get_edge(best_edges[next_cand]).node_a(),
-                    get_edge(best_edges[next_cand]).node_b(),
-                    get_edge(best_edges[next_cand]).weight()
-                    );
-            reached[next_cand] = true;
-
-            //Finde neue Kandidaten
-            for(auto curr_edge_id: get_node(next_cand).incidence_vect()){
-                Graph::Edge curr_edge = get_edge(curr_edge_id);
-                Graph::NodeId curr_neighbor = curr_edge.get_other_node(next_cand);
-                if( not reached[curr_neighbor] ){
-
-                    if( best_edges[curr_neighbor] == Graph::invalid_edge_id ){
-                        candidates.push( {curr_edge.weight(), curr_neighbor} );
-                        best_edges[curr_neighbor] = curr_edge_id;
-                    }else if( curr_edge.weight() < get_edge( best_edges[curr_neighbor] ).weight() ){
-                        candidates.push( {curr_edge.weight(), curr_neighbor} );
-                        best_edges[curr_neighbor] = curr_edge_id;
-                    }
-
-                }
-            }
-
-        }
-
-    }
-
-    //Laufzeit?
-    output = output.copygraph_wo_iso_nodes();
-
-    return output;
+    return true;
 }
 
 void Graph::instance_comment() const{
@@ -739,7 +528,7 @@ Graph::Graph(char const* filename){
             else{
                 var = line.substr(5, line.length());
                 std::stringstream ssn(var);
-                unsigned int n; //Anzahl der Knoten
+                int n; //Anzahl der Knoten
                 ssn >> n;
                 add_nodes(n);
             }
@@ -835,7 +624,7 @@ Graph::Graph(char const* filename){
     }
 
     //prüfen, ob angegebene Kanten-/Terminalanzahl mit aufgelisteten Kanten/Terminalen übereinstimmt
-    if( _edges.size() != m){
+    if( num_edges() != m){
         throw std::runtime_error("(Einlesen) angegebene Kantenanzahl ungleich Anzahl aufgelisteter Kanten");
     }
     if( get_vect_term().size() != t_num){
@@ -844,3 +633,10 @@ Graph::Graph(char const* filename){
 
 }
 
+/*
+Graph::Graph(const Graph& g) {
+    _nodes = g.nodes();
+    _edges = g.edges();
+    //instance_name etc nicht definiert
+}
+*/

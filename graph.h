@@ -5,10 +5,10 @@
 #ifndef PRAKTIKUMSTEINERBAUM_GRAPH_H
 #define PRAKTIKUMSTEINERBAUM_GRAPH_H
 
-#include <list>
-#include <vector>
-#include <string>
+#include "vector"
+#include "string"
 
+//todo manchmal schreibe ich Graph::Edge und manchmal Edge, fehlende Konsistenz!
 
 class Graph {
 public:
@@ -36,7 +36,7 @@ public:
         //kehrt die Reihenfolge um, in der die zur Kante inzidenten Knoten gespeichert sind (also _node_a, _node_b)
         void reverse_node_order();
         //gibt die Knoten der Kanten in aufsteigender (entsprechend NodeId) Reihenfolge aus
-        std::array<Graph::NodeId, 2> get_nodes_orderedbyid();
+        std::pair<NodeId, NodeId> get_nodes_orderedbyid();
 
     private:
         //Stelle, an der die Kante in _edges steht
@@ -75,9 +75,14 @@ public:
         //gibt 1 aus, wenn Knoten Terminal ist
         bool check_terminal() const;
 
+        //Hilfsfunktion zur Ausgabe von Knoten auf Konsole (gibt _nodename oder 'invalid_node' aus) (löschen?)
+        void print_nodename() const;
+
     private:
         //Stelle, an dem Knoten in _nodes gespeichert ist
-        const NodeId _node_id;
+        // const NodeId _node_id; ?? das hat irgendwie ganz große Probleme gemacht,
+        // als ich Voronoi_diagram.cpp und graph_algorithms.cpp einbinden wollte (in CMake, add_executable)
+        NodeId _node_id;
 
         //Name für den Knoten, wird vor allem für die Ausgabe benutzt, beim Einlesen wird hier genau die Zahl genommen, die im SteinLib_Format verwendet wird
         //nicht eindeutig
@@ -96,76 +101,66 @@ public:
 
     Graph(int n);
 
+    //copy-constructor
+    //Graph(const Graph& g);
+
     unsigned int num_nodes() const;
     unsigned int num_edges() const;
 
+    //todo: auslagern
     //gibt Graph auf Konsole aus, Knoten werden über _node_name ausgegeben
     void print() const;
     //gibt Graph auf Konsole aus, Knoten werden über _node_id ausgegeben
     void print_by_id() const;
     //gibt Inzidenz-Vektor auf Konsole aus, Knoten werden als _node_name ausgegeben
-    void print_incidence_vect(Graph::NodeId id) const;
+    void print_incidence_vect(NodeId id) const;
     //gibt Inzidenz-Vektor auf Konsole aus, Knoten werden als _node_id ausgegeben
-    void print_incidence_vect_by_id(Graph::NodeId id) const;
+    void print_incidence_vect_by_id(NodeId id) const;
     //gibt alle Inzidenz-Vektor auf Konsole aus, Knoten werden als _node_id ausgegeben
     void print_all_incidence_vect_by_id()  const;
-    //Hilfsfunktion zur Ausgabe von Knoten auf Konsole
-    void print_node(NodeId id) const;
-    // Hilfsfunktion zur Ausgabe von EdgeIds auf Konsole
-    void print_edgeid(Graph::EdgeId id) const;
-    // Hilfsfunktion zur Ausgabe von Weg-Längen auf Konsole
-    void print_pathlength(Graph::PathLength l) const;
+    //Hilfsfunktion zur Ausgabe von Knoten auf Konsole (gibt _nodename oder 'invalid_node' aus) (löschen?)
+    void print_nodename(NodeId id) const;
     // Hilfsfunktion zur Ausgabe von Kanten als Knotenpaar auf Konsole (Paar von NodeName's)
-    void print_edge_as_pair(Graph::EdgeId id) const;
+    void print_edge_as_pair(EdgeId id) const;
 
     //fügt einen Knoten zum Graphen hinzu (!prüft aber nicht ob _node_name eindeutig!)
     void add_one_node(NodeName name, TerminalState t);
     //fügt existierenden Knoten zum Graphen hinzu (!prüft aber nicht ob _node_name eindeutig!)
-    void add_one_existing_node(const Graph::Node& v);
+    //(NodeId von v wird nicht verändert und muss deshalb der Anzahl der Knoten des Graphen (vor Aufruf der Funktion) entsprechen)
+    void add_one_existing_node(const Node& new_node);
     //fügt n Knoten hinzu (Knoten sind keine Terminale, _node_name wird einfach auf "1 + Stelle in _nodes, wo der neue Knoten gespeichert wird" gesetzt)
     void add_nodes(int num_new_nodes);
 
     //erstellt Kante entsprechend der Eingabe und fügt sie zum Graphen hinzu
-    void add_edge(Graph::NodeId a, Graph::NodeId b, Graph::EdgeWeight w);
-    //fügt existierende Kante zu Graph hinzu (EdgeId wird nicht verändert)
-    void add_existing_edge(Edge new_edge);
+    void add_edge(NodeId a, NodeId b, EdgeWeight w);
+    //fügt existierende Kante zu Graph hinzu (EdgeId von new_edge wird nicht verändert und muss deshalb der Anzahl der Kanten des Graphen (vor Aufruf der Fktn) entsprechen)
+    void add_existing_edge(const Edge& new_edge);
     //fügt existierende Kante zu Graph hinzu, wobei die EdgeId angepasst wird //? eher unnötig: ggf. löschen!
     void add_existing_edge_w_newid(Edge new_edge);
 
 
     //macht den Knoten v zu einem Terminal oder zu einem Nicht-Terminal
-    void set_terminal(Graph::NodeId v, Graph::TerminalState t);
+    void set_terminal(NodeId v, TerminalState t);
     //gibt Vektor mit allen Terminalen aus, in dem Vektor stehen jeweils die Stellen, an denen die Terminale in _nodes gespeichert sind, also die NodeId's
-    std::vector<Graph::NodeId> get_vect_term() const;
+    std::vector<NodeId> get_vect_term() const;
 
-    //Graph::Node& get_node(Graph::NodeId v) const; //brauche ich das überhaupt? direkter zugriff auf knoten v mit _nodes[v] !?
+    //Graph::Node& get_node(NodeId v) const; //brauche ich das überhaupt? direkter zugriff auf knoten v mit _nodes[v] !?
 
+    std::vector<Node> nodes() const;
     //gibt Referenz auf Knoten mit NodeId v aus
-    const Graph::Node& get_node(Graph::NodeId v) const;
+    const Node& get_node(NodeId v) const;
 
+    std::vector<Edge> edges() const;
     //gibt Referenz auf Kante mit EdgeId v aus
-    const Graph::Edge& get_edge(Graph::EdgeId e) const;
-    std::vector<Graph::Edge> edges() const;
+    const Edge& get_edge(EdgeId e) const;
 
-    //gibt Kopie des Graphen aus, aber ohne Kanten
-    Graph copygraph_wo_edges() const;
-    //gibt Kopie des Graphen aus, in der alle Knoten ohne Nachbarn entfernt wurden
-    Graph copygraph_wo_iso_nodes() const;
-    //gibt Kopie des Graphen aus, in der alle Nicht-Terminale mit Knotengrad 1 entfernt wurden
-    Graph copygraph_wo_steinerleafs() const;
-
-    //berechnet min. Spannbaum der Zsmhangskomp. des Startknoten
-    Graph mst_prim(Graph::NodeId start_node) const;
-
+    //todo: auslagern
     //gibt 1 aus gdw. nicht-negative Kantengewichte vorliegen
     bool edgeweight_nonnegative() const;
-    //gibt 1 aus gdw. alle Kanten Gewicht < infinite_weight haben
+    //gibt 1 aus gdw. alle Kanten Gewicht (im Betrag) < infinite_weight haben
     bool edgeweight_finite() const;
     //gibt 1 aus gdw. Graph einfach
     bool check_if_simple() const;
-    //gibt 1 aus gdw. die Kanten von other_graph bis auf Permutation der EdgeIds denen des Graphen entsprechen (Terminale werden nicht betrachtet)
-    //Eingabe: endliche Kantengewichte, einfache Graphen, NodeIds müssen "gleich" sein (d. h. wir prüfen nicht, ob Graphen ggf. nach Umnummerierung der Knoten gleich sind)
-    bool check_if_isomorph(const Graph& other_graph) const;
 
     static const EdgeWeight infinite_weight;
     static const PathLength infinite_length;

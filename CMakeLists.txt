@@ -3,4 +3,4 @@ project(PraktikumSteinerbaum)
 
 set(CMAKE_CXX_STANDARD 20)
 
-add_executable(PraktikumSteinerbaum main.cpp)
+add_executable(PraktikumSteinerbaum main.cpp graph.cpp graph_aux_functions.cpp voronoi_diagram.cpp graph_algorithms.cpp mehlhorns_algo.cpp)

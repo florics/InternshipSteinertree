@@ -25,9 +25,6 @@ public:
     //Ausgabe auf Konsole: Voronoi-Region der Basis var_base (var_base muss Basis sein)
     void print_region(Graph::NodeId var_base) const;
 
-    // Hilfsfunktion zur Ausgabe von Weg-Längen auf Konsole //auslagern!?
-    void print_pathlength(Graph::PathLength l) const;
-
     //setzt Menge der Basen auf new_set_of_bases; macht, dass alle Basen sich selbst als Basis haben sowie dass ihr Abstand zur Basis 0 ist; setzt BaseIds
     //nach Aufruf dieser Methode ist das Voronoi-Diagramm ggf. nicht mehr korrekt
     void assign_set_of_bases(const std::vector<Graph::NodeId>& new_set_of_bases);
@@ -40,6 +37,7 @@ public:
     //genauer: die Kanten (v,w), die _dist_to_base[v] + (v,w).weight() + _dist_to_base[w] minimieren
     //Eintrag (i,j) der ausgegebenen "Matrix" entspricht den Basen mit NodeId i+1 und j (wobei i>=j)
     // ? als Atttribut anlegen?
+    // ? Laufzeit/Speicher? ->Kanten direkt in den Graphen ('aux_graph') speichern
     std::vector<
         std::vector<
             std::pair< Graph::EdgeId, Graph::PathLength >

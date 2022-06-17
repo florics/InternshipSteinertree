@@ -67,6 +67,12 @@ build CMakeFiles/PraktikumSteinerbaum.dir/graph_aux_functions.cpp.obj: CXX_COMPI
   OBJECT_DIR = CMakeFiles\PraktikumSteinerbaum.dir
   OBJECT_FILE_DIR = CMakeFiles\PraktikumSteinerbaum.dir
 
+build CMakeFiles/PraktikumSteinerbaum.dir/graph_printfunctions.cpp.obj: CXX_COMPILER__PraktikumSteinerbaum_Debug C$:/Users/Lukas/CLionProjects/PraktikumSteinerbaum/graph_printfunctions.cpp || cmake_object_order_depends_target_PraktikumSteinerbaum
+  DEP_FILE = CMakeFiles\PraktikumSteinerbaum.dir\graph_printfunctions.cpp.obj.d
+  FLAGS = -g -std=gnu++20
+  OBJECT_DIR = CMakeFiles\PraktikumSteinerbaum.dir
+  OBJECT_FILE_DIR = CMakeFiles\PraktikumSteinerbaum.dir
+
 build CMakeFiles/PraktikumSteinerbaum.dir/voronoi_diagram.cpp.obj: CXX_COMPILER__PraktikumSteinerbaum_Debug C$:/Users/Lukas/CLionProjects/PraktikumSteinerbaum/voronoi_diagram.cpp || cmake_object_order_depends_target_PraktikumSteinerbaum
   DEP_FILE = CMakeFiles\PraktikumSteinerbaum.dir\voronoi_diagram.cpp.obj.d
   FLAGS = -g -std=gnu++20
@@ -85,6 +91,12 @@ build CMakeFiles/PraktikumSteinerbaum.dir/mehlhorns_algo.cpp.obj: CXX_COMPILER__
   OBJECT_DIR = CMakeFiles\PraktikumSteinerbaum.dir
   OBJECT_FILE_DIR = CMakeFiles\PraktikumSteinerbaum.dir
 
+build CMakeFiles/PraktikumSteinerbaum.dir/string_aux_functions.cpp.obj: CXX_COMPILER__PraktikumSteinerbaum_Debug C$:/Users/Lukas/CLionProjects/PraktikumSteinerbaum/string_aux_functions.cpp || cmake_object_order_depends_target_PraktikumSteinerbaum
+  DEP_FILE = CMakeFiles\PraktikumSteinerbaum.dir\string_aux_functions.cpp.obj.d
+  FLAGS = -g -std=gnu++20
+  OBJECT_DIR = CMakeFiles\PraktikumSteinerbaum.dir
+  OBJECT_FILE_DIR = CMakeFiles\PraktikumSteinerbaum.dir
+
 
 # =============================================================================
 # Link build statements for EXECUTABLE target PraktikumSteinerbaum
@@ -93,7 +105,7 @@ build CMakeFiles/PraktikumSteinerbaum.dir/mehlhorns_algo.cpp.obj: CXX_COMPILER__
 #############################################
 # Link the executable PraktikumSteinerbaum.exe
 
-build PraktikumSteinerbaum.exe: CXX_EXECUTABLE_LINKER__PraktikumSteinerbaum_Debug CMakeFiles/PraktikumSteinerbaum.dir/main.cpp.obj CMakeFiles/PraktikumSteinerbaum.dir/graph.cpp.obj CMakeFiles/PraktikumSteinerbaum.dir/graph_aux_functions.cpp.obj CMakeFiles/PraktikumSteinerbaum.dir/voronoi_diagram.cpp.obj CMakeFiles/PraktikumSteinerbaum.dir/graph_algorithms.cpp.obj CMakeFiles/PraktikumSteinerbaum.dir/mehlhorns_algo.cpp.obj
+build PraktikumSteinerbaum.exe: CXX_EXECUTABLE_LINKER__PraktikumSteinerbaum_Debug CMakeFiles/PraktikumSteinerbaum.dir/main.cpp.obj CMakeFiles/PraktikumSteinerbaum.dir/graph.cpp.obj CMakeFiles/PraktikumSteinerbaum.dir/graph_aux_functions.cpp.obj CMakeFiles/PraktikumSteinerbaum.dir/graph_printfunctions.cpp.obj CMakeFiles/PraktikumSteinerbaum.dir/voronoi_diagram.cpp.obj CMakeFiles/PraktikumSteinerbaum.dir/graph_algorithms.cpp.obj CMakeFiles/PraktikumSteinerbaum.dir/mehlhorns_algo.cpp.obj CMakeFiles/PraktikumSteinerbaum.dir/string_aux_functions.cpp.obj
   FLAGS = -g
   LINK_LIBRARIES = -lkernel32 -luser32 -lgdi32 -lwinspool -lshell32 -lole32 -loleaut32 -luuid -lcomdlg32 -ladvapi32
   OBJECT_DIR = CMakeFiles\PraktikumSteinerbaum.dir

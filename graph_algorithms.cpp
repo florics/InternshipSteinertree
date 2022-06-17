@@ -3,6 +3,7 @@
 //
 
 #include "queue"
+#include "iostream" //nur für einmal runtime_error (?)
 
 #include "graph_algorithms.h"
 #include "graph_aux_functions.h"
@@ -23,7 +24,7 @@ Graph mst_prim(const Graph& input_graph, Graph::NodeId start_node){
     std::vector<bool> reached (input_graph.num_nodes(), false);
     reached [start_node] = true;
 
-    //erste Schleife über die Nachbarn des Startknoten
+    //erste Schleife über die Nachbarn des Startknoten //? irgendwie in die Hauptschleife packen?
     for(auto curr_edge_id: input_graph.get_node(start_node).incidence_vect()){
         Graph::Edge curr_edge = input_graph.get_edge(curr_edge_id);
         Graph::NodeId curr_neighbor = curr_edge.get_other_node(start_node);
@@ -41,12 +42,10 @@ Graph mst_prim(const Graph& input_graph, Graph::NodeId start_node){
         Graph::EdgeWeight next_cand_weight = candidates.top().first;
         candidates.pop();
 
-        /*
         //debug: der Fall kann eig nicht eintreten
         if( best_edges[next_cand] == Graph::invalid_edge_id ){
             throw std::runtime_error ("mst_prim: best_edges[next_cand] == Graph::invalid_edge_id.");
         }
-         */
 
         //was ist, wenn next_cand_weight unendlich ??
 

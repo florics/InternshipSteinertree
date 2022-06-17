@@ -11,6 +11,7 @@
 
 #include "voronoi_diagram.h"
 #include "graph_aux_functions.h"
+#include "graph_printfunctions.h"
 
 //#include "graph_algorithms.cpp" //? ändern
 
@@ -52,10 +53,10 @@ Voronoi_diagram::Voronoi_diagram(const std::vector<Graph::NodeId>& set_of_b, Gra
         }
     }
     //und für die Kantengewichte von dem Graphen g
-    if(! original_graph.edgeweight_nonnegative()){
+    if(! edgeweight_nonnegative(original_graph)){
         throw std::runtime_error("(constructor Voronoi_diagram) es gibt negative Kantengewichte im Eingabegraphen");
     }
-    if( ! original_graph.edgeweight_finite() ){
+    if( ! edgeweight_finite(original_graph) ){
         throw std::runtime_error("(constructor Voronoi_diagram) es gibt Kante im Eingabegraphen mit Gewicht 'numeric_limits <double>::max()' ");
     }
 
@@ -82,26 +83,9 @@ Voronoi_diagram::Voronoi_diagram(const std::vector<Graph::NodeId>& set_of_b, Gra
             std::vector< std::pair<Graph::PathLength,Graph::NodeId> >,
             std::greater< std::pair<Graph::PathLength,Graph::NodeId> >
                 > candidates;
-
-    //erste dijkstra-Iterationen für die Basen
+    // Basen sind die ersten Kandidaten
     for(auto curr_base : _set_of_bases) {
-
-        //Schleife über die zu curr_base inzidenten Kanten
-        std::vector<Graph::EdgeId> curr_base_edges = original_graph.get_node(curr_base).incidence_vect();
-        for(auto curr_edge_id: curr_base_edges){
-            Graph::Edge curr_edge = original_graph.get_edge(curr_edge_id);
-            //finde den Nachbarknoten der zu der aktuellen Kante gehört
-            Graph::NodeId curr_neighbor = curr_edge.get_other_node(curr_base);
-
-            //aktualisiere ggf. _dist_to_base sowie _predecessor für diesen Nachbarknoten und füge entsprechendes Element zu candidates hinzu
-            //bemerke, dass _dist_to_base[curr_neighbor] > _dist_to_base[curr_base] + curr_edge.weight() gdw. _dist_to_base[curr_neighbor] > curr_edge.weight()
-            if( _dist_to_base[curr_neighbor] > curr_edge.weight() ){
-                _dist_to_base[curr_neighbor] = curr_edge.weight();
-                _predecessor[curr_neighbor] = {curr_base, curr_edge_id};
-                candidates.push({curr_edge.weight(), curr_neighbor});
-            }
-        }
-
+        candidates.push( {0, curr_base} );
     }
 
     //int debug_count_while_loop = 0;
@@ -131,7 +115,9 @@ Voronoi_diagram::Voronoi_diagram(const std::vector<Graph::NodeId>& set_of_b, Gra
         if (dist_of_next_cand == _dist_to_base[next_node]) {
 
             //füge zur Basis des Vorgängers hinzu
-            _base[next_node] = _base[_predecessor[next_node].first];
+            if(not check_if_base(next_node)){
+                _base[next_node] = _base[_predecessor[next_node].first];
+            }
 
             //Schleife über die zu next_node inzidenten Kanten
             std::vector<Graph::EdgeId> next_node_edges = original_graph.get_node(next_node).incidence_vect();
@@ -172,15 +158,15 @@ void Voronoi_diagram::print_simple() const {
     std::cout << "Ausgabe des Voronoi-Diagramms (als NodeNames ausgegeben)\n";
     std::cout << "(Knoten) (Basis) (Distanz zur Basis) (Vorgaengerknoten und -kante auf kuerz. Weg von Basis) \n";
     for(Graph::NodeId i = 0; i<_num_nodes; i++){
-        original_graph.print_nodename(i);
+        print_nodename(original_graph, i);
         std::cout << " ";
-        original_graph.print_nodename(_base[i]);
+        print_nodename(original_graph, _base[i]);
         std::cout << " ";
         print_pathlength(_dist_to_base[i]);
         std::cout << " ";
-        original_graph.print_nodename(_predecessor[i].first);
+        print_nodename(original_graph, _predecessor[i].first);
         std::cout << " ";
-        original_graph.print_edge_as_pair(_predecessor[i].second);
+        print_edge_as_pair(original_graph, _predecessor[i].second);
         std::cout << "\n";
     }
     std::cout << "\n";
@@ -194,21 +180,13 @@ void Voronoi_diagram::print_region(Graph::NodeId var_base) const {
     std::cout << "(Knoten) (Distanz zur Basis) (Vorgaenger auf kuerz. Weg von Basis) \n";
     for(Graph::NodeId i=0; i<_num_nodes; i++){
         if(_base[i] == var_base){
-            original_graph.print_nodename(i);
+            print_nodename(original_graph, i);
             std::cout << " ";
             print_pathlength(_dist_to_base[i]);
             std::cout << " ";
-            original_graph.print_nodename(_predecessor[i].first);
+            print_nodename(original_graph, _predecessor[i].first);
             std::cout << "\n";
         }
-    }
-}
-
-void Voronoi_diagram::print_pathlength(Graph::PathLength l) const {
-    if(l != Graph::infinite_length){
-        std::cout << l;
-    }else{
-        std::cout << " 'infinite_length' ";
     }
 }
 
@@ -264,7 +242,7 @@ void Voronoi_diagram::print_min_bound_edges() const {
     for(unsigned int i = 0; i < _num_bases-1; i++){
         std::cout << _set_of_bases[i+1]+1 << ":    ";
         for(unsigned int j = 0; j < i+1; j++){
-            original_graph.print_edge_as_pair( output[i][j].first );
+            print_edge_as_pair(original_graph, output[i][j].first );
             std::cout << ", ";
         }
         std::cout << "\n";

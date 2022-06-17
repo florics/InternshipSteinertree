@@ -2,55 +2,27 @@
 // Created by Lukas on 14.06.2022.
 //
 
-#include "iostream"
-
 #include "graph_aux_functions.h"
 
-void print_nodeid(Graph::NodeId id){
-    if(id != Graph::invalid_node_id){
-        std::cout << id;
-    }else{
-        std::cout << " 'invalid_node' ";
-    }
-}
+#include "iostream"
 
-void print_edgeid(Graph::EdgeId id){
-    if(id != Graph::invalid_edge_id){
-        std::cout << id;
-    }else{
-        std::cout << " 'invalid_edge' ";
-    }
-}
+#include "graph_printfunctions.h"
 
-void print_pathlength(Graph::PathLength l){
-    if(l != Graph::infinite_length){
-        std::cout << l;
-    }else{
-        std::cout << " 'infinite_length' ";
-    }
-}
-
-void print_edgeweight(Graph::EdgeWeight w){
-    if(w != Graph::infinite_weight){
-        std::cout << w;
-    }else{
-        std::cout << " 'infinite_weight' ";
-    }
-}
+//todo Funktionennamen aktualisieren?
 
 // ? nicht sicher ob das funzt: die Instanzen der Uni sind alle isomorph laut dieser Methode
 bool check_if_isomorph(const Graph& graph1, const Graph& graph2){
     //Eingabe prüfen
-    if(not graph1.edgeweight_finite()){
+    if(not edgeweight_finite(graph1)){
         throw std::runtime_error("(check_if_isomorph) eingegebener Graph graph1 hat unendliche Kantengewichte");
     }
-    if(not graph2.edgeweight_finite()){
+    if(not edgeweight_finite(graph2)){
         throw std::runtime_error("(check_if_isomorph) eingegebener Graph graph2 hat unendliche Kantengewichte");
     }
-    if(not graph1.check_if_simple() ){
+    if(not check_if_simple(graph1) ){
         throw std::runtime_error("(check_if_isomorph) eingegebener Graph graph1 ist nicht einfach");
     }
-    if(not graph2.check_if_simple() ){
+    if(not check_if_simple(graph2) ){
         throw std::runtime_error("(check_if_isomorph) eingegebener Graph graph2 ist nicht einfach");
     }
 
@@ -94,13 +66,13 @@ bool check_if_isomorph(const Graph& graph1, const Graph& graph2){
 
         if( not adjacency_matrice[ curr_edge_nodes.second-1 ][ curr_edge_nodes.first ] ){
             std::cout << "(check_if_isomorph) Kante ";
-            graph2.print_edge_as_pair( curr_edge.edge_id() );
+            print_edge_as_pair(graph2, curr_edge.edge_id() );
             std::cout << " liegt im zweiten eingegebenen Graph aber nicht im ersten. \n";
             return false;
         }
         if( edge_weight_matrice[ curr_edge_nodes.second-1 ][ curr_edge_nodes.first ] != curr_edge.weight() ){
             std::cout << "(check_if_isomorph) Kantengewicht der Kante ";
-            graph2.print_edge_as_pair( curr_edge.edge_id() );
+            print_edge_as_pair(graph2, curr_edge.edge_id() );
             std::cout << "ungleich. \n";
             return false;
         }
@@ -116,6 +88,56 @@ bool check_if_isomorph(const Graph& graph1, const Graph& graph2){
                 return false;
             }
         }
+    }
+
+    return true;
+}
+
+bool edgeweight_nonnegative(const Graph& input_graph) {
+    /* ??
+    if( std::any_of(_edges, weight() < 0){
+        return false
+    } else {
+        return true
+    }
+     */
+    for(auto var_edge : input_graph.edges()){
+        if(var_edge.weight() < 0){
+            return false;
+        }
+    }
+    return true;
+}
+
+bool edgeweight_finite(const Graph& input_graph) {
+    for(auto var_edge : input_graph.edges()){
+        if( var_edge.weight() == Graph::infinite_weight ){
+            return false;
+        }
+    }
+    return true;
+}
+
+bool check_if_simple(const Graph& input_graph) {
+    // adjacency_matrice[i][j] entspricht Knotenpaar i+1, j (wobei i >= j)
+    std::vector< std::vector<bool> > adjacency_matrice;
+
+    //Initialisieren
+    for(unsigned int i = 0; i < input_graph.num_nodes()-1; i++){
+        std::vector<bool> var_bool_vector (i+1, false);
+        adjacency_matrice.push_back(var_bool_vector);
+    }
+
+    //ausfüllen entsprechend der Kanten des Graphen und prüfen, ob Kante (bzw. Knotenpaar) doppelt
+    for(auto curr_edge : input_graph.edges() ){
+        std::pair<Graph::NodeId, Graph::NodeId> curr_edge_nodes = curr_edge.get_nodes_orderedbyid();
+        if( adjacency_matrice[ curr_edge_nodes.second-1 ][ curr_edge_nodes.first ] ){
+            std::cout << "(check_if_simple) Kante (bzw. Knotenpaar) ";
+            print_edge_as_pair(input_graph, curr_edge.edge_id() );
+            std::cout << " ist doppelt. \n";
+            return false;
+        }
+        adjacency_matrice[ curr_edge_nodes.second-1 ][ curr_edge_nodes.first ] = true;
     }
 
     return true;
@@ -191,4 +213,19 @@ Graph copygraph_wo_steinerleafs(const Graph& input_graph){
     }
 
     return output_graph;
+}
+
+Graph::PathLength length_of_all_edges(const Graph& input_graph) {
+    Graph::PathLength output = 0;
+    for(auto curr_edge : input_graph.edges() ) {
+        output += curr_edge.weight();
+    }
+    return output;
+}
+
+void print_length_of_all_edges(const Graph& input_graph) {
+    Graph::PathLength output = length_of_all_edges(input_graph);
+    std::cout << "Das Gewicht des Graphen ist ";
+    print_pathlength( output );
+    std::cout << "\n";
 }

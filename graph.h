@@ -8,7 +8,6 @@
 #include "vector"
 #include "string"
 
-//todo manchmal schreibe ich Graph::Edge und manchmal Edge, fehlende Konsistenz!
 
 class Graph {
 public:
@@ -75,9 +74,6 @@ public:
         //gibt 1 aus, wenn Knoten Terminal ist
         bool check_terminal() const;
 
-        //Hilfsfunktion zur Ausgabe von Knoten auf Konsole (gibt _nodename oder 'invalid_node' aus) (löschen?)
-        void print_nodename() const;
-
     private:
         //Stelle, an dem Knoten in _nodes gespeichert ist
         // const NodeId _node_id; ?? das hat irgendwie ganz große Probleme gemacht,
@@ -106,22 +102,6 @@ public:
 
     unsigned int num_nodes() const;
     unsigned int num_edges() const;
-
-    //todo: auslagern
-    //gibt Graph auf Konsole aus, Knoten werden über _node_name ausgegeben
-    void print() const;
-    //gibt Graph auf Konsole aus, Knoten werden über _node_id ausgegeben
-    void print_by_id() const;
-    //gibt Inzidenz-Vektor auf Konsole aus, Knoten werden als _node_name ausgegeben
-    void print_incidence_vect(NodeId id) const;
-    //gibt Inzidenz-Vektor auf Konsole aus, Knoten werden als _node_id ausgegeben
-    void print_incidence_vect_by_id(NodeId id) const;
-    //gibt alle Inzidenz-Vektor auf Konsole aus, Knoten werden als _node_id ausgegeben
-    void print_all_incidence_vect_by_id()  const;
-    //Hilfsfunktion zur Ausgabe von Knoten auf Konsole (gibt _nodename oder 'invalid_node' aus) (löschen?)
-    void print_nodename(NodeId id) const;
-    // Hilfsfunktion zur Ausgabe von Kanten als Knotenpaar auf Konsole (Paar von NodeName's)
-    void print_edge_as_pair(EdgeId id) const;
 
     //fügt einen Knoten zum Graphen hinzu (!prüft aber nicht ob _node_name eindeutig!)
     void add_one_node(NodeName name, TerminalState t);
@@ -153,14 +133,6 @@ public:
     std::vector<Edge> edges() const;
     //gibt Referenz auf Kante mit EdgeId v aus
     const Edge& get_edge(EdgeId e) const;
-
-    //todo: auslagern
-    //gibt 1 aus gdw. nicht-negative Kantengewichte vorliegen
-    bool edgeweight_nonnegative() const;
-    //gibt 1 aus gdw. alle Kanten Gewicht (im Betrag) < infinite_weight haben
-    bool edgeweight_finite() const;
-    //gibt 1 aus gdw. Graph einfach
-    bool check_if_simple() const;
 
     static const EdgeWeight infinite_weight;
     static const PathLength infinite_length;

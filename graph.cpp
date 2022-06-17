@@ -2,14 +2,15 @@
 // Created by Lukas on 30.05.2022.
 //
 
+#include "graph.h"
+
 #include <iostream>
 #include <sstream>
 #include <fstream>
 #include <limits>
 #include <utility>
 
-#include "graph.h"
-#include "graph_aux_functions.h"
+#include "string_aux_functions.h"
 
 const Graph::EdgeWeight Graph::infinite_weight = std::numeric_limits<double>::max();
 const Graph::PathLength Graph::infinite_length = std::numeric_limits<double>::max();
@@ -102,88 +103,6 @@ std::pair<Graph::NodeId, Graph::NodeId> Graph::Edge::get_nodes_orderedbyid() {
     }
 }
 
-void Graph::print() const{
-
-    std::cout << "SECTION Graph \n";
-    std::cout << "Nodes " << num_nodes() << "\n";
-    std::cout << "Edges " << num_edges() << "\n";
-    for(auto var_edge : edges()){
-        std::cout << "E ";
-        print_nodename(var_edge.node_a());
-        std::cout << " ";
-        print_nodename(var_edge.node_b());
-        std::cout << " ";
-        print_edgeweight( var_edge.weight() );
-        std::cout << "\n";
-    }
-    std::cout << "\n";
-
-    std::cout<< "SECTION Terminals \n";
-    std::vector<Graph::NodeId> vect_term = get_vect_term();
-    std::cout << "Terminals " << vect_term.size() << "\n";
-    for (unsigned int id : vect_term){
-        std::cout << "T ";
-        print_nodename(id);
-        std::cout << "\n";
-    }
-    std::cout << "\n";
-
-}
-
-void Graph::print_by_id() const{
-    std::cout << "print_by_id \n";
-
-    std::cout << "SECTION Graph \n";
-    std::cout << "Nodes " << num_nodes() << "\n";
-    std::cout << "Edges " << num_edges() << "\n";
-    for (auto var_edge : edges()){
-        std::cout << "E ";
-        print_nodeid( var_edge.node_a() );
-        std::cout << " ";
-        print_nodeid( var_edge.node_b() );
-        std::cout << " ";
-        print_edgeweight( var_edge.weight() );
-        std::cout << "\n";
-    }
-    std::cout << "\n";
-
-    std::cout<< "SECTION Terminals \n";
-    std::vector<Graph::NodeId> vect_term = get_vect_term();
-    std::cout << "Terminals " << vect_term.size() << "\n";
-    for (unsigned int id : vect_term){
-        std::cout << "T ";
-        print_nodeid(id);
-        std::cout << "\n";
-    }
-    std::cout << "\n";
-
-}
-
-// ? theoretisch müsste ich das in alle print Funktionen einfügen (oder brauche ich die Fktn nicht?)
-void Graph::print_nodename(Graph::NodeId id) const{
-    if(id == Graph::invalid_node_id){
-        std::cout << " \" invalid_node \" ";
-    }else if(num_nodes() <= id) {
-        throw std::runtime_error("(Graph::print_nodename) Knoten mit NodeId id liegt nicht im Graph");
-    }else{
-        get_node(id).print_nodename();
-    }
-}
-
-void Graph::print_edge_as_pair(Graph::EdgeId id) const {
-    if(id < num_edges()) {
-        std::cout << "(";
-        Graph::print_nodename(get_edge(id).node_a() ),
-        std::cout << ",";
-        Graph::print_nodename( get_edge(id).node_b() ),
-        std::cout << ")";
-    } else if(id == Graph::invalid_edge_id) {
-        std::cout << " 'invalid_edge' ";
-    } else {
-        throw std::runtime_error("(Graph::print_edge_as_pair) Kante mit EdgeId id nicht im Graph");
-    }
-}
-
 void Graph::Node::set_terminal(Graph::TerminalState t){
     _terminal_state = t;
 }
@@ -200,8 +119,9 @@ Graph::TerminalState Graph::Node::terminal_state() const {
 }
 
 void Graph::set_terminal(Graph::NodeId v, Graph::TerminalState t){
-    if(v < num_nodes()){
-        set_terminal(v,t);
+    unsigned int v_int = (unsigned int) v;
+    if(v_int < num_nodes() ){   //?
+        _nodes[v_int].set_terminal(t);
     }else{
         std::cout << "v=" << v << "\n";
         throw std::runtime_error("Der Knoten v ist nicht im Graphen.");
@@ -300,52 +220,6 @@ unsigned int Graph::Node::num_neighbors()  const{
     return _incidence_vect.size();
 }
 
-void Graph::Node::print_nodename() const {
-    std::cout << node_name();
-}
-
-//? nicht getestet
-void Graph::print_incidence_vect(Graph::NodeId id) const{
-    const Graph::Node& v = get_node(id);
-    std::cout << "Knoten ";
-    print_nodename(id);
-    std::cout << " ist zu " << v.num_neighbors() << " Kanten inzident: \n";
-    for(auto curr_edgeid : v.incidence_vect() ){
-        Graph::Edge curr_edge = get_edge(curr_edgeid);
-        std::cout << "E ";
-        print_nodename( curr_edge.node_a() );
-        std::cout << " ";
-        print_nodename( curr_edge.node_b() );
-        std::cout << " ";
-        print_edgeweight( curr_edge.weight() );
-        std::cout << "\n";
-    }
-}
-
-//? nicht getestet
-void Graph::print_incidence_vect_by_id(Graph::NodeId id) const{
-    const Graph::Node& v = get_node(id);
-    std::cout << "Knoten mit NodeId";
-    print_nodeid(id);
-    std::cout << " ist zu " << v.num_neighbors() << " Kanten inzident: (hier werden die _node_id's verwendet) \n";
-    for(auto curr_edgeid : v.incidence_vect() ){
-        Graph::Edge curr_edge = get_edge(curr_edgeid);
-        std::cout << "E ";
-        print_nodeid( curr_edge.node_a() );
-        std::cout << " ";
-        print_nodeid( curr_edge.node_b() );
-        std::cout << " ";
-        print_edgeweight( curr_edge.weight() );
-        std::cout << "\n";
-    }
-}
-
-void Graph::print_all_incidence_vect_by_id() const{
-    for(unsigned int i=0; i<num_nodes(); i++){
-        print_incidence_vect_by_id((Graph::NodeId) i);
-    }
-}
-
 const Graph::Edge& Graph::get_edge(Graph::EdgeId e) const {
     if(e >= num_edges() ){
         throw std::runtime_error("(const Graph::Edge& Graph::get_edge) Kante e liegt nicht im Graphen");
@@ -359,6 +233,14 @@ void Graph::add_existing_edge(const Edge& e){
     Graph::EdgeId id = e.edge_id();
     unsigned int new_m = num_edges();
 
+    if(a == Graph::invalid_node_id){
+        std::cout << "Kante (" << a << "," << b << ") kann nicht hinzugefuegt werden, da " << a  << " = invalid_node_id \n";
+        throw std::runtime_error("Funktion add_existing_edge");
+    }
+    if(b == Graph::invalid_node_id){
+        std::cout << "Kante (" << a << "," << b << ") kann nicht hinzugefuegt werden, da " << b  << " = invalid_node_id \n";
+        throw std::runtime_error("Funktion add_existing_edge");
+    }
     if(a >= Graph::num_nodes()){
         std::cout << "Kante (" << a << "," << b << ") kann nicht hinzugefuegt werden, da " << a  << " kein Knoten ist. \n";
         throw std::runtime_error("Funktion add_existing_edge");
@@ -399,56 +281,6 @@ void Graph::add_existing_edge_w_newid(Graph::Edge new_edge) {
     add_edge(new_edge.node_a(), new_edge.node_b(), new_edge.weight());
 }
 
-bool Graph::edgeweight_nonnegative() const{
-    /* ??
-    if( std::any_of(_edges, weight() < 0){
-        return false
-    } else {
-        return true
-    }
-     */
-    for(auto var_edge : edges()){
-        if(var_edge.weight() < 0){
-            return false;
-        }
-    }
-    return true;
-}
-
-bool Graph::edgeweight_finite() const{
-    for(auto var_edge : edges()){
-        if( var_edge.weight() == Graph::infinite_weight ){
-            return false;
-        }
-    }
-    return true;
-}
-
-bool Graph::check_if_simple() const{
-    // adjacency_matrice[i][j] entspricht Knotenpaar i+1, j (wobei i >= j)
-    std::vector< std::vector<bool> > adjacency_matrice;
-
-    //Initialisieren
-    for(unsigned int i = 0; i < num_nodes()-1; i++){
-        std::vector<bool> var_bool_vector (i+1, false);
-        adjacency_matrice.push_back(var_bool_vector);
-    }
-
-    //ausfüllen entsprechend der Kanten des Graphen und prüfen, ob Kante (bzw. Knotenpaar) doppelt
-    for(auto curr_edge : edges() ){
-        std::pair<Graph::NodeId, Graph::NodeId> curr_edge_nodes = curr_edge.get_nodes_orderedbyid();
-        if( adjacency_matrice[ curr_edge_nodes.second-1 ][ curr_edge_nodes.first ] ){
-            std::cout << "(check_if_simple) Kante (bzw. Knotenpaar) ";
-            print_edge_as_pair( curr_edge.edge_id() );
-            std::cout << " ist doppelt. \n";
-            return false;
-        }
-        adjacency_matrice[ curr_edge_nodes.second-1 ][ curr_edge_nodes.first ] = true;
-    }
-
-    return true;
-}
-
 void Graph::instance_comment() const{
     std::cout << "SECTION Comment \n";
     std::cout << "Name   " << instance_name << "\n";
@@ -475,8 +307,11 @@ Graph::Graph(char const* filename){
     std::string line;
     getline(file, line);	//einlesen 1. Zeile
     //prüfe, ob die 1. Zeile dem Format entspricht
-    std::string firstline = "33D32945 STP File, STP Format Version 1.0";
-    if(firstline != line){
+    std::string firstline1 = "33D32945 STP File, STP Format Version 1.0";
+    std::string firstline2 = "33D32945 STP File, STP Format Version  1.00";
+    if(not compare_strings_caseinsensitive(firstline1, line) && not compare_strings_caseinsensitive(firstline2, line)) {
+        //debug
+        std::cout << "line = " << line << "\n";
         throw std::runtime_error("Nicht das SteinLib-Format (1.Zeile)");
     }
 
@@ -484,30 +319,30 @@ Graph::Graph(char const* filename){
     //Einlesen des Dokuments, erste Fallunterscheidungen nach SECTION
     while (getline(file, line)) {
         std::string var;
-        if(line == "SECTION Comment"){
+        if(compare_strings_caseinsensitive(line, "SECTION Comment")) {
 
             while (getline(file, line)){
 
-                if(line == "END"){
+                if(compare_strings_caseinsensitive(line, "END")) {
                     //Ende der Section erreicht
                     break;
                 }
 
                 //Einlesen von instance_name, instance_creator, instance_remark, instance_problem
                 var = line.substr(0,4);
-                if(var == "Name"){
+                if(compare_strings_caseinsensitive(var, "Name")) {
                     instance_name = line.substr(4, line.length());
                 }
                 var = line.substr(0, 7);
-                if(var == "Creator"){
+                if(compare_strings_caseinsensitive(var, "Creator")) {
                     instance_creator = line.substr(7, line.length());
                 }
                 var = line.substr(0, 6);
-                if(var == "Remark"){
+                if(compare_strings_caseinsensitive(var, "Remark")) {
                     instance_remark = line.substr(6, line.length());
                 }
                 var = line.substr(0, 7);
-                if(var == "Problem"){
+                if(compare_strings_caseinsensitive(var, "Problem")) {
                     instance_problem = line.substr(7, line.length());
                 }
 
@@ -515,13 +350,13 @@ Graph::Graph(char const* filename){
 
         }
 
-        if(line == "SECTION Graph"){
+        if(compare_strings_caseinsensitive(line, "SECTION Graph")) {
 
             //Zeile mit "Nodes"
             getline(file, line);
             var = line.substr(0,5);
             //prüfe ob Eingabeformat korrekt
-            if(var != "Nodes"){
+            if(not compare_strings_caseinsensitive(var, "Nodes")) {
                 throw std::runtime_error("Eingabeformat: 1. Zeile in Section Graph muss 'Nodes' enthalten");
             }
                 //füge Knoten zum Graphen hinzu
@@ -536,7 +371,7 @@ Graph::Graph(char const* filename){
             //Zeile mit "Edges"
             getline(file, line);
             var = line.substr(0,5);
-            if(var == "Edges"){
+            if(compare_strings_caseinsensitive(var , "Edges")) {
                 var = line.substr(5, line.length());
                 std::stringstream ssm(var);
                 ssm >> m;
@@ -548,15 +383,17 @@ Graph::Graph(char const* filename){
 
             //Kanten einlesen
             while (getline(file, line)){
-                if(line == "END"){
+                if(compare_strings_caseinsensitive(line, "END")) {
                     //Ende der Section erreicht
                     break;
                 }
 
                 var = line.substr(0,1);
                 //teste ob SteinLib-Format eingehalten wird
-                if(var!="E"){
-                    throw std::runtime_error("Eingabeformat: Eine Zeile in der Graph-Section (nach 'Nodes', 'Edges') beginnt nicht mit 'E' ");
+                if(not compare_strings_caseinsensitive(var, "E") && not compare_strings_caseinsensitive(var, "A")) {
+                    //debug
+                    std::cout << "Zeile beginnt mit " << var << "\n";
+                    throw std::runtime_error("Eingabeformat: Eine Zeile in der Graph-Section (nach 'Nodes', 'Edges') beginnt nicht mit 'E' bzw. 'A' ");
                 }
                     //Kante hinzufügen
                 else{
@@ -574,11 +411,11 @@ Graph::Graph(char const* filename){
             //der Abschnitt zu "arcs" wird hier nicht betrachtet
         }
 
-        if(line == "SECTION Terminals"){
+        if(compare_strings_caseinsensitive(line, "SECTION Terminals")) {
             //Zeile mit "Terminals"
             getline(file, line);
             var = line.substr(0,9);
-            if(var == "Terminals"){
+            if(compare_strings_caseinsensitive(var, "Terminals")) {
                 var = line.substr(9, line.length());
                 std::stringstream sstn(var);
                 sstn >> t_num;
@@ -590,14 +427,16 @@ Graph::Graph(char const* filename){
 
             //Terminale einlesen
             while (getline(file, line)){
-                if(line == "END"){
+                if(compare_strings_caseinsensitive(line, "END")) {
                     //Ende der Section erreicht
                     break;
                 }
 
                 var = line.substr(0,1);
                 //prüfe ob Eingabeformat korrekt
-                if(var!="T"){
+                if(not compare_strings_caseinsensitive(var, "T")) {
+                    //debug
+                    std::cout << "Zeile beginnt mit " << var << "\n";
                     throw std::runtime_error("Eingabeformat: Eine Zeile in der Terminals-Section (nach 'Terminals') beginnt nicht mit T");
                 }
                     //markiere Knoten als Terminal
@@ -614,7 +453,7 @@ Graph::Graph(char const* filename){
             //mögliche Zeilen mit RootP, Root, TP werden nicht betrachtet
         }
 
-        if(line == "EOF"){
+        if(compare_strings_caseinsensitive(line, "EOF")) {
             //Ende der Datei erreicht
             break;
         }
@@ -625,10 +464,16 @@ Graph::Graph(char const* filename){
 
     //prüfen, ob angegebene Kanten-/Terminalanzahl mit aufgelisteten Kanten/Terminalen übereinstimmt
     if( num_edges() != m){
-        throw std::runtime_error("(Einlesen) angegebene Kantenanzahl ungleich Anzahl aufgelisteter Kanten");
+        //debug
+        std::cout << "angegebene Kantenanzahl: " << m << "\n";
+        std::cout << "Anzahl aufgelisteter Kanten " << num_edges() << "\n";
+        //? throw std::runtime_error("(Einlesen) angegebene Kantenanzahl ungleich Anzahl aufgelisteter Kanten");
     }
     if( get_vect_term().size() != t_num){
-        throw std::runtime_error("(Einlesen) angegebene Terminalanzahl ungleich Anzahl aufgelisteter Terminale");
+        //debug
+        std::cout << "angegebene Terminalanzahl: " << t_num << "\n";
+        std::cout << "Anzahl aufgelisteter Terminale " << get_vect_term().size() << "\n";
+        //? throw std::runtime_error("(Einlesen) angegebene Terminalanzahl ungleich Anzahl aufgelisteter Terminale");
     }
 
 }

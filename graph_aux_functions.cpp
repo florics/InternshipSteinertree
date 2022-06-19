@@ -7,6 +7,7 @@
 #include "iostream"
 
 #include "graph_printfunctions.h"
+#include "Union_Find_Structure.h"
 
 //todo Funktionennamen aktualisieren?
 
@@ -221,11 +222,4 @@ Graph::PathLength length_of_all_edges(const Graph& input_graph) {
         output += curr_edge.weight();
     }
     return output;
-}
-
-void print_length_of_all_edges(const Graph& input_graph) {
-    Graph::PathLength output = length_of_all_edges(input_graph);
-    std::cout << "Das Gewicht des Graphen ist ";
-    print_pathlength( output );
-    std::cout << "\n";
 }

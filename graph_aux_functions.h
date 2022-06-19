@@ -28,7 +28,4 @@ Graph copygraph_wo_steinerleafs(const Graph& input_graph);
 //gibt das Gewicht des gesamten Graphen aus
 Graph::PathLength length_of_all_edges(const Graph& input_graph);
 
-//gibt Gewicht des gesamten Graphen auf Konsole aus
-void print_length_of_all_edges(const Graph& input_graph);
-
 #endif //PRAKTIKUMSTEINERBAUM_GRAPH_AUX_FUNCTIONS_H

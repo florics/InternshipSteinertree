@@ -8,9 +8,9 @@
 #include "graph.h"
 
 //gibt Graph auf Konsole aus, Knoten werden über _node_name ausgegeben
-void print(const Graph& input_graph);
+void print_graph(const Graph& input_graph);
 //gibt Graph auf Konsole aus, Knoten werden über _node_id ausgegeben
-void print_by_id(const Graph& input_graph);
+void print_graph_by_id(const Graph& input_graph);
 //gibt Inzidenz-Vektor auf Konsole aus, Knoten werden als _node_name ausgegeben
 void print_incidence_vect(const Graph& input_graph, Graph::NodeId id);
 //gibt Inzidenz-Vektor auf Konsole aus, Knoten werden als _node_id ausgegeben
@@ -30,5 +30,8 @@ void print_edgeid(Graph::EdgeId id);
 void print_pathlength(Graph::PathLength l);
 // Hilfsfunktion zur Ausgabe von Kanten-Längen auf Konsole (gibt Wert von w aus oder 'infinite_weight')
 void print_edgeweight(Graph::EdgeWeight w);
+
+//gibt Gewicht des gesamten Graphen auf Konsole aus
+void print_length_of_all_edges(const Graph& input_graph);
 
 #endif //PRAKTIKUMSTEINERBAUM_GRAPH_PRINTFUNCTIONS_H

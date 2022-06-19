@@ -7,7 +7,8 @@
 
 #include "graph_algorithms.h"
 #include "graph_aux_functions.h"
-//#include "graph_aux_functions.cpp" //? ändern
+#include "graph_printfunctions.h"
+#include "Union_Find_Structure.h"
 
 Graph mst_prim(const Graph& input_graph, Graph::NodeId start_node){
     Graph output = copygraph_wo_edges(input_graph);
@@ -85,4 +86,33 @@ Graph mst_prim(const Graph& input_graph, Graph::NodeId start_node){
     output = copygraph_wo_iso_nodes(output);
 
     return output;
+}
+
+Graph compute_spann_forest(const Graph& input_graph) {
+    Graph output_graph(input_graph.num_nodes());
+    Union_Find_Structure ufs(input_graph.num_nodes());
+
+    for( auto curr_edge : input_graph.edges() ){
+        Graph::NodeId curr_node_a = curr_edge.node_a();
+        Graph::NodeId curr_node_b = curr_edge.node_b();
+
+        if(not ufs.check_if_in_set(curr_node_a)) {
+            ufs.make_set(curr_node_a);
+        }
+        if(not ufs.check_if_in_set(curr_node_b)) {
+            ufs.make_set(curr_node_b);
+        }
+
+        if( ufs.find(curr_node_a) != ufs.find(curr_node_b) ) {
+            output_graph.add_existing_edge_w_newid(curr_edge);
+            ufs.union_by_rank(curr_node_a, curr_node_b);
+        }
+    }
+
+
+    std::cout << "Der von 'compute_spann_forest' berechnete Spannwald ist: \n";
+    print_graph(output_graph);
+    std::cout << "\n";
+
+    return output_graph;
 }

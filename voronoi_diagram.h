@@ -14,11 +14,17 @@ public:
     using BaseId = unsigned int;
 
     //kann ich die Eingabe der Konstruktoren iwie const machen?
-    //erstellt ein Diagramm zur leeren Basis in einem Graphen mit num_n Knoten
+    //erstellt ein Diagramm zur leeren Basis in einem Graphen mit num_n Knoten, checkt aber nicht, ob Kantengewichten negativ/unendlich sind
+    //? diese fehlenden Checks könnten Problem sein für repair
     Voronoi_diagram(Graph& input_graph);
     //soll das Voronoi-Diagramm des Graphen g berechnen, mit den Knoten in set_of_b als Basen
     //Eingabe: set_of_b ist nichtleere Teilmenge der Knoten von g, g hat nichtnegative "endliche" Kantengewichte
     Voronoi_diagram(const std::vector<Graph::NodeId>& set_of_b, Graph& input_graph);
+
+    //entspricht der Methode repair, wie sie in dem Paper beschrieben ist
+    //Eingabe: Teilmenge der aktuellen Basis
+    //Methode berechnet Voronoi-Diagramm mit der Eingabe als Basis
+    void repair(const std::vector<Graph::NodeId>& new_set_of_bases);
 
     //Ausgabe auf Konsole für jeden Knoten: NodeId, Basis, Distanz zur Basis, Vorgängerknoten auf kürz. Weg von Basis
     void print_simple() const;
@@ -31,6 +37,7 @@ public:
 
     //prüft ob var_node Basis ist
     //genauer: prüft, ob var_node eine valide BaseId hat (und nicht, ob var_node in der Menge der Basen liegt)
+    //Eingabe: Knoten, der im Graphen liegt oder Knoten mit ungültiger NodeId
     bool check_if_base(Graph::NodeId var_node) const;
 
     //berechnet die boundary edges (1. Eintrag des pair), die auf kürz. Weg zwischen den entsprechenden Basen liegen sowie die Länge dieses Weges (2. Eintrag des pair)
@@ -51,22 +58,28 @@ public:
     //Eingabe: 2 unterschiedliche Knoten, die im Graphen liegen
     std::pair<BaseId, BaseId> get_base_ids_ordered(Graph::NodeId node_one, Graph::NodeId node_two) const;
 
+    const Graph& original_graph() const;
+    const std::vector<Graph::NodeId>& base() const;
+    const std::vector<Graph::PathLength>& dist_to_base() const;
+
     //prüft, ob Kante eine boundary edge ist (d. h. die Endknoten liegen in verschiedenen V.-Regionen, insbesondere liegen sie in einer V.-Region)
     //Eingabe: Kante, die zwischen 2 Knoten verläuft, die beide im Graphen liegen
     bool check_if_bound_edge(const Graph::Edge& var_edge) const;
 
     //erstellt den Hilfsgraphen (auxiliary graph) für Mehlhorns ALgo. (in dem Paper als G'_1 notiert)
+    //auslagern?
     Graph construct_aux_graph() const;
 
     //gibt den dem eingebenen Graphen (Subgraph des Hilfsgraphen (auxiliary graph, Mehlhorns Algo.)) entsprechenden Subgraphen des zugrundeliegenden Graphen aus
     //Eingabe: vect_min_bound_edges ist in dem Format wie die Ausgabe der Funktion min_bound_edges
     // ? besserer Name für var_graph
+    //auslagern?
     Graph turn_into_subgraph(const Graph& var_graph, const std::vector<std::vector<std::pair<Graph::EdgeId, Graph::PathLength>>>& vect_min_bound_edges) const;
 
     static const BaseId invalid_base_id;
 
 private:
-    unsigned int _num_nodes;
+    unsigned int _num_nodes; //brauche ich eig nicht wegen original_graph ?
     unsigned int _num_bases;
 
     std::vector<Graph::NodeId> _set_of_bases;
@@ -87,7 +100,7 @@ private:
 
     //der zugrundeliegende Graph
     // möchte ich const machen aber Problem?
-    Graph& original_graph;
+    Graph& _original_graph;
 };
 
 #endif //PRAKTIKUMSTEINERBAUM_VORONOI_DIAGRAM_H

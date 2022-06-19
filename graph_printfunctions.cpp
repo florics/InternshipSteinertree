@@ -6,9 +6,11 @@
 
 #include "graph_printfunctions.h"
 
+#include "graph_aux_functions.h"
+
 //todo Funktionennamen aktualisieren?
 
-void print(const Graph& input_graph) {
+void print_graph(const Graph& input_graph) {
 
     std::cout << "SECTION Graph \n";
     std::cout << "Nodes " << input_graph.num_nodes() << "\n";
@@ -36,7 +38,7 @@ void print(const Graph& input_graph) {
 
 }
 
-void print_by_id(const Graph& input_graph){
+void print_graph_by_id(const Graph& input_graph){
     std::cout << "print_by_id \n";
 
     std::cout << "SECTION Graph \n";
@@ -67,7 +69,7 @@ void print_by_id(const Graph& input_graph){
 
 void print_nodename(const Graph& input_graph, Graph::NodeId id){
     if(id == Graph::invalid_node_id){
-        std::cout << " \" invalid_node \" ";
+        std::cout << " 'invalid_node' ";
     }else if(input_graph.num_nodes() <= id) {
         throw std::runtime_error("(Graph::print_nodename) Knoten mit NodeId id liegt nicht im Graph");
     }else{
@@ -161,4 +163,11 @@ void print_edgeweight(Graph::EdgeWeight w){
     }else{
         std::cout << " 'infinite_weight' ";
     }
+}
+
+void print_length_of_all_edges(const Graph& input_graph) {
+    Graph::PathLength output = length_of_all_edges(input_graph);
+    std::cout << "Das Gewicht des Graphen ist ";
+    print_pathlength( output );
+    std::cout << "\n";
 }

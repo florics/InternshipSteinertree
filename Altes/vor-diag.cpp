@@ -304,7 +304,7 @@ Funktion turn_into_subgraph (10.6.)
         //zugehörige boundary edge hinzufügen
         // ? wenn ich Graph gerichtet machen kann, könnte ich das hier ggf. benutzen (anstatt von der nächsten Zeile)
         std::array<Graph::NodeId, 2> curr_edge_nodes = curr_edge.get_nodes_orderedbyid();
-        Graph::Edge edge_to_add = original_graph.get_edge( vect_min_bound_edges[curr_edge_nodes[1] - 1][curr_edge_nodes[0]].first );
+        Graph::Edge edge_to_add = _original_graph.get_edge( vect_min_bound_edges[curr_edge_nodes[1] - 1][curr_edge_nodes[0]].first );
         output.add_edge(edge_to_add.node_a(), edge_to_add.node_b(), edge_to_add.weight());
         added_edges[edge_to_add.edge_id()] = true;
     }
@@ -316,10 +316,10 @@ Funktion turn_into_subgraph (10.6.)
         Graph::EdgeId edge_to_add_id = _predecessor[var_node].second;
         while (edge_to_add_id != Graph::invalid_edge_id) {
             if (not added_edges[edge_to_add_id]) {
-                //edge_to_add = original_graph.get_edge( edge_to_add_id );  //?
-                output.add_edge(original_graph.get_edge(edge_to_add_id).node_a(),
-                                original_graph.get_edge(edge_to_add_id).node_b(),
-                                original_graph.get_edge(edge_to_add_id).weight());
+                //edge_to_add = _original_graph.get_edge( edge_to_add_id );  //?
+                output.add_edge(_original_graph.get_edge(edge_to_add_id).node_a(),
+                                _original_graph.get_edge(edge_to_add_id).node_b(),
+                                _original_graph.get_edge(edge_to_add_id).weight());
                 added_edges[edge_to_add_id] = true;
             }
             var_node = _predecessor[var_node].first;
@@ -338,10 +338,10 @@ Funktion turn_into_subgraph (10.6.)
         Graph::EdgeId edge_to_add_id = _predecessor[var_node].second;
         while( edge_to_add_id != Graph::invalid_edge_id  ){
             if( not added_edges[ edge_to_add_id ] ){
-                //edge_to_add = original_graph.get_edge( edge_to_add_id );  //?
-                output.add_edge( original_graph.get_edge( edge_to_add_id ).node_a(),
-                                 original_graph.get_edge( edge_to_add_id ).node_b(),
-                                 original_graph.get_edge( edge_to_add_id ).weight() );
+                //edge_to_add = _original_graph.get_edge( edge_to_add_id );  //?
+                output.add_edge( _original_graph.get_edge( edge_to_add_id ).node_a(),
+                                 _original_graph.get_edge( edge_to_add_id ).node_b(),
+                                 _original_graph.get_edge( edge_to_add_id ).weight() );
                 added_edges[ edge_to_add_id ] = true;
             }
             var_node = _predecessor[var_node].first;

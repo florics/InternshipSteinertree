@@ -203,12 +203,12 @@ std::vector<Graph::Node> Graph::nodes() const {
 
 const Graph::Node& Graph::get_node(Graph::NodeId v) const{
     if(v >= num_nodes() ){
-        throw std::runtime_error("(const Graph::Node& Graph::get_node) Knoten v liegt nicht im Graphen");
+        throw std::runtime_error("(Graph::get_node) Knoten v liegt nicht im Graphen");
     }
     return _nodes[v];
 }
 
-std::vector<Graph::EdgeId> Graph::Node::incidence_vect() const{
+const std::vector<Graph::EdgeId>& Graph::Node::incidence_vect() const{
     return _incidence_vect;
 }
 
@@ -218,6 +218,21 @@ void Graph::Node::add_neighbor_edge(EdgeId e){
 
 unsigned int Graph::Node::num_neighbors()  const{
     return _incidence_vect.size();
+}
+
+const std::vector<Graph::EdgeId>& Graph::incidence_vect(Graph::NodeId input_node) const {
+    return get_node(input_node).incidence_vect();
+}
+
+std::vector<Graph::NodeId> Graph::adjacency_vect(Graph::NodeId input_node_id) const{
+    std::vector<Graph::NodeId> output;
+    std::vector<EdgeId> incidence_vect_of_input = incidence_vect(input_node_id);
+    for(auto curr_edge_id : incidence_vect_of_input) {
+        Graph::Edge curr_edge = get_edge(curr_edge_id);
+        Graph::NodeId curr_neighbor_id = curr_edge.get_other_node(input_node_id);
+        output.push_back(curr_neighbor_id);
+    }
+    return output;
 }
 
 const Graph::Edge& Graph::get_edge(Graph::EdgeId e) const {

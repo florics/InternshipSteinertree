@@ -55,7 +55,7 @@ public:
 
         NodeId node_id() const;
         NodeName node_name() const;
-        std::vector<EdgeId> incidence_vect() const;
+        const std::vector<EdgeId>& incidence_vect() const;
         TerminalState terminal_state() const;
 
         //setzt _node_id auf einen neuen Wert (!prüft aber nicht, ob dadurch _node_id der Stelle des Knotens in _nodes entspricht)
@@ -133,6 +133,11 @@ public:
     std::vector<Edge> edges() const;
     //gibt Referenz auf Kante mit EdgeId v aus
     const Edge& get_edge(EdgeId e) const;
+
+    const std::vector<EdgeId>& incidence_vect(NodeId input_node) const;
+
+    //gibt Nachbarknoten des Eingabeknotens aus
+    std::vector<Graph::NodeId> adjacency_vect(NodeId input_node) const;
 
     static const EdgeWeight infinite_weight;
     static const PathLength infinite_length;

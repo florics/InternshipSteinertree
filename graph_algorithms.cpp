@@ -48,7 +48,7 @@ Graph mst_prim(const Graph& input_graph, Graph::NodeId start_node){
             throw std::runtime_error ("mst_prim: best_edges[next_cand] == Graph::invalid_edge_id.");
         }
 
-        //was ist, wenn next_cand_weight unendlich ??
+        //was ist, wenn next_cand_weight unendlich ?? denke das ist ok so
 
         //falls die Bedingung der if-Abfrage eintritt, haben wir tatsächlich den besten nächsten Kandidaten gefunden
         //bemerke, dass get_edge( best_edges[next_cand] ) "wohldefiniert" ist,

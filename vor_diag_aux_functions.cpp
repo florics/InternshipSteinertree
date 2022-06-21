@@ -48,3 +48,27 @@ void compare_vor_diag(const Voronoi_diagram& vd1, const Voronoi_diagram& vd2){
     std::cout << "check_if_vor_dist_equal: " << check_if_vor_dist_equal(vd1, vd2) << "\n";
     std::cout << "\n";
 }
+
+Graph::EdgeId vd_get_min_bound_edge_inc_to_nodeset(const Voronoi_diagram& vd, const std::vector<Graph::NodeId>& input_nodes) {
+    Graph::EdgeId output = Graph::invalid_edge_id;
+    Graph::EdgeWeight min_weight = Graph::infinite_weight;
+
+    for( auto curr_node_id : input_nodes ) {
+        for( auto curr_edge_id : vd.original_graph().get_node(curr_node_id).incidence_vect() ) {
+            Graph::Edge curr_edge = vd.original_graph().get_edge(curr_edge_id);
+            if( vd.check_if_bound_edge(curr_edge) ) {
+                if(curr_edge.weight() < min_weight) {
+                    min_weight = curr_edge.weight();
+                    output = curr_edge_id;
+                }
+            }
+        }
+    }
+
+    //debug
+    if( output == Graph::invalid_edge_id ) {
+        std::cout << "(vd_get_min_bound_edge_inc_to_nodeset) Ausgabe ist ungueltige Kante. \n";
+    }
+
+    return output;
+}

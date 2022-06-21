@@ -16,73 +16,59 @@ public:
     //kann ich die Eingabe der Konstruktoren iwie const machen?
     //erstellt ein Diagramm zur leeren Basis in einem Graphen mit num_n Knoten, checkt aber nicht, ob Kantengewichten negativ/unendlich sind
     //? diese fehlenden Checks könnten Problem sein für repair
+    // ?löschen
     Voronoi_diagram(Graph& input_graph);
     //soll das Voronoi-Diagramm des Graphen g berechnen, mit den Knoten in set_of_b als Basen
     //Eingabe: set_of_b ist nichtleere Teilmenge der Knoten von g, g hat nichtnegative "endliche" Kantengewichte
-    Voronoi_diagram(const std::vector<Graph::NodeId>& set_of_b, Graph& input_graph);
+    Voronoi_diagram(const std::vector<Graph::NodeId>& set_of_b,
+                    Graph& input_graph);
 
-    //entspricht der Methode repair, wie sie in dem Paper beschrieben ist
+    //entspricht der Methode repair, wie sie in dem Paper (Seite 4) beschrieben ist
     //Eingabe: Teilmenge der aktuellen Basis
-    //Methode berechnet Voronoi-Diagramm mit der Eingabe als Basis
-    void repair(const std::vector<Graph::NodeId>& new_set_of_bases);
+    //Methode berechnet Voronoi-Diagramm mit einer neuen Basis, die aus der alten durch Entfernen der Eingabemenge entsteht
+    void repair(const std::vector<Graph::NodeId>& bases_to_delete);
 
+    // print-Funktionen später auslagern ?
     //Ausgabe auf Konsole für jeden Knoten: NodeId, Basis, Distanz zur Basis, Vorgängerknoten auf kürz. Weg von Basis
     void print_simple() const;
     //Ausgabe auf Konsole: Voronoi-Region der Basis var_base (var_base muss Basis sein)
-    void print_region(Graph::NodeId var_base) const;
+    //geht dabei alle Knoten durch
+    void print_region_naiv(Graph::NodeId input_base) const;
+    //Ausgabe auf Konsole: Voronoi-Region der Basis var_base (var_base muss Basis sein)
+    // benutzt die Funktion compute_vor_region
+    void print_region_fast(Graph::NodeId input_base);
 
-    //setzt Menge der Basen auf new_set_of_bases; macht, dass alle Basen sich selbst als Basis haben sowie dass ihr Abstand zur Basis 0 ist; setzt BaseIds
+    //macht, dass alle Basen sich selbst als Basis haben sowie dass ihr Abstand zur Basis 0 ist; setzt _num_bases
     //nach Aufruf dieser Methode ist das Voronoi-Diagramm ggf. nicht mehr korrekt
-    void assign_set_of_bases(const std::vector<Graph::NodeId>& new_set_of_bases);
+    void assign_bases(const std::vector<Graph::NodeId>& new_set_of_bases);
 
     //prüft ob var_node Basis ist
-    //genauer: prüft, ob var_node eine valide BaseId hat (und nicht, ob var_node in der Menge der Basen liegt)
+    //genauer: prüft, ob der Eingabeknoten sich selbst als Basis hat
     //Eingabe: Knoten, der im Graphen liegt oder Knoten mit ungültiger NodeId
     bool check_if_base(Graph::NodeId var_node) const;
-
-    //berechnet die boundary edges (1. Eintrag des pair), die auf kürz. Weg zwischen den entsprechenden Basen liegen sowie die Länge dieses Weges (2. Eintrag des pair)
-    //genauer: die Kanten (v,w), die _dist_to_base[v] + (v,w).weight() + _dist_to_base[w] minimieren
-    //Eintrag (i,j) der ausgegebenen "Matrix" entspricht den Basen mit NodeId i+1 und j (wobei i>=j)
-    // ? als Atttribut anlegen?
-    // ? Laufzeit/Speicher? ->Kanten direkt in den Graphen ('aux_graph') speichern
-    std::vector<
-        std::vector<
-            std::pair< Graph::EdgeId, Graph::PathLength >
-        >
-    > min_bound_edges() const;
-
-    //ruft min_bound_edges auf und gibt die ausgegebene Matrix auf Konsole aus (debug)
-    void print_min_bound_edges() const;
-
-    //gibt entsprechende BaseIds aus, aufsteigend geordnet
-    //Eingabe: 2 unterschiedliche Knoten, die im Graphen liegen
-    std::pair<BaseId, BaseId> get_base_ids_ordered(Graph::NodeId node_one, Graph::NodeId node_two) const;
+    //prüft, ob Kante eine boundary edge ist (d. h. die Endknoten liegen in verschiedenen V.-Regionen, insbesondere liegen sie in einer V.-Region)
+    //Eingabe: Kante, die zwischen 2 Knoten verläuft, die beide im Graphen liegen
+    //(?)! prüft nicht, ob die eingegebene Kante wirklich im zugrundeliegenden Graphen liegt (zu aufwendig)
+    bool check_if_bound_edge(const Graph::Edge& var_edge) const;
 
     const Graph& original_graph() const;
     const std::vector<Graph::NodeId>& base() const;
     const std::vector<Graph::PathLength>& dist_to_base() const;
+    const std::vector< std::pair< Graph::NodeId, Graph::EdgeId>>& predecessor() const;
+    unsigned int num_bases() const;
 
-    //prüft, ob Kante eine boundary edge ist (d. h. die Endknoten liegen in verschiedenen V.-Regionen, insbesondere liegen sie in einer V.-Region)
-    //Eingabe: Kante, die zwischen 2 Knoten verläuft, die beide im Graphen liegen
-    bool check_if_bound_edge(const Graph::Edge& var_edge) const;
-
-    //erstellt den Hilfsgraphen (auxiliary graph) für Mehlhorns ALgo. (in dem Paper als G'_1 notiert)
-    //auslagern?
-    Graph construct_aux_graph() const;
-
-    //gibt den dem eingebenen Graphen (Subgraph des Hilfsgraphen (auxiliary graph, Mehlhorns Algo.)) entsprechenden Subgraphen des zugrundeliegenden Graphen aus
-    //Eingabe: vect_min_bound_edges ist in dem Format wie die Ausgabe der Funktion min_bound_edges
-    // ? besserer Name für var_graph
-    //auslagern?
-    Graph turn_into_subgraph(const Graph& var_graph, const std::vector<std::vector<std::pair<Graph::EdgeId, Graph::PathLength>>>& vect_min_bound_edges) const;
-
-    static const BaseId invalid_base_id;
+    //gibt Menge der Basen aus (muss aber erst berechnet werden)
+    std::vector<Graph::NodeId> compute_set_of_bases() const;
+    //gibt Vektor mit Eintrag für jeden Knoten des zugrundeliegenden Graphen aus, in dem die Basen nummeriert werden, andere Knoten erhalten invalid_node_id
+    std::vector<Graph::NodeId> compute_base_ids() const;
+    //gibt Voronoi-Region des eingegebenen Knoten (muss Basis sein) aus
+    std::vector<Graph::NodeId> compute_vor_region(Graph::NodeId input_base);
+    //gibt Voronoi-Regionen der eingegebenen Knoten (müssen alle Basen sein) aus (Ausgabe als eine Menge, ohne Differenzierung nach Basis/Region)
+    std::vector< Graph::NodeId > compute_some_vor_regions(const std::vector<Graph::NodeId>& subset_of_bases);
 
 private:
-    unsigned int _num_nodes; //brauche ich eig nicht wegen original_graph ?
     unsigned int _num_bases;
 
-    std::vector<Graph::NodeId> _set_of_bases;
     //speichert zu jedem Knoten die zugehörige Basis (an der Stelle, die der NodeId des Knotens entspricht)
     std::vector<Graph::NodeId> _base;
 
@@ -95,12 +81,16 @@ private:
 
     // brauche ich _predecessor, _dist_to_base, ... für alle Berechnungen?
 
-    //weist Basen eine eindeutige id zu, nicht-Basen besitzen die id invalid_base_id
-    std::vector<BaseId> _base_ids;
-
     //der zugrundeliegende Graph
     // möchte ich const machen aber Problem?
     Graph& _original_graph;
+
+    //Subroutine für die Funktion compute_vor_region
+    //geht die Nachbarn des aktuellen Knoten durch und prüft, ob diese in der V-Region der eingegebenen Basis liegen
+    // falls ja, so wird der Nachbar zu vor_region hinzugefügt und für diesen die Funktion rekursiv aufgerufen
+    void compute_vor_region_subroutine(unsigned int input_base,
+                                       unsigned int curr_node_id,
+                                       std::vector<Graph::NodeId> &vor_region);
 };
 
 #endif //PRAKTIKUMSTEINERBAUM_VORONOI_DIAGRAM_H

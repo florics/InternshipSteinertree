@@ -54,7 +54,7 @@ Graph::EdgeId vd_get_min_bound_edge_inc_to_nodeset(const Voronoi_diagram& vd, co
     Graph::EdgeWeight min_weight = Graph::infinite_weight;
 
     for( auto curr_node_id : input_nodes ) {
-        for( auto curr_edge_id : vd.original_graph().get_node(curr_node_id).incidence_vect() ) {
+        for( auto curr_edge_id : vd.original_graph().get_node(curr_node_id).incident_edge_ids() ) {
             Graph::Edge curr_edge = vd.original_graph().get_edge(curr_edge_id);
             if( vd.check_if_bound_edge(curr_edge) ) {
                 if(curr_edge.weight() < min_weight) {

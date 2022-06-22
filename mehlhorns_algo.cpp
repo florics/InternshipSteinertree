@@ -11,7 +11,6 @@
 #include "graph_algorithms.h"
 #include "graph_aux_functions.h"
 #include "graph_printfunctions.h"
-#include "voronoi_diagram.h"
 
 //? Graph const machen!
 Graph mehlhorns_algo(Graph& input_graph) {
@@ -25,7 +24,7 @@ Graph mehlhorns_algo(Graph& input_graph) {
 
     Graph mst_of_aux_graph = mst_prim(aux_graph, 0);
 
-    Graph sub_of_mst_of_aux_graph = turn_into_subgraph_of_vds_origninal_graph(vor_diag, mst_of_aux_graph, min_bound_edges);
+    Graph sub_of_mst_of_aux_graph = turn_into_subgraph_of_vds_original_graph(vor_diag, mst_of_aux_graph, min_bound_edges);
 
     Graph output = mst_prim(sub_of_mst_of_aux_graph, 0);
 
@@ -36,7 +35,7 @@ Graph mehlhorns_algo(Graph& input_graph) {
 
 std::vector<std::vector<std::pair<Graph::EdgeId, Graph::PathLength>>> compute_min_bound_edges_of_vd(const Voronoi_diagram& input_vd) {
 
-    //Initialisierung der Ausgabe-Matrix: output[i][j] entspricht den Basen i+1, j
+    //Initialisierung der Ausgabe-Matrix: output[i][j] entspricht den Basen i+1, j (diese einfache Nummerierung der Basen wird hier mit base_ids gespeichert)
     std::vector<std::vector<std::pair<Graph::EdgeId, Graph::PathLength>>> output;
     std::pair<Graph::EdgeId, Graph::PathLength> invalid_pair = {Graph::invalid_edge_id, Graph::infinite_length};
     for(unsigned int i = 0; i < input_vd.num_bases()-1; i++){
@@ -94,7 +93,7 @@ Graph construct_aux_graph_of_vd(const Voronoi_diagram& input_vd,
     return output;
 }
 
-Graph turn_into_subgraph_of_vds_origninal_graph(const Voronoi_diagram& input_vd,
+Graph turn_into_subgraph_of_vds_original_graph(const Voronoi_diagram& input_vd,
                                                 const Graph& input_graph,
                                                 const std::vector<std::vector<std::pair<Graph::EdgeId, Graph::PathLength>>>& min_bound_edges) {
     const Graph& original_graph = input_vd.original_graph();

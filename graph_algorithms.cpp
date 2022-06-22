@@ -6,6 +6,7 @@
 #include "iostream" //nur für einmal runtime_error (?)
 
 #include "graph_algorithms.h"
+
 #include "graph_aux_functions.h"
 #include "graph_printfunctions.h"
 #include "Union_Find_Structure.h"
@@ -26,7 +27,7 @@ Graph mst_prim(const Graph& input_graph, Graph::NodeId start_node){
     reached [start_node] = true;
 
     //erste Schleife über die Nachbarn des Startknoten //? irgendwie in die Hauptschleife packen?
-    for(auto curr_edge_id: input_graph.get_node(start_node).incidence_vect()){
+    for(auto curr_edge_id: input_graph.get_node(start_node).incident_edge_ids()){
         Graph::Edge curr_edge = input_graph.get_edge(curr_edge_id);
         Graph::NodeId curr_neighbor = curr_edge.get_other_node(start_node);
         if( best_edges[curr_neighbor] == Graph::invalid_edge_id ){
@@ -62,7 +63,7 @@ Graph mst_prim(const Graph& input_graph, Graph::NodeId start_node){
             reached[next_cand] = true;
 
             //Finde neue Kandidaten
-            for(auto curr_edge_id: input_graph.get_node(next_cand).incidence_vect()){
+            for(auto curr_edge_id: input_graph.get_node(next_cand).incident_edge_ids()){
                 Graph::Edge curr_edge = input_graph.get_edge(curr_edge_id);
                 Graph::NodeId curr_neighbor = curr_edge.get_other_node(next_cand);
                 if( not reached[curr_neighbor] ){

@@ -10,6 +10,7 @@
 //? #include <algorithm>
 
 #include "voronoi_diagram.h"
+
 #include "graph_aux_functions.h"
 #include "graph_printfunctions.h"
 
@@ -17,6 +18,7 @@ Voronoi_diagram::Voronoi_diagram(Graph& input_graph):
     _original_graph(input_graph)
 {
     //? Checks fehlen (siehe anderer Konstruktor)
+    // diesen Konstruktor vll löschen ?
 
     unsigned int num_nodes = input_graph.num_nodes();
     _num_bases = 0;
@@ -109,7 +111,7 @@ Voronoi_diagram::Voronoi_diagram(const std::vector<Graph::NodeId>& set_of_b, Gra
             }
 
             //Schleife über die zu next_node inzidenten Kanten
-            std::vector<Graph::EdgeId> next_node_edges = _original_graph.get_node(next_node).incidence_vect();
+            std::vector<Graph::EdgeId> next_node_edges = _original_graph.get_node(next_node).incident_edge_ids();
             for (auto curr_edge_id: next_node_edges) {
                 Graph::Edge curr_edge = _original_graph.get_edge(curr_edge_id);
                 Graph::NodeId curr_neighbor = curr_edge.get_other_node(next_node);
@@ -167,7 +169,7 @@ void Voronoi_diagram::repair(const std::vector<Graph::NodeId>& bases_to_delete){
     }
     //die eigentliche Initialisierung
     for(auto curr_node_id : nodes_to_update) {
-        for(auto curr_edge_id : _original_graph.get_node(curr_node_id).incidence_vect() ) {
+        for(auto curr_edge_id : _original_graph.get_node(curr_node_id).incident_edge_ids() ) {
             Graph::Edge curr_edge = _original_graph.get_edge(curr_edge_id);
             Graph::NodeId curr_neighbor_id = curr_edge.get_other_node(curr_node_id);
 
@@ -219,7 +221,7 @@ void Voronoi_diagram::repair(const std::vector<Graph::NodeId>& bases_to_delete){
             _base[next_node] = _base[_predecessor[next_node].first];
 
             //Schleife über die zu next_node inzidenten Kanten
-            std::vector<Graph::EdgeId> next_node_edges = _original_graph.get_node(next_node).incidence_vect();
+            std::vector<Graph::EdgeId> next_node_edges = _original_graph.get_node(next_node).incident_edge_ids();
             for (auto curr_edge_id: next_node_edges) {
                 Graph::Edge curr_edge = _original_graph.get_edge(curr_edge_id);
                 Graph::NodeId curr_neighbor = curr_edge.get_other_node(next_node);
@@ -422,6 +424,7 @@ void Voronoi_diagram::compute_vor_region_subroutine(Graph::NodeId input_base, Gr
     vor_region.push_back(curr_node_id);
     //markiere den Knoten als "betrachtet", um die Rekursion nicht mehrfach für den gleichen Knoten aufzurufen
     //das ist der Grund, weshalb diese Funktion (sowie alle, die sie benutzen) nicht const ist
+    // (ein Vektor mit Länge original_nodes.num_nodes() würde zu Laufzeit O(n) führen)
     _base[curr_node_id] = Graph::invalid_node_id;
 
     for( auto curr_neighbor_id: original_graph().adjacency_vect(curr_node_id) ){

@@ -19,6 +19,8 @@ const Graph::EdgeId Graph::invalid_edge_id = std::numeric_limits<unsigned int>::
 
 Graph::Graph(int n)
 {
+    _dir_type = Graph::undirected;
+
     Graph::add_nodes(n);
     //instance_name etc nicht definiert
 }
@@ -90,6 +92,25 @@ void Graph::Edge::reverse_node_order() {
     Graph::NodeId var_node = _node_a;
     _node_a = _node_b;
     _node_b = var_node;
+}
+
+void Graph::Edge::direct_edge(Graph::NodeId tail, Graph::NodeId head) {
+    if( head == Graph::invalid_node_id ) {
+        throw std::runtime_error("(Graph::Edge::direct_edge) Eingabeknoten head ungueltig");
+    }
+    if( tail == Graph::invalid_node_id ) {
+        throw std::runtime_error("(Graph::Edge::direct_edge) Eingabeknoten tail ungueltig");
+    }
+    //kann ich hier prüfen, ob die Eingabeknoten im Graphen liegen? Wie greife ich von Edge aus auf num_nodes() zu?
+
+    if( node_a() == tail && node_b() == head ) {
+        return;
+    } else if ( node_a() == head && node_b() == tail ) {
+        reverse_node_order();
+        return;
+    } else {
+        throw std::runtime_error("(Graph::Edge::direct_edge) Eingabeknoten sind nicht zur Kante inzident");
+    }
 }
 
 std::pair<Graph::NodeId, Graph::NodeId> Graph::Edge::get_nodes_orderedbyid() {
@@ -208,31 +229,116 @@ const Graph::Node& Graph::get_node(Graph::NodeId v) const{
     return _nodes[v];
 }
 
-const std::vector<Graph::EdgeId>& Graph::Node::incidence_vect() const{
-    return _incidence_vect;
+const std::vector<Graph::EdgeId>& Graph::Node::incident_edge_ids() const{
+    return _incident_edge_ids;
 }
 
 void Graph::Node::add_neighbor_edge(EdgeId e){
-    _incidence_vect.push_back(e);
+    _incident_edge_ids.push_back(e);
 }
 
 unsigned int Graph::Node::num_neighbors()  const{
-    return _incidence_vect.size();
+    return _incident_edge_ids.size();
 }
 
-const std::vector<Graph::EdgeId>& Graph::incidence_vect(Graph::NodeId input_node) const {
-    return get_node(input_node).incidence_vect();
+const std::vector<Graph::EdgeId>& Graph::incident_edge_ids(Graph::NodeId input_node) const {
+    return get_node(input_node).incident_edge_ids();
 }
+
+/*
+ *?
+std::vector<const Graph::Edge&> Graph::incident_edges(Graph::NodeId input_node_id) const {
+    //check?
+    std::vector<const Graph::Edge&> output;
+    for(auto curr_edge_id : incident_edge_ids(input_node_id)) {
+        output.push_back(get_edge(curr_edge_id));
+    }
+    return output;
+}
+ */
 
 std::vector<Graph::NodeId> Graph::adjacency_vect(Graph::NodeId input_node_id) const{
+    if( input_node_id == Graph::invalid_node_id) {
+        throw std::runtime_error("(Graph::adjacency_vect) Eingabeknoten ungueltig");
+    }
+    if( input_node_id > num_nodes()) {
+        throw std::runtime_error("(Graph::adjacency_vect) Eingabeknoten nicht im Graph");
+    }
+
     std::vector<Graph::NodeId> output;
-    std::vector<EdgeId> incidence_vect_of_input = incidence_vect(input_node_id);
-    for(auto curr_edge_id : incidence_vect_of_input) {
+    std::vector<EdgeId> incident_edge_ids_of_input = incident_edge_ids(input_node_id);
+    for(auto curr_edge_id : incident_edge_ids_of_input) {
         Graph::Edge curr_edge = get_edge(curr_edge_id);
         Graph::NodeId curr_neighbor_id = curr_edge.get_other_node(input_node_id);
         output.push_back(curr_neighbor_id);
     }
     return output;
+}
+
+std::vector<Graph::EdgeId> Graph::get_ingoing_edge_ids(Graph::NodeId input_node_id) const {
+    if( _dir_type != Graph::directed) {
+        throw std::runtime_error("(Graph::get_ingoing_edge_ids) Graph ist ungerichtet");
+    }
+    if( input_node_id == Graph::invalid_node_id) {
+        throw std::runtime_error("(Graph::get_ingoing_edge_ids) Eingabeknoten ungueltig");
+    }
+    if( input_node_id > num_nodes()) {
+        throw std::runtime_error("(Graph::get_ingoing_edge_ids) Eingabeknoten nicht im Graph");
+    }
+
+    std::vector<Graph::EdgeId> output;
+
+    std::vector<EdgeId> incident_edge_ids_of_input = incident_edge_ids(input_node_id);
+    for(auto curr_edge_id : incident_edge_ids_of_input) {
+        Graph::Edge curr_edge = get_edge(curr_edge_id);
+        Graph::NodeId curr_neighbor_id = curr_edge.get_other_node(input_node_id);
+        if( curr_neighbor_id == curr_edge.node_a()){
+            output.push_back(curr_edge_id);
+        }
+    }
+
+    return output;
+}
+
+std::vector<Graph::EdgeId> Graph::get_outgoing_edge_ids(Graph::NodeId input_node_id) const {
+    if( _dir_type != Graph::directed) {
+        throw std::runtime_error("(Graph::get_outgoing_edge_ids) Graph ist ungerichtet");
+    }
+    if( input_node_id == Graph::invalid_node_id) {
+        throw std::runtime_error("(Graph::get_outgoing_edge_ids) Eingabeknoten ungueltig");
+    }
+    if( input_node_id > num_nodes()) {
+        throw std::runtime_error("(Graph::get_outgoing_edge_ids) Eingabeknoten nicht im Graph");
+    }
+
+    std::vector<Graph::EdgeId> output;
+
+    std::vector<EdgeId> incident_edge_ids_of_input = incident_edge_ids(input_node_id);
+    for(auto curr_edge_id : incident_edge_ids_of_input) {
+        Graph::Edge curr_edge = get_edge(curr_edge_id);
+        Graph::NodeId curr_neighbor_id = curr_edge.get_other_node(input_node_id);
+        if( curr_neighbor_id == curr_edge.node_b()){
+            output.push_back(curr_edge_id);
+        }
+    }
+
+    return output;
+}
+
+Graph::NodeId Graph::get_tail(Graph::EdgeId input_edge_id) const {
+    if( dir_type() == Graph::undirected) {
+        throw std::runtime_error("(Graph::get_tail) Graph ist ungerichtet.")
+    } else {
+        return get_edge(input_edge_id).node_a();
+    }
+}
+
+Graph::NodeId Graph::get_head(Graph::EdgeId input_edge_id) const {
+    if( dir_type() == Graph::undirected) {
+        throw std::runtime_error("(Graph::get_head) Graph ist ungerichtet.")
+    } else {
+        return get_edge(input_edge_id).node_b();
+    }
 }
 
 const Graph::Edge& Graph::get_edge(Graph::EdgeId e) const {
@@ -296,6 +402,57 @@ void Graph::add_existing_edge_w_newid(Graph::Edge new_edge) {
     add_edge(new_edge.node_a(), new_edge.node_b(), new_edge.weight());
 }
 
+Graph::DirType Graph::dir_type() {
+    return _dir_type;
+}
+
+void Graph::make_rooted_arborescence(Graph::NodeId root_id) {
+    if( root_id == Graph::invalid_node_id) {
+        throw std::runtime_error("(Graph::make_rooted_arborescence) Eingabeknoten ungueltig");
+    }
+    if( root_id > num_nodes()) {
+        throw std::runtime_error("(Graph::make_rooted_arborescence) Eingabeknoten nicht im Graphen");
+    }
+
+    std::vector<Graph::NodeId> next_nodes (1, root_id);
+    //speichert die bereits erreichten Knoten (die, die bereits zu next_nodes hinzugfügt wurden)
+    //Laufzeit O(num_nodes()) Problem?
+    std::vector<bool> reached_nodes (num_nodes(), false);
+    reached_nodes[root_id] = true;
+    //speichert, ob Kante bereits gerichtet
+    //Laufzeit O(num_edges()) Problem?
+    std::vector<bool> directed_edges (num_edges(), false);
+
+    while( not next_nodes.empty()) {
+        Graph::NodeId curr_node_id = next_nodes.back();
+        next_nodes.pop_back();
+
+        for( auto curr_edge_id : incident_edge_ids(curr_node_id) ) {
+            Graph::NodeId curr_neighbor_id = get_edge(curr_edge_id).get_other_node(curr_node_id);
+
+            if( not directed_edges[curr_edge_id] ){
+                if( reached_nodes[curr_neighbor_id] ) {
+                    // falls die Kante noch nicht erreicht wurde, der Knoten aber schon, haben wir einen Kreis gefunden
+                    throw std::runtime_error("(Graph::make_rooted_arborescence) Graph ist kein Baum");
+                } else {
+                    _edges[curr_edge_id].direct_edge(curr_node_id, curr_neighbor_id);
+                    directed_edges[curr_edge_id] = true;
+                    reached_nodes[curr_neighbor_id] = true;
+                    next_nodes.push_back(curr_neighbor_id);
+                }
+            }
+        }
+    }
+
+    for( auto var_reached : reached_nodes ){
+        if( not var_reached ) {
+            throw std::runtime_error("(Graph::make_rooted_arborescence) Es wurden nicht alle Knoten erreicht, Graph ist also nicht zsmhaengend.");
+        }
+    }
+
+    _dir_type = Graph::directed;
+}
+
 void Graph::instance_comment() const{
     std::cout << "SECTION Comment \n";
     std::cout << "Name   " << instance_name << "\n";
@@ -311,6 +468,8 @@ Graph::Graph(char const* filename){
     if (not file) {
         throw std::runtime_error("Fehler beim Öffnen der Datei");
     }
+
+    _dir_type = Graph::undirected;
 
     //Werte für die Variablen instance_name, instance_creator, instance_remark, instance_problem
     //falls diese nicht durch die Datei filename gegeben werden
@@ -482,7 +641,9 @@ Graph::Graph(char const* filename){
         //debug
         std::cout << "angegebene Kantenanzahl: " << m << "\n";
         std::cout << "Anzahl aufgelisteter Kanten " << num_edges() << "\n";
-        //? throw std::runtime_error("(Einlesen) angegebene Kantenanzahl ungleich Anzahl aufgelisteter Kanten");
+        if( num_edges() != m/2){
+            throw std::runtime_error("(Einlesen) angegebene Kantenanzahl ungleich Anzahl aufgelisteter Kanten");
+        }
     }
     if( get_vect_term().size() != t_num){
         //debug
@@ -494,6 +655,7 @@ Graph::Graph(char const* filename){
 }
 
 /*
+ * ?
 Graph::Graph(const Graph& g) {
     _nodes = g.nodes();
     _edges = g.edges();

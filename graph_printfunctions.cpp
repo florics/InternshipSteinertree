@@ -92,12 +92,12 @@ void print_edge_as_pair(const Graph & input_graph, Graph::EdgeId id) {
 }
 
 //? nicht getestet
-void print_incidence_vect(const Graph& input_graph, Graph::NodeId id) {
+void print_incidence_edges(const Graph& input_graph, Graph::NodeId id) {
     const Graph::Node& v = input_graph.get_node(id);
     std::cout << "Knoten ";
     print_nodename(input_graph, id);
     std::cout << " ist zu " << v.num_neighbors() << " Kanten inzident: \n";
-    for(auto curr_edgeid : v.incidence_vect() ){
+    for(auto curr_edgeid : v.incident_edge_ids() ){
         Graph::Edge curr_edge = input_graph.get_edge(curr_edgeid);
         std::cout << "E ";
         print_nodename(input_graph, curr_edge.node_a() );
@@ -110,13 +110,13 @@ void print_incidence_vect(const Graph& input_graph, Graph::NodeId id) {
 }
 
 //? nicht getestet
-void print_incidence_vect_by_id(const Graph& input_graph, Graph::NodeId id) {
+void print_incident_edges_using_ids(const Graph& input_graph, Graph::NodeId id) {
     const Graph::Node& v = input_graph.get_node(id);
     std::cout << "Knoten mit NodeId";
     print_nodeid(id);
     std::cout << " ist zu " << v.num_neighbors() << " Kanten inzident: (hier werden die _node_id's verwendet) \n";
-    for(auto curr_edgeid : v.incidence_vect() ){
-        Graph::Edge curr_edge = input_graph.get_edge(curr_edgeid);
+    for(auto curr_edge_id : v.incident_edge_ids() ){
+        Graph::Edge curr_edge = input_graph.get_edge(curr_edge_id);
         std::cout << "E ";
         print_nodeid( curr_edge.node_a() );
         std::cout << " ";
@@ -127,9 +127,29 @@ void print_incidence_vect_by_id(const Graph& input_graph, Graph::NodeId id) {
     }
 }
 
-void print_all_incidence_vect_by_id(const Graph& input_graph) {
+void print_all_incidence_vect_using_ids(const Graph& input_graph) {
     for(Graph::NodeId i=0; i<input_graph.num_nodes(); i++){
-        print_incidence_vect_by_id(input_graph, i);
+        print_incident_edges_using_ids(input_graph, i);
+    }
+}
+
+void print_ingoing_neighbors(const Graph& input_graph, Graph::NodeId input_node_id) {
+    std::cout << "Die eingehenden Nachbarn von Knoten ";
+    print_nodeid(input_node_id);
+    std::cout << " sind: \n";
+    for( auto curr_neighbor_id : input_graph.get_ingoing_neighbor_ids(input_node_id)) {
+        print_nodename(input_graph, curr_neighbor_id );
+        std::cout << "\n";
+    }
+}
+
+void print_outgoing_neighbors(const Graph& input_graph, Graph::NodeId input_node_id) {
+    std::cout << "Die ausgehenden Nachbarn von Knoten ";
+    print_nodeid(input_node_id);
+    std::cout << " sind: \n";
+    for( auto curr_neighbor_id : input_graph.get_outgoing_neighbor_ids(input_node_id)) {
+        print_nodename(input_graph, curr_neighbor_id );
+        std::cout << "\n";
     }
 }
 

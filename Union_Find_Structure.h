@@ -7,6 +7,8 @@
 
 #include "vector"
 
+//? es gibt auch andere Möglichkeiten für union (union_by_size) und find (path splitting, path halving)
+
 class Union_Find_Structure {
 public:
     using ElementId = unsigned int;

@@ -49,7 +49,7 @@ Voronoi_diagram::Voronoi_diagram(std::vector<Graph::NodeId> set_of_b, Graph g){
         reached[curr_base] = 1;
 
         //Schleife über die zu curr_base inzidenten Kanten
-        std::vector<Graph::EdgeId> curr_base_edges = g.get_node(curr_base).incidence_vect();
+        std::vector<Graph::EdgeId> curr_base_edges = g.get_node(curr_base).incident_edge_ids();
         for(auto curr_edge_id: curr_base_edges){
             Graph::Edge curr_edge = g.get_edge(curr_edge_id);
 

@@ -109,6 +109,18 @@ build CMakeFiles/PraktikumSteinerbaum.dir/Union_Find_Structure.cpp.obj: CXX_COMP
   OBJECT_DIR = CMakeFiles\PraktikumSteinerbaum.dir
   OBJECT_FILE_DIR = CMakeFiles\PraktikumSteinerbaum.dir
 
+build CMakeFiles/PraktikumSteinerbaum.dir/key_path_exchange.cpp.obj: CXX_COMPILER__PraktikumSteinerbaum_Debug C$:/Users/Lukas/CLionProjects/PraktikumSteinerbaum/key_path_exchange.cpp || cmake_object_order_depends_target_PraktikumSteinerbaum
+  DEP_FILE = CMakeFiles\PraktikumSteinerbaum.dir\key_path_exchange.cpp.obj.d
+  FLAGS = -g -std=gnu++20
+  OBJECT_DIR = CMakeFiles\PraktikumSteinerbaum.dir
+  OBJECT_FILE_DIR = CMakeFiles\PraktikumSteinerbaum.dir
+
+build CMakeFiles/PraktikumSteinerbaum.dir/local_search_aux.cpp.obj: CXX_COMPILER__PraktikumSteinerbaum_Debug C$:/Users/Lukas/CLionProjects/PraktikumSteinerbaum/local_search_aux.cpp || cmake_object_order_depends_target_PraktikumSteinerbaum
+  DEP_FILE = CMakeFiles\PraktikumSteinerbaum.dir\local_search_aux.cpp.obj.d
+  FLAGS = -g -std=gnu++20
+  OBJECT_DIR = CMakeFiles\PraktikumSteinerbaum.dir
+  OBJECT_FILE_DIR = CMakeFiles\PraktikumSteinerbaum.dir
+
 
 # =============================================================================
 # Link build statements for EXECUTABLE target PraktikumSteinerbaum
@@ -117,7 +129,7 @@ build CMakeFiles/PraktikumSteinerbaum.dir/Union_Find_Structure.cpp.obj: CXX_COMP
 #############################################
 # Link the executable PraktikumSteinerbaum.exe
 
-build PraktikumSteinerbaum.exe: CXX_EXECUTABLE_LINKER__PraktikumSteinerbaum_Debug CMakeFiles/PraktikumSteinerbaum.dir/main.cpp.obj CMakeFiles/PraktikumSteinerbaum.dir/graph.cpp.obj CMakeFiles/PraktikumSteinerbaum.dir/graph_aux_functions.cpp.obj CMakeFiles/PraktikumSteinerbaum.dir/graph_printfunctions.cpp.obj CMakeFiles/PraktikumSteinerbaum.dir/voronoi_diagram.cpp.obj CMakeFiles/PraktikumSteinerbaum.dir/graph_algorithms.cpp.obj CMakeFiles/PraktikumSteinerbaum.dir/mehlhorns_algo.cpp.obj CMakeFiles/PraktikumSteinerbaum.dir/string_aux_functions.cpp.obj CMakeFiles/PraktikumSteinerbaum.dir/vor_diag_aux_functions.cpp.obj CMakeFiles/PraktikumSteinerbaum.dir/Union_Find_Structure.cpp.obj
+build PraktikumSteinerbaum.exe: CXX_EXECUTABLE_LINKER__PraktikumSteinerbaum_Debug CMakeFiles/PraktikumSteinerbaum.dir/main.cpp.obj CMakeFiles/PraktikumSteinerbaum.dir/graph.cpp.obj CMakeFiles/PraktikumSteinerbaum.dir/graph_aux_functions.cpp.obj CMakeFiles/PraktikumSteinerbaum.dir/graph_printfunctions.cpp.obj CMakeFiles/PraktikumSteinerbaum.dir/voronoi_diagram.cpp.obj CMakeFiles/PraktikumSteinerbaum.dir/graph_algorithms.cpp.obj CMakeFiles/PraktikumSteinerbaum.dir/mehlhorns_algo.cpp.obj CMakeFiles/PraktikumSteinerbaum.dir/string_aux_functions.cpp.obj CMakeFiles/PraktikumSteinerbaum.dir/vor_diag_aux_functions.cpp.obj CMakeFiles/PraktikumSteinerbaum.dir/Union_Find_Structure.cpp.obj CMakeFiles/PraktikumSteinerbaum.dir/key_path_exchange.cpp.obj CMakeFiles/PraktikumSteinerbaum.dir/local_search_aux.cpp.obj
   FLAGS = -g
   LINK_LIBRARIES = -lkernel32 -luser32 -lgdi32 -lwinspool -lshell32 -lole32 -loleaut32 -luuid -lcomdlg32 -ladvapi32
   OBJECT_DIR = CMakeFiles\PraktikumSteinerbaum.dir

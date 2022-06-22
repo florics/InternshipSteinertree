@@ -12,11 +12,16 @@ void print_graph(const Graph& input_graph);
 //gibt Graph auf Konsole aus, Knoten werden über _node_id ausgegeben
 void print_graph_by_id(const Graph& input_graph);
 //gibt Inzidenz-Vektor auf Konsole aus, Knoten werden als _node_name ausgegeben
-void print_incidence_vect(const Graph& input_graph, Graph::NodeId id);
+
+void print_incidence_edges(const Graph& input_graph, Graph::NodeId id);
 //gibt Inzidenz-Vektor auf Konsole aus, Knoten werden als _node_id ausgegeben
-void print_incidence_vect_by_id(const Graph& input_graph, Graph::NodeId id);
-//gibt alle Inzidenz-Vektor auf Konsole aus, Knoten werden als _node_id ausgegeben
-void print_all_incidence_vect_by_id(const Graph& input_graph);
+void print_incident_edges_using_ids(const Graph& input_graph, Graph::NodeId id);
+//gibt alle Inzidenz-Vektoren auf Konsole aus, Knoten werden als _node_id ausgegeben
+void print_all_incidence_vect_using_ids(const Graph& input_graph);
+
+void print_outgoing_neighbors(const Graph& input_graph, Graph::NodeId input_node_id);
+void print_ingoing_neighbors(const Graph& input_graph, Graph::NodeId input_node_id);
+
 //Hilfsfunktion zur Ausgabe von Knoten auf Konsole (gibt _nodename oder 'invalid_node' aus) (löschen?)
 void print_nodename(const Graph& input_graph, Graph::NodeId id);
 // Hilfsfunktion zur Ausgabe von Kanten als Knotenpaar auf Konsole (Paar von NodeName's)

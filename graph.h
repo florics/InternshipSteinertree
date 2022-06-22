@@ -17,6 +17,7 @@ public:
     using EdgeWeight = double;
     using PathLength = double;
     enum TerminalState {no_terminal , terminal};
+    enum DirType {directed , undirected };
 
 
     class Edge{
@@ -34,6 +35,10 @@ public:
         NodeId get_other_node(NodeId curr_node) const;
         //kehrt die Reihenfolge um, in der die zur Kante inzidenten Knoten gespeichert sind (also _node_a, _node_b)
         void reverse_node_order();
+
+        //richtet die Kante entsprechend den Eingabeknoten
+        void direct_edge(NodeId head, NodeId tail);
+
         //gibt die Knoten der Kanten in aufsteigender (entsprechend NodeId) Reihenfolge aus
         std::pair<NodeId, NodeId> get_nodes_orderedbyid();
 
@@ -55,7 +60,7 @@ public:
 
         NodeId node_id() const;
         NodeName node_name() const;
-        const std::vector<EdgeId>& incidence_vect() const;
+        const std::vector<EdgeId>& incident_edge_ids() const;
         TerminalState terminal_state() const;
 
         //setzt _node_id auf einen neuen Wert (!prüft aber nicht, ob dadurch _node_id der Stelle des Knotens in _nodes entspricht)
@@ -86,7 +91,7 @@ public:
         NodeName _node_name;
 
         //Inzidenz-Vektor: enthält die EdgeId's der mit dem Knoten inzidenten Kanten
-        std::vector<EdgeId> _incidence_vect;
+        std::vector<EdgeId> _incident_edge_ids;
 
         //gibt an, ob der Knoten ein Terminal ist oder nicht
         TerminalState _terminal_state;
@@ -131,13 +136,34 @@ public:
     const Node& get_node(NodeId v) const;
 
     std::vector<Edge> edges() const;
-    //gibt Referenz auf Kante mit EdgeId v aus
+    //gibt Referenz auf Kante mit EdgeId e aus
     const Edge& get_edge(EdgeId e) const;
 
-    const std::vector<EdgeId>& incidence_vect(NodeId input_node) const;
-
+    const std::vector<EdgeId>& incident_edge_ids(NodeId input_node) const;
+    //gibt alle zum Eingabeknoten inzidenten Kanten aus ??
+    //std::vector<const EdgeId&> incident_edges(NodeId input_node) const;
     //gibt Nachbarknoten des Eingabeknotens aus
-    std::vector<Graph::NodeId> adjacency_vect(NodeId input_node) const;
+    std::vector<NodeId> adjacency_vect(NodeId input_node_id) const;
+
+    //gibt Vektor mit allen Nachbarn aus, die zu eingehenden Kanten des Eingabeknotens gehören
+    std::vector<EdgeId> get_ingoing_edge_ids(NodeId input_node_id) const;
+    //gibt Vektor mit allen Nachbarn aus, die zu ausgehenden Kanten des Eingabeknotens gehören
+    std::vector<EdgeId> get_outgoing_edge_ids(NodeId input_node_id) const;
+    //? beachte, dass Laufzeit von ingoing_neighbors, outgoing_neighbors jeweils O( grad(input_node) ) ist
+
+    // nach Edge verschieben? Problem: Edge weiß nicht, ob Graph gerichtet
+    //gibt node_a der Eingabekante aus, Graph muss gerichtet sein
+    NodeId get_tail(EdgeId input_edge_id) const;
+    //gibt node_b der Eingabekante aus, Graph muss gerichtet sein
+    NodeId get_head(EdgeId input_edge_id) const;
+
+    DirType dir_type() const;
+    //macht den Graph zu einer gerichteten Arboreszenz mit Wurzel entsprechend der Eingabe,
+    // in dem Sinne, dass die Knoten in den Kanten so gespeichert werden, dass node_a dem tail und node_b dem head entspricht
+    //Eingabe: Graph muss Baum sein, Knoten muss in Graph liegen
+    //Ausgabe: Knoten des Graphen in einer 'post-order' bzgl der Arboreszenz (neben der Modifizierung des Graphen)
+    void make_rooted_arborescence(NodeId root_id);
+
 
     static const EdgeWeight infinite_weight;
     static const PathLength infinite_length;
@@ -154,6 +180,9 @@ private:
 
     //Vektor mit allen Kanten des Graphen
     std::vector <Edge> _edges;
+
+    //gibt an, ob Graph gerichtet ist (default ist ungerichtet)
+    DirType _dir_type;
 
     std::string instance_name, instance_creator, instance_remark, instance_problem; //sind nur für die Instanz, kommen aus dem SteinLib-Format
 };

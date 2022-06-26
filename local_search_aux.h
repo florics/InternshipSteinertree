@@ -8,31 +8,35 @@
 #include "vector"
 #include "utility"
 #include "queue"
+//? #include "functional"
 
 #include "graph.h"
 #include "voronoi_diagram.h"
+#include "EdgeSequence.h"
 
-namespace LocalSearch{
+namespace LocalSearchAux{
 
-    // Vektor, der zu jedem Knoten einer Lösung einen Heap mit boundary edges speichert
-    using BoundEdgeHeaps = std::vector< std::priority_queue< std::pair<Graph::PathLength, Graph::EdgeId>>>;
+    //Ausgabe: die crucial nodes des Eingabegraphens in einer post-order von dem Eingabeknoten aus (so dass children immer vor ihrem parent stehen)
+    // aber ohne den Eingabeknoten selbst (!)
+    //Laufzeit: könnte man auch gleich in Graph::make_rooted_arborescence ausgeben
+    std::vector<Graph::NodeId> get_crucialnodes_in_postorder(const Graph& input_graph, Graph::NodeId root_id);
 
-    //fügt die boundary edges des Voronoi-Diagramms zu den Heaps hinzu,
-    // sodass jeder Heap eines Knotens alle zur entsprechenden V.-Region inzidenten boundary edges enthält
-    void initialise_heaps_w_bound_edges( const Voronoi_diagram& input_vd,
-                                         BoundEdgeHeaps& input_heap_vect );
 
-    //findet den Key-Path, der in start_node endet, sowie dessen Länge
-    // Ausgabe: anderer Endpunkt dieses Key-Paths
-    // Eingabe: Graph muss gerichtet sein
-    Graph::NodeId find_crucial_parent (const Graph& input_graph,
+    //findet den Key-Path, der in start_node endet
+    // Ausgabe: Key-Path als EdgeSequence (endnode_a ist der crucial parent des Startknoten)(internal_node_ids speichert in post-order)
+    // Eingabe: Graph muss Arboreszenz mit einem Terminal als Wurzel sein
+    // start_node muss crucial node sein
+    // internal_node_ids wird überschrieben mit den inneren Knoten des Key-Path (internal_node_ids speichert in post-order)
+    EdgeSequence find_ingoing_keypath (const Graph& input_graph,
                                        Graph::NodeId start_node,
-                                       std::vector<Graph::NodeId>& internal_node_ids,
-                                       Graph::PathLength& key_path_length);
+                                       std::vector<Graph::NodeId>& internal_node_ids);
 
-    // gibt 1 aus gdw. Eingabeknoten ein crucial node im Eingabegraphen ist
+    //gibt 1 aus gdw. Eingabeknoten ein crucial node im Eingabegraphen ist
     bool check_if_crucial (const Graph::Node& input_node);
 
+    // findet alle Kanten, die nach Entfernen der bases_to_delete boundary edges werden
+    // todo: nach repair ein restore durchführen, um so das vd nicht kopieren zu müssen
+    std::vector<EdgeSequence> get_new_bound_paths(Voronoi_diagram input_vd, const std::vector<Graph::NodeId>& bases_to_delete);
 
 }
 

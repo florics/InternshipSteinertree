@@ -145,7 +145,7 @@ void Graph::set_terminal(Graph::NodeId v, Graph::TerminalState t){
         _nodes[v_int].set_terminal(t);
     }else{
         std::cout << "v=" << v << "\n";
-        throw std::runtime_error("Der Knoten v ist nicht im Graphen.");
+        throw std::runtime_error("(Graph::set_terminal) Der Knoten v ist nicht im Graphen.");
     }
 }
 
@@ -327,7 +327,7 @@ std::vector<Graph::EdgeId> Graph::get_outgoing_edge_ids(Graph::NodeId input_node
 
 Graph::NodeId Graph::get_tail(Graph::EdgeId input_edge_id) const {
     if( dir_type() == Graph::undirected) {
-        throw std::runtime_error("(Graph::get_tail) Graph ist ungerichtet.")
+        throw std::runtime_error("(Graph::get_tail) Graph ist ungerichtet.");
     } else {
         return get_edge(input_edge_id).node_a();
     }
@@ -335,7 +335,7 @@ Graph::NodeId Graph::get_tail(Graph::EdgeId input_edge_id) const {
 
 Graph::NodeId Graph::get_head(Graph::EdgeId input_edge_id) const {
     if( dir_type() == Graph::undirected) {
-        throw std::runtime_error("(Graph::get_head) Graph ist ungerichtet.")
+        throw std::runtime_error("(Graph::get_head) Graph ist ungerichtet.");
     } else {
         return get_edge(input_edge_id).node_b();
     }
@@ -402,7 +402,7 @@ void Graph::add_existing_edge_w_newid(Graph::Edge new_edge) {
     add_edge(new_edge.node_a(), new_edge.node_b(), new_edge.weight());
 }
 
-Graph::DirType Graph::dir_type() {
+Graph::DirType Graph::dir_type() const{
     return _dir_type;
 }
 

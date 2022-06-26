@@ -11,7 +11,7 @@
 
 class Voronoi_diagram {
 public:
-    using BaseId = unsigned int;
+    using BaseId = unsigned int; //löschen?
 
     //kann ich die Eingabe der Konstruktoren iwie const machen?
     //erstellt ein Diagramm zur leeren Basis in einem Graphen mit num_n Knoten, checkt aber nicht, ob Kantengewichten negativ/unendlich sind
@@ -28,7 +28,7 @@ public:
     //Methode berechnet Voronoi-Diagramm mit einer neuen Basis, die aus der alten durch Entfernen der Eingabemenge entsteht
     void repair(const std::vector<Graph::NodeId>& bases_to_delete);
 
-    // print-Funktionen später auslagern ?
+    // print-Funktionen später auslagern, manche löschen! ?
     //Ausgabe auf Konsole für jeden Knoten: NodeId, Basis, Distanz zur Basis, Vorgängerknoten auf kürz. Weg von Basis
     void print_simple() const;
     //Ausgabe auf Konsole: Voronoi-Region der Basis var_base (var_base muss Basis sein)
@@ -60,7 +60,7 @@ public:
     //gibt Menge der Basen aus (muss aber erst berechnet werden)
     std::vector<Graph::NodeId> compute_set_of_bases() const;
     //gibt Vektor mit Eintrag für jeden Knoten des zugrundeliegenden Graphen aus, in dem die Basen nummeriert werden, andere Knoten erhalten invalid_node_id
-    std::vector<Graph::NodeId> compute_base_ids() const;
+    std::vector<Voronoi_diagram::BaseId> compute_base_ids() const;
     //gibt Voronoi-Region des eingegebenen Knoten (muss Basis sein) aus
     std::vector<Graph::NodeId> compute_vor_region(Graph::NodeId input_base);
     //gibt Voronoi-Regionen der eingegebenen Knoten (müssen alle Basen sein) aus (Ausgabe als eine Menge, ohne Differenzierung nach Basis/Region)

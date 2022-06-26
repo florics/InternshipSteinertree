@@ -97,10 +97,10 @@ Graph compute_spann_forest(const Graph& input_graph) {
         Graph::NodeId curr_node_a = curr_edge.node_a();
         Graph::NodeId curr_node_b = curr_edge.node_b();
 
-        if(not ufs.check_if_in_set(curr_node_a)) {
+        if(not ufs.check_if_in_existing_set(curr_node_a)) {
             ufs.make_set(curr_node_a);
         }
-        if(not ufs.check_if_in_set(curr_node_b)) {
+        if(not ufs.check_if_in_existing_set(curr_node_b)) {
             ufs.make_set(curr_node_b);
         }
 

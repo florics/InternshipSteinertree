@@ -5,7 +5,6 @@
 #include <utility>
 #include <iostream>
 #include <queue>
-#include "limits"
 //? #include <functional>
 //? #include <algorithm>
 
@@ -188,7 +187,6 @@ void Voronoi_diagram::repair(const std::vector<Graph::NodeId>& bases_to_delete){
 
     // 'second stage' modified dijkstra, entspricht der Schleife aus dem Konstruktor
     // es werden (automatisch) nur Knoten aus C bzw. aus nodes_to_update aktualisiert
-    // todo: für die lokalen Suchen müssen jeweils ein paar Zeilen hinzugefügt werden
     while ( not candidates.empty() ) {
         //finde nächsten besten Knoten/Kandidaten
         Graph::NodeId next_node = candidates.top().second;
@@ -234,7 +232,7 @@ void Voronoi_diagram::repair(const std::vector<Graph::NodeId>& bases_to_delete){
                     candidates.push({_dist_to_base[next_node] + curr_edge.weight(), curr_neighbor});
                 }
                 /*
-                 für die lokalen Suchen hier boundary edges finden
+                 für die lokalen Suchen hier boundary edges finden?
                 if( reached[curr_neighbor] ){
                     if( ... ) {
                         if( ... < ... ){
@@ -342,7 +340,9 @@ bool Voronoi_diagram::check_if_base(Graph::NodeId var_node) const {
 bool Voronoi_diagram::check_if_bound_edge(const Graph::Edge& var_edge) const {
     if(var_edge.node_a()>=original_graph().num_nodes() || var_edge.node_b()>=original_graph().num_nodes()){
         throw std::runtime_error("(Voronoi_diagram::check_if_bound_edge) Knoten der Kante sind nicht im Graphen");
-        //? wenn _original_graph als Attribut, dann hier checken, ob Kante im Graph (nein, zu aufwendig)
+    }
+    if(var_edge.edge_id()>=original_graph().num_edges() ){
+        throw std::runtime_error("(Voronoi_diagram::check_if_bound_edge) Kante ist nicht im Graphen");
     }
 
     Graph::NodeId base_a = _base[var_edge.node_a()];
@@ -387,7 +387,7 @@ std::vector<Graph::NodeId> Voronoi_diagram::compute_set_of_bases() const {
     return set_of_bases;
 }
 
-std::vector<Graph::NodeId> Voronoi_diagram::compute_base_ids() const {
+std::vector<Voronoi_diagram::BaseId> Voronoi_diagram::compute_base_ids() const {
     std::vector<Graph::NodeId> base_ids (_original_graph.num_nodes(), Graph::invalid_node_id);
 
     std::vector<Graph::NodeId> set_of_bases = compute_set_of_bases();

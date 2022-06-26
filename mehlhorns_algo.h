@@ -28,7 +28,6 @@ Graph construct_aux_graph_of_vd(const Voronoi_diagram& input_vd,
 
 //gibt den dem eingebenen Graphen (in Mehlhorns Algo. der MST des Hilfsgraphen(auxiliary graph)) entsprechenden Subgraphen des zugrundeliegenden Graphen aus
 //Eingabe: min_bound_edges ist in dem Format wie die Ausgabe der Funktion compute_min_bound_edges_of_vd
-// ? besserer Name für var_graph
 //auslagern?
 Graph turn_into_subgraph_of_vds_original_graph(const Voronoi_diagram& input_vd,
                                                 const Graph& input_graph,

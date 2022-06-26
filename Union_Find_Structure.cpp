@@ -36,6 +36,10 @@ void Union_Find_Structure::union_by_rank(Union_Find_Structure::ElementId elt_x,
         throw std::runtime_error("(Union_Find_Structure::union_by_rank) eingegebene Elemente liegen in der gleichen Menge");
     }
 
+    if( root_x == Union_Find_Structure::invalid_elt_id || root_y == Union_Find_Structure::invalid_elt_id){
+        return;
+    }
+
     //verbinden der Wurzeln und damit der Bäume und update der ranks, je nach ursprünglichen ranks der Wurzeln
     if( _ranks[root_x] < _ranks[root_y] ) {
         _parents[root_x] = root_y;
@@ -48,6 +52,9 @@ void Union_Find_Structure::union_by_rank(Union_Find_Structure::ElementId elt_x,
 }
 
 Union_Find_Structure::ElementId Union_Find_Structure::find(Union_Find_Structure::ElementId input_elt) {
+    if( input_elt == Union_Find_Structure::invalid_elt_id) {
+        return Union_Find_Structure::invalid_elt_id;
+    }
     if(input_elt >= _num_elements) {
         std::cout << "Eingegebenes Element (input_elt): " << input_elt << "\n";
         throw std::runtime_error("(Union_Find_Structure::find) eingegebenes Element liegt nicht in der Datenstruktur");
@@ -78,10 +85,10 @@ Union_Find_Structure::ElementId Union_Find_Structure::find(Union_Find_Structure:
     return root;
 }
 
-bool Union_Find_Structure::check_if_in_set(Union_Find_Structure::ElementId input_elt) {
+bool Union_Find_Structure::check_if_in_existing_set(Union_Find_Structure::ElementId input_elt) {
     if(input_elt >= _num_elements) {
         std::cout << "Eingegebenes Element (input_elt): " << input_elt << "\n";
-        throw std::runtime_error("(Union_Find_Structure::check_if_in_set) eingegebenes Element liegt nicht in der Datenstruktur");
+        throw std::runtime_error("(Union_Find_Structure::check_if_in_existing_set) eingegebenes Element liegt nicht in der Datenstruktur");
     }
 
     if(_parents[input_elt] == Union_Find_Structure::invalid_elt_id){
@@ -89,6 +96,40 @@ bool Union_Find_Structure::check_if_in_set(Union_Find_Structure::ElementId input
     } else {
         return true;
     }
+}
+
+void Union_Find_Structure::union_multiple_sets(std::vector<Union_Find_Structure::ElementId> input_elements) {
+    if(input_elements.size() < 2) {
+        return;
+    }
+
+    //(bemerke i<input_elements.size()-1, da wir in jeder Iteration schon auf das nächste Elt zugreifen)
+    for(unsigned int i = 0; i<input_elements.size()-1; i++) {
+        union_by_rank(input_elements[i], input_elements[i+1]);
+    }
+}
+
+bool Union_Find_Structure::check_if_in_same_set(Union_Find_Structure::ElementId elt_x,
+                                                Union_Find_Structure::ElementId elt_y) {
+    Union_Find_Structure::ElementId root_x = find(elt_x);
+    Union_Find_Structure::ElementId root_y = find(elt_y);
+
+    if( root_x == root_y ) {
+        if( root_x != Union_Find_Structure::invalid_elt_id){
+            return true;
+        }
+    }
+
+    return false;
+}
+
+bool Union_Find_Structure::check_if_elt_belongs_to_other_elts(Union_Find_Structure::ElementId input_elt, const std::vector<ElementId>& other_elts) {
+    for(auto curr_other_elt: other_elts) {
+        if(check_if_in_same_set(curr_other_elt, input_elt)) {
+            return true;
+        }
+    }
+    return false;
 }
 
 

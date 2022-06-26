@@ -137,7 +137,7 @@ void print_ingoing_neighbors(const Graph& input_graph, Graph::NodeId input_node_
     std::cout << "Die eingehenden Nachbarn von Knoten ";
     print_nodeid(input_node_id);
     std::cout << " sind: \n";
-    for( auto curr_neighbor_id : input_graph.get_ingoing_neighbor_ids(input_node_id)) {
+    for( auto curr_neighbor_id : input_graph.get_ingoing_edge_ids(input_node_id)) {
         print_nodename(input_graph, curr_neighbor_id );
         std::cout << "\n";
     }
@@ -147,7 +147,7 @@ void print_outgoing_neighbors(const Graph& input_graph, Graph::NodeId input_node
     std::cout << "Die ausgehenden Nachbarn von Knoten ";
     print_nodeid(input_node_id);
     std::cout << " sind: \n";
-    for( auto curr_neighbor_id : input_graph.get_outgoing_neighbor_ids(input_node_id)) {
+    for( auto curr_neighbor_id : input_graph.get_outgoing_edge_ids(input_node_id)) {
         print_nodename(input_graph, curr_neighbor_id );
         std::cout << "\n";
     }

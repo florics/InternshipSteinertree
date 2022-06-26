@@ -45,7 +45,7 @@ std::vector<std::vector<std::pair<Graph::EdgeId, Graph::PathLength>>> compute_mi
 
     //Schleife über alle Kanten des Graphen, die boundary edges sind
     std::vector<Graph::Edge> original_graph_edges = input_vd.original_graph().edges();
-    std::vector<Graph::NodeId> base_ids = input_vd.compute_base_ids();
+    std::vector<Voronoi_diagram::BaseId> base_ids = input_vd.compute_base_ids();
     for(auto curr_edge : original_graph_edges){
         if( input_vd.check_if_bound_edge(curr_edge) ){
 
@@ -90,6 +90,8 @@ Graph construct_aux_graph_of_vd(const Voronoi_diagram& input_vd,
         }
     }
 
+    //todo: checken, dass alle Terminale erreichbar, d. h. dass der Ausgabe-Graph zsmhängend ist
+
     return output;
 }
 
@@ -108,6 +110,8 @@ Graph turn_into_subgraph_of_vds_original_graph(const Voronoi_diagram& input_vd,
         // ? wenn ich Graph gerichtet machen kann, könnte ich das hier ggf. benutzen (anstatt von der nächsten Zeile)
         std::pair<Graph::NodeId, Graph::NodeId> curr_edge_nodes = curr_edge.get_nodes_orderedbyid();
         Graph::Edge original_bound_edge = original_graph.get_edge( min_bound_edges[curr_edge_nodes.second - 1][curr_edge_nodes.first].first );
+
+        //hier die Klasse EdgeSequence benutzen?
 
         //diese Kante hinzufügen
         output.add_edge(original_bound_edge.node_a(), original_bound_edge.node_b(), original_bound_edge.weight());

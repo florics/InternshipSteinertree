@@ -16,6 +16,8 @@ public:
 
     Union_Find_Structure(unsigned int num_elts);
 
+    //klassische Funktionen:
+
     //erstellt ein-elementige Menge
     //Eingabe: darf nicht bereits in einer Menge liegen
     void make_set(ElementId input_elt);
@@ -25,11 +27,19 @@ public:
     void union_by_rank(ElementId elt_x, ElementId elt_y);
     //gibt das Element aus, was als Label für die Menge, in der input_elt liegt, gilt (also die Wurzel)
     //setzt mit 'Path-Compression' die Eltern der Elemente, die auf dem Weg von input_elt zur Wurzel liegen, jeweils auf die Wurzel
-    //Eingabe: muss bereits in einer Menge liegen
+    //Eingabe: muss bereits in einer Menge liegen, das ungueltige Element wird auch zugelassen (dann wird entsprechend das ungueltige Element wieder ausgegeben)
     ElementId find(ElementId input_elt);
 
+    //weitere Funktionen:
+
     //gibt 1 aus gdw. das Element in einer Menge liegt
-    bool check_if_in_set(ElementId input_elt);
+    bool check_if_in_existing_set(ElementId input_elt);
+    // vereinigt alle Mengen, in denen die eingegebenen Elemente liegen
+    void union_multiple_sets( std::vector<ElementId> input_elements );
+    // gibt 1 aus gdw. Eingabeelemente in der gleichen Menge liegen (falls beide in keiner Menge liegen, wird 0 ausgegeben)
+    bool check_if_in_same_set(ElementId elt_x, ElementId elt_y);
+    // gibt 1 aus gdw. das Eingabeelement in der gleichen Menge liegt wie eines der Elemente aus dem Eingabevektor
+    bool check_if_elt_belongs_to_other_elts(Union_Find_Structure::ElementId input_elt, const std::vector<ElementId>& other_elts);
 
     //zeigt an, dass Element noch nicht zu einer Menge zugewiesen wurde
     static const ElementId invalid_elt_id;

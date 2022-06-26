@@ -160,7 +160,7 @@ public:
     DirType dir_type() const;
     //macht den Graph zu einer gerichteten Arboreszenz mit Wurzel entsprechend der Eingabe,
     // in dem Sinne, dass die Knoten in den Kanten so gespeichert werden, dass node_a dem tail und node_b dem head entspricht
-    //Eingabe: Graph muss Baum sein, Knoten muss in Graph liegen
+    //Eingabe: Graph muss Baum sein
     //Ausgabe: Knoten des Graphen in einer 'post-order' bzgl der Arboreszenz (neben der Modifizierung des Graphen)
     void make_rooted_arborescence(NodeId root_id);
 

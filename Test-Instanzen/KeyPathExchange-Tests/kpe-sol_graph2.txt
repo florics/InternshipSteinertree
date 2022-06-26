@@ -1,0 +1,24 @@
+33D32945 STP File, STP Format Version 1.0
+
+SECTION Graph
+Nodes 4
+Edges 3
+E 1 2 1
+E 2 3 1
+E 4 2 9
+END
+
+SECTION Terminals
+Terminals 3
+T 1
+T 3
+T 4
+END
+
+EOF
+
+std::vector<Graph::NodeId> solution_nodeids_of_original_nodes = {0, 1, 2, 3, Graph::invalid_node_id};
+
+std::pair< std::vector<bool>, std::vector<bool> > subgraph_vectors;
+subgraph_vectors.first = {1, 1, 1, 1, 0};
+subgraph_vectors.second = {1, 1, 1, 0, 0};

@@ -3,4 +3,11 @@ project(PraktikumSteinerbaum)
 
 set(CMAKE_CXX_STANDARD 20)
 
-add_executable(PraktikumSteinerbaum main.cpp graph.cpp graph_aux_functions.cpp graph_printfunctions.cpp voronoi_diagram.cpp graph_algorithms.cpp mehlhorns_algo.cpp string_aux_functions.cpp vor_diag_aux_functions.cpp vor_diag_aux_functions.h Union_Find_Structure.cpp Union_Find_Structure.h key_path_exchange.cpp key_path_exchange.h local_search_aux.cpp local_search_aux.h)
+add_executable(PraktikumSteinerbaum main.cpp
+        string_aux_functions.cpp
+        graph.cpp graph_aux_functions.cpp graph_printfunctions.cpp graph_algorithms.cpp
+        voronoi_diagram.cpp vor_diag_aux_functions.cpp
+        mehlhorns_algo.cpp
+        Union_Find_Structure.cpp
+        BoundEdgeHeaps.cpp EdgeSequence.cpp ImprovingChangement.cpp
+        local_search_aux.cpp key_path_exchange.cpp tests.cpp tests.h)

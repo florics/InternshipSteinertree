@@ -30,7 +30,7 @@ Voronoi_diagram::Voronoi_diagram(Graph& input_graph):
     _dist_to_base.assign(num_nodes, Graph::infinite_length);
 }
 
-Voronoi_diagram::Voronoi_diagram(const std::vector<Graph::NodeId>& set_of_b, Graph& input_graph):
+Voronoi_diagram::Voronoi_diagram(const std::vector<Graph::NodeId>& set_of_b, const Graph& input_graph):
     _original_graph(input_graph)
 {
 
@@ -46,10 +46,10 @@ Voronoi_diagram::Voronoi_diagram(const std::vector<Graph::NodeId>& set_of_b, Gra
         }
     }
     //und für die Kantengewichte von dem Graphen g
-    if(! edgeweight_nonnegative(_original_graph)){
+    if(not GraphAux::edgeweight_nonnegative(_original_graph)){
         throw std::runtime_error("(constructor Voronoi_diagram) es gibt negative Kantengewichte im Eingabegraphen");
     }
-    if( ! edgeweight_finite(_original_graph) ){
+    if(not GraphAux::edgeweight_finite(_original_graph) ){
         throw std::runtime_error("(constructor Voronoi_diagram) es gibt Kante im Eingabegraphen mit 'unendlichem' Gewicht");
     }
 

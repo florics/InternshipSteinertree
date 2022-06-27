@@ -112,7 +112,7 @@ public:
     void add_one_node(NodeName name, TerminalState t);
     //fügt existierenden Knoten zum Graphen hinzu (!prüft aber nicht ob _node_name eindeutig!)
     //(NodeId von v wird nicht verändert und muss deshalb der Anzahl der Knoten des Graphen (vor Aufruf der Funktion) entsprechen)
-    void add_one_existing_node(const Node& new_node);
+    void add_one_existing_node(const Node new_node);
     //fügt n Knoten hinzu (Knoten sind keine Terminale, _node_name wird einfach auf "1 + Stelle in _nodes, wo der neue Knoten gespeichert wird" gesetzt)
     void add_nodes(int num_new_nodes);
 

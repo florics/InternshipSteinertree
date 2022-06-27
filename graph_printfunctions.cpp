@@ -186,7 +186,7 @@ void print_edgeweight(Graph::EdgeWeight w){
 }
 
 void print_length_of_all_edges(const Graph& input_graph) {
-    Graph::PathLength output = length_of_all_edges(input_graph);
+    Graph::PathLength output = GraphAux::length_of_all_edges(input_graph);
     std::cout << "Das Gewicht des Graphen ist ";
     print_pathlength( output );
     std::cout << "\n";

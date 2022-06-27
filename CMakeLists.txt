@@ -10,4 +10,4 @@ add_executable(PraktikumSteinerbaum main.cpp
         mehlhorns_algo.cpp
         Union_Find_Structure.cpp
         BoundEdgeHeaps.cpp EdgeSequence.cpp ImprovingChangement.cpp
-        local_search_aux.cpp key_path_exchange.cpp tests.cpp tests.h)
+        local_search_aux.cpp key_path_exchange.cpp tests.cpp Subgraph.cpp general_aux_functions.cpp )

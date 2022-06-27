@@ -165,7 +165,7 @@ void Graph::add_one_node(Graph::NodeName name, Graph::TerminalState t){
     add_one_existing_node(new_node);
 }
 
-void Graph::add_one_existing_node(const Graph::Node& new_node){
+void Graph::add_one_existing_node(const Graph::Node new_node){
     Graph::NodeId id = new_node.node_id();
     unsigned int new_n = num_nodes();
 
@@ -224,6 +224,7 @@ std::vector<Graph::Node> Graph::nodes() const {
 
 const Graph::Node& Graph::get_node(Graph::NodeId v) const{
     if(v >= num_nodes() ){
+        std::cout << "v hat NodeId " << v << "\n";
         throw std::runtime_error("(Graph::get_node) Knoten v liegt nicht im Graphen");
     }
     return _nodes[v];

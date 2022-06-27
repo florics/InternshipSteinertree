@@ -15,6 +15,6 @@ void DebugTests::kpe_evaluate_neighborhood(){
     subgraph_vectors.first = {1, 1, 1, 1, 0, 1, 1, 1};
     subgraph_vectors.second = {1, 1, 1, 0, 1, 0, 1, 1};
 
-    std::vector<ImprovingChangement> im_ch = KeyPathExch::evaluate_neighborhood(or_g, sol_g, subgraph_vectors, solution_nodeids_of_original_nodes);
+    //std::vector<ImprovingChangement> im_ch = KeyPathExch::evaluate_neighborhood_simple(or_g, sol_g, subgraph_vectors, solution_nodeids_of_original_nodes);
 
 }

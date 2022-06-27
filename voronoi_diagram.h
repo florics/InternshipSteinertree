@@ -21,7 +21,7 @@ public:
     //soll das Voronoi-Diagramm des Graphen g berechnen, mit den Knoten in set_of_b als Basen
     //Eingabe: set_of_b ist nichtleere Teilmenge der Knoten von g, g hat nichtnegative "endliche" Kantengewichte
     Voronoi_diagram(const std::vector<Graph::NodeId>& set_of_b,
-                    Graph& input_graph);
+                    const Graph& input_graph);
 
     //entspricht der Methode repair, wie sie in dem Paper (Seite 4) beschrieben ist
     //Eingabe: Teilmenge der aktuellen Basis
@@ -83,7 +83,7 @@ private:
 
     //der zugrundeliegende Graph
     // möchte ich const machen aber Problem?
-    Graph& _original_graph;
+    const Graph& _original_graph;
 
     //Subroutine für die Funktion compute_vor_region
     //geht die Nachbarn des aktuellen Knoten durch und prüft, ob diese in der V-Region der eingegebenen Basis liegen

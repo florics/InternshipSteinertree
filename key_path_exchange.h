@@ -15,6 +15,7 @@
 #include "ImprovingChangement.h"
 #include "BoundEdgeHeaps.h"
 #include "Union_Find_Structure.h"
+#include "Subgraph.h"
 
 
 namespace KeyPathExch{
@@ -26,20 +27,17 @@ namespace KeyPathExch{
                             std::pair< std::vector<bool>, std::vector<bool> >& subgraph_vectors,
                             std::vector<Graph::NodeId> node_ids_solution);
 
-    //Eingabe: subgraph_vectors gibt an, ob Kante bzw. Knoten aus zugrundeliegendem Graphen in der aktuellen Lösung liegt,
-    // solution_nodeids_of_original_nodes gibt an, welche node_id ein Knoten aus dem zugrundeliegendem Graphen in der aktuellen Lösung besitzt
-    //? brauche ich noch std::pair< std::vector<bool>, std::vector<bool> >& subgraph_vectors, ?
-    std::vector<ImprovingChangement> evaluate_neighborhood(Graph &original_graph,
-                                                           Graph &solution,
-                                                           std::pair< std::vector<bool>, std::vector<bool> >& subgraph_vectors,
-                                                           std::vector<Graph::NodeId> solution_nodeids_of_original_nodes);
+    // gibt beste gefundene Nachbarschaftlösung aus (wenn keine echte Verbesserung gefunden wurde, wird die "leere" Verbesserung ausgegeben)
+    ImprovingChangement best_neighbor_solution(Subgraph& input_subgraph);
+
+    // berechnet die Nachbarschaft der Eingabelösung
+    std::vector<ImprovingChangement> evaluate_neighborhood_simple(Subgraph& input_subgraph);
 
     ImprovingChangement process_node(Graph::NodeId input_node_id,
-                                      const Graph& original_graph,
-                                      const Graph& solution_graph,
-                                      Voronoi_diagram& vor_diag,
-                                      Union_Find_Structure& subtrees_ufs,
-                                      BoundEdgeHeaps& bound_edge_heaps);
+                                     const Subgraph& input_subgraph,
+                                     Voronoi_diagram& vor_diag,
+                                     Union_Find_Structure& subtrees_ufs,
+                                     BoundEdgeHeaps& bound_edge_heaps);
 
     std::pair<Graph::PathLength, Graph::EdgeId> find_best_original_bound_edge();
 

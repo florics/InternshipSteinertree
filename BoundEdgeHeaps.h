@@ -38,6 +38,7 @@ public:
 
     //cleanup für Key-EdgeSequence-Exchange
     // todo: ggf. vereinfachen, wenn ich cleanup für KVE umschreibe
+    // todo: wichtig! oberste Kante nicht entfernen!
     std::pair<Graph::PathLength, Graph::EdgeId> cleanup_one_heap(Voronoi_diagram::BaseId node_to_cleanup,
                                                                  Union_Find_Structure &ufs,
                                                                  const std::vector<Union_Find_Structure::ElementId>& endpoints_to_discard);

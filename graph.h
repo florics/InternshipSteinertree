@@ -44,7 +44,8 @@ public:
 
     private:
         //Stelle, an der die Kante in _edges steht
-        const EdgeId _edge_id;
+        //? const machen
+        EdgeId _edge_id;
 
         //die Knoten, mit denen die Kante inzident ist; die Werte sind hier die Stellen, an denen die Knoten in _nodes stehen
         NodeId _node_a;
@@ -145,11 +146,17 @@ public:
     //gibt Nachbarknoten des Eingabeknotens aus
     std::vector<NodeId> adjacency_vect(NodeId input_node_id) const;
 
-    //gibt Vektor mit allen Nachbarn aus, die zu eingehenden Kanten des Eingabeknotens gehören
+    //gibt Vektor mit allen eingehenden Kanten des Eingabeknotens aus
     std::vector<EdgeId> get_ingoing_edge_ids(NodeId input_node_id) const;
-    //gibt Vektor mit allen Nachbarn aus, die zu ausgehenden Kanten des Eingabeknotens gehören
+    //gibt Vektor mit allen ausgehenden Kanten des Eingabeknoten aus
     std::vector<EdgeId> get_outgoing_edge_ids(NodeId input_node_id) const;
+    //gibt Vektor mit allen Nachbarn aus, die zu eingehenden Kanten gehören
+    std::vector<NodeId> get_ingoing_neighbors(NodeId input_node_id) const;
+    //gibt Vektor mit allen Nachbarn aus, die zu eingehenden Kanten gehören
+    std::vector<NodeId> get_outgoing_neighbors(NodeId input_node_id) const;
     //? beachte, dass Laufzeit von ingoing_neighbors, outgoing_neighbors jeweils O( grad(input_node) ) ist
+
+
 
     // nach Edge verschieben? Problem: Edge weiß nicht, ob Graph gerichtet
     //gibt node_a der Eingabekante aus, Graph muss gerichtet sein

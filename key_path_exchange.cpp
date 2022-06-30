@@ -9,9 +9,11 @@
 
 #include "vor_diag_aux_functions.h"
 #include "EdgeSequence.h"
+#include "graph_aux_functions.h"
+#include "general_aux_functions.h"
 
 
-std::vector<ImprovingChangement> KeyPathExch::evaluate_neighborhood_simple(Subgraph& input_subgraph) {
+std::vector<ImprovingChangement> KeyPathExch::evaluate_neighborhood(Subgraph& input_subgraph, LocalSearchAux::MovesPerPass moves_per_pass) {
     /*
     //ist das debug?
     if( original_graph.num_nodes() != subgraph_vectors.first.size() ) {
@@ -64,10 +66,17 @@ std::vector<ImprovingChangement> KeyPathExch::evaluate_neighborhood_simple(Subgr
     solution_graph.make_rooted_arborescence(root_id);
     std::vector<Graph::NodeId> crucialnodes_in_postorder = LocalSearchAux::get_crucialnodes_in_postorder(solution_graph, root_id);
 
+    // Hilfsstrukturen, um mehrere Verbesserung in einem pass durchführen zu können
+    // Knoten, die als forbidden markiert sind, dürfen nicht mehr verwendet werden, um die Subbäume wieder zu verbinden
+    std::vector<bool> forbidden(solution_graph.num_nodes(), false);
+    // Knoten, die als pinned markiert sind, dürfen nicht mehr entfernt werden
+    std::vector<bool> pinned(solution_graph.num_nodes(), false);
+
     //main loop der Methode
     std::vector<ImprovingChangement> evaluated_neighborhood;
     for(auto curr_node_id: crucialnodes_in_postorder) {
-        const ImprovingChangement curr_changement = KeyPathExch::process_node(curr_node_id, input_subgraph, vor_diag, subtrees_ufs, bound_edge_heaps);
+        const ImprovingChangement curr_changement =
+                KeyPathExch::process_node(curr_node_id, input_subgraph, vor_diag, subtrees_ufs, bound_edge_heaps, moves_per_pass, forbidden, pinned);
         if( curr_changement.getImprovementValue() > 0){
             evaluated_neighborhood.push_back(curr_changement);
         }
@@ -80,9 +89,12 @@ ImprovingChangement KeyPathExch::process_node(Graph::NodeId input_node_id,
                                               const Subgraph& input_subgraph,
                                               Voronoi_diagram& vor_diag,
                                               Union_Find_Structure& subtrees_ufs,
-                                              BoundEdgeHeaps& bound_edge_heaps) {
+                                              BoundEdgeHeaps& bound_edge_heaps,
+                                              LocalSearchAux::MovesPerPass moves_per_pass,
+                                              std::vector<bool>& forbidden,
+                                              std::vector<bool>& pinned) {
 
-    const Graph& original_graph = input_subgraph.getOriginalGraph();
+    //const Graph& original_graph = input_subgraph.getOriginalGraph();
     const Graph& solution_graph = input_subgraph.getThisGraph();
     const std::vector<Graph::NodeId>& solution_nodeids_of_original_nodes = input_subgraph.getSubgraphNodeidsOfNodesInOriginalgraph();
     const std::vector<Graph::NodeId>& original_nodeids = input_subgraph.getOriginalNodeids();
@@ -100,7 +112,33 @@ ImprovingChangement KeyPathExch::process_node(Graph::NodeId input_node_id,
         throw std::runtime_error("key path exchange main loop");
     }
 
-    //todo: ggf das ganze newbound-zeug auslagern
+    // prüfe, ob die internen Knoten pinned sind
+    // todo: trotzdem weiter machen und später prüfen... (ist das sinnvoll? Laufzeit...)
+    if( moves_per_pass == LocalSearchAux::several_moves) {
+        for(auto intern_node_id: internal_node_ids) {
+            if( pinned[intern_node_id]) {
+                KeyPathExch::update_heaps_and_ufs(bound_edge_heaps, subtrees_ufs, input_node_id, crucial_parent_id,
+                                                  internal_node_ids, subtrees_ufs.find(internal_node_ids.front()));
+
+                return ImprovingChangement(std::vector<Graph::EdgeId>(), std::vector<Graph::EdgeId>(), 0);
+            }
+        }
+    }
+
+
+    //füge die internen Knoten des keypath zu einer Menge in der Union Find zusammen
+    subtrees_ufs.union_multiple_sets(internal_node_ids);
+    // der Schlüssel des subtree der internen Knoten in der Union-Find
+    //? Fehleranfälligkeit: der könnte sich ggf. verändern
+    Union_Find_Structure::ElementId internal_nodes_ufsroot = Union_Find_Structure::invalid_elt_id;
+    if(not internal_node_ids.empty()) {
+        internal_nodes_ufsroot = subtrees_ufs.find(internal_node_ids.front());
+    }
+
+    //finde die beste original boundary edge
+    std::pair<Graph::PathLength, Graph::EdgeId>
+            best_original_bound_edge = bound_edge_heaps.cleanup_one_heap(input_node_id, subtrees_ufs, {internal_nodes_ufsroot}, moves_per_pass, forbidden);
+
 
     // berechne die NodeIds im zugrundeliegenden Graphen von den internen Knoten des Key-Path
     std::vector<Graph::NodeId> internal_nodes_as_original_nodeids;
@@ -109,81 +147,125 @@ ImprovingChangement KeyPathExch::process_node(Graph::NodeId input_node_id,
         internal_nodes_as_original_nodeids.push_back( var_or_node_id );
     }
 
-    //finde alle neuen boundary paths, die nach Entfernen der internen Knoten des keypath auftreten
-    //Laufzeit? Kopieren des Vor-Diag
-    std::vector<EdgeSequence> new_bound_paths = LocalSearchAux::get_new_bound_paths(vor_diag, internal_nodes_as_original_nodeids);
+    // rufe repair auf und speichere die Daten, die später für restore notwendig
+    const Voronoi_diagram::RestoreData vor_diag_restore_data = vor_diag.repair(internal_nodes_as_original_nodeids);
+
+    std::pair<Graph::PathLength, Graph::EdgeId> best_new_bound_edge =
+            compute_best_new_boundedge(vor_diag, subtrees_ufs, solution_nodeids_of_original_nodes, input_node_id,
+                                       vor_diag_restore_data.node_ids, moves_per_pass, forbidden);
+
+
+    // finde die beste boundary edge von den beiden gefundenen
+    std::pair<Graph::PathLength, Graph::EdgeId> bound_edge_to_exchange = best_new_bound_edge;
+    if( best_new_bound_edge.first > best_original_bound_edge.first ) {
+        bound_edge_to_exchange = best_original_bound_edge;
+        // in dem Fall wollen wir unten die Kanten des bound_path_to_exchange im alten (restored) Vor-Diagramm berechnen
+        vor_diag.restore(vor_diag_restore_data);
+    }
+
+    //konstruiere die Ausgabe der Funktion
+    Graph::PathLength improve_value = key_path.length() - bound_edge_to_exchange.first;
+    //beachte, dass die edgesToRemove Kanten im solution-Graph sind und die edgesToInsert Kanten im or-Graph (entsprechend beziehen sich die EdgeIds auf verschiedene Graphen)
+    ImprovingChangement output(key_path.edge_ids(), VorDiagAux::compute_bound_path_as_vect(vor_diag, bound_edge_to_exchange.second), improve_value);
+
+
+    //es folgen Updates etc. damit die Invarianten des Algo. erhalten bleiben
+
+    KeyPathExch::update_heaps_and_ufs(bound_edge_heaps, subtrees_ufs, input_node_id, crucial_parent_id, internal_node_ids, internal_nodes_ufsroot);
+
+    //dopplung, schöner machen ?
+    vor_diag.restore(vor_diag_restore_data);
+
+    //aktualisieren von pinned und forbidden
+    if( moves_per_pass == LocalSearchAux::several_moves) {
+        if(improve_value > 0){
+            LocalSearchAux::update_forbidden(solution_graph, forbidden, crucial_parent_id);
+            LocalSearchAux::update_pinned_for_bound_egde(vor_diag, solution_nodeids_of_original_nodes, pinned, bound_edge_to_exchange.second);
+        }
+    }
+
+    return output;
+}
+
+std::pair<Graph::PathLength, Graph::EdgeId>
+KeyPathExch::compute_best_new_boundedge(const Voronoi_diagram& vor_diag,
+                                        Union_Find_Structure& subtrees_ufs,
+                                        const std::vector<Graph::NodeId>& solution_nodeids_of_original_nodes,
+                                        Graph::NodeId input_node_id,
+                                        const std::vector<Graph::NodeId>& nodes_updated_in_repair,
+                                        LocalSearchAux::MovesPerPass moves_per_pass,
+                                        const std::vector<bool>& forbidden) {
+
+
+    //finde alle neuen boundary paths (die nach Entfernen der internen Knoten des keypath auftreten)
+    std::vector<Graph::EdgeId> new_bound_edge_ids = VorDiagAux::get_bound_edges_inc_to_nodeset(vor_diag, nodes_updated_in_repair);
 
     // der Schlüssel des subtree des aktuellen Knoten in der Union-Find (im Paper: S_v)
     //? Fehleranfälligkeit: der könnte sich ggf. verändern
-    Union_Find_Structure::ElementId input_node_ufskey = subtrees_ufs.find(input_node_id);
+    Union_Find_Structure::ElementId input_node_ufsroot = subtrees_ufs.find(input_node_id);
 
     //finde den besten neuen boundary path, der zwischen den subtrees von curr_node und crucial_parent verläuft
-    EdgeSequence best_new_bound_path({}, Graph::invalid_node_id, Graph::invalid_node_id, Graph::infinite_length);
-    for(auto curr_bound_path: new_bound_paths) {
+    std::pair<Graph::PathLength, Graph::EdgeId> best_new_bound_edge = {Graph::infinite_length, Graph::invalid_edge_id};
+    for(auto curr_bound_edge_id: new_bound_edge_ids) {
 
-        // finde die keys bzgl. der Union Find der Endpunkte bzw. -basen der boundary paths
-        Graph::NodeId var_base_a = solution_nodeids_of_original_nodes[curr_bound_path.endnode_a()];
-        Graph::NodeId var_base_b = solution_nodeids_of_original_nodes[curr_bound_path.endnode_b()];
-        Union_Find_Structure::ElementId var_base_a_ufskey = subtrees_ufs.find(var_base_a);
-        Union_Find_Structure::ElementId var_base_b_ufskey = subtrees_ufs.find(var_base_b);
+        //finde die Endpunkte der boundary edge als NodeIds im solution-Graph
+        std::pair<Graph::NodeId, Graph::NodeId> curr_bases = VorDiagAux::get_bases_of_edge(vor_diag, curr_bound_edge_id);
+        Graph::NodeId var_base_a = solution_nodeids_of_original_nodes[curr_bases.first];
+        Graph::NodeId var_base_b = solution_nodeids_of_original_nodes[curr_bases.second];
+
+        //prüfe ob diese Endpunkte forbidden sind
+        if(moves_per_pass == LocalSearchAux::several_moves){
+            if (forbidden[var_base_a] || forbidden[var_base_b]) {
+                continue;
+            }
+        }
+
+        // finde die Wurzeln bzgl. der Union Find der Endpunkte bzw. -basen der boundary paths
+        Union_Find_Structure::ElementId var_base_a_ufsroot = subtrees_ufs.find(var_base_a);
+        Union_Find_Structure::ElementId var_base_b_ufsroot = subtrees_ufs.find(var_base_b);
+
+        /*//debug
+        if( var_base_a_ufsroot == input_node_ufsroot && var_base_b_ufsroot == input_node_ufsroot ){
+            std::cout << "(KeyPathExch::compute_best_new_boundedge) Der Fall kann eintreten \n";
+        }*/
 
         //prüfe, ob der bound path zwischen dem subtree des Eingabeknotens und dem des Vorgängers des Eingabeknotens verläuft
         // (bemerke, dass er keinen Endknoten haben kann, der zu den internen Knoten des keypath gehört,
         // da er ein boundary path bzgl des repaired Vor-D. ist)
-
-        if(( var_base_a_ufskey == input_node_ufskey && var_base_b_ufskey != input_node_ufskey )
-            || ( var_base_a_ufskey != input_node_ufskey && var_base_b_ufskey == input_node_ufskey )) {
+        if(( var_base_a_ufsroot == input_node_ufsroot && var_base_b_ufsroot != input_node_ufsroot )
+           || ( var_base_a_ufsroot != input_node_ufsroot && var_base_b_ufsroot == input_node_ufsroot )) {
 
             //prüfe, ob die Kante zu einem besseren boundary path gehört als der aktuell beste
-            if(curr_bound_path.length() < best_new_bound_path.length()) {
-                best_new_bound_path = curr_bound_path;
+            Graph::PathLength curr_length = VorDiagAux::compute_length_of_boundegde(vor_diag, curr_bound_edge_id);
+            if( curr_length < best_new_bound_edge.first) {
+                best_new_bound_edge = {curr_length, curr_bound_edge_id};
             }
         }
     }
 
-    //füge die internen Knoten des keypath zu einer Menge in der Union Find zusammen
-    subtrees_ufs.union_multiple_sets(internal_node_ids);
-    // der Schlüssel des subtree der internen Knoten in der Union-Find
-    //? Fehleranfälligkeit: der könnte sich ggf. verändern
-    Union_Find_Structure::ElementId internal_nodes_ufskey = Union_Find_Structure::invalid_elt_id;
-    if(not internal_node_ids.empty()) {
-        internal_nodes_ufskey = subtrees_ufs.find(internal_node_ids.front());
-    }
+    return best_new_bound_edge;
+}
 
-
-    //finde die original boundary edge
-    std::pair<Graph::PathLength, Graph::EdgeId>
-            best_original_bound_edge = bound_edge_heaps.cleanup_one_heap(input_node_id, subtrees_ufs, {internal_nodes_ufskey});
-
-
+void KeyPathExch::update_heaps_and_ufs(BoundEdgeHeaps& bound_edge_heaps,
+                                       Union_Find_Structure& subtrees_ufs,
+                                       Graph::NodeId input_node_id,
+                                       Graph::NodeId crucial_parent_id,
+                                       const std::vector<Graph::NodeId>& internal_node_ids,
+                                       Union_Find_Structure::ElementId internal_nodes_ufsroot) {
+    //aktualisieren der Heaps:
     // füge die Elemente der Heaps aller Knoten des KeyPath zum Heap des crucial parent des aktuellen Knoten hinzu
     std::vector<Graph::NodeId> nodes_to_merge = internal_node_ids;
     nodes_to_merge.push_back(input_node_id);
     bound_edge_heaps.merge(crucial_parent_id, nodes_to_merge);
 
-    //aktualisieren der Union-Find: Hinzufügen der subtree's vom aktuellen Knoten sowie von den internen Knoten zum subtree des crucial_parent
-    subtrees_ufs.union_by_rank(crucial_parent_id, internal_nodes_ufskey);
+    //aktualisieren der Union-Find:
+    // Hinzufügen der subtree's vom aktuellen Knoten sowie von den internen Knoten zum subtree des crucial_parent
+    subtrees_ufs.union_by_rank(crucial_parent_id, internal_nodes_ufsroot);
     subtrees_ufs.union_by_rank(crucial_parent_id, input_node_id);
-
-
-    // auslagern? (brauche ich aber nirgendwo sonst)
-    // todo: schöner machen, hier brauche ich nicht extra eine EdgeSeque zu erstellen...
-    // finde die beste boundary edge von den beiden gefundenen
-    EdgeSequence bound_path_to_exchange = best_new_bound_path;
-    if( best_new_bound_path.length() > best_original_bound_edge.first ) {
-        bound_path_to_exchange = VorDiagAux::compute_bound_path(vor_diag, best_original_bound_edge.second);
-    }
-
-    Graph::PathLength improve_value = key_path.length() - bound_path_to_exchange.length();
-
-    //beachte, dass die edgesToRemove Kanten im solution-G. sind und die edgesToInsert Kanten im or-G.
-    ImprovingChangement output(key_path.edge_ids(), bound_path_to_exchange.edge_ids(), improve_value);
-
-    return output;
 }
 
 ImprovingChangement KeyPathExch::best_neighbor_solution(Subgraph &input_subgraph) {
-    const std::vector<ImprovingChangement>& neighborhood = evaluate_neighborhood_simple(input_subgraph);
+    const std::vector<ImprovingChangement>& neighborhood = evaluate_neighborhood(input_subgraph, LocalSearchAux::one_move);
     Graph::PathLength output_value = 0;
     int output_index = -1;
     for( unsigned int i=0; i<neighborhood.size(); i++) {
@@ -196,5 +278,23 @@ ImprovingChangement KeyPathExch::best_neighbor_solution(Subgraph &input_subgraph
         return ImprovingChangement(std::vector<Graph::EdgeId>(), std::vector<Graph::EdgeId>(), 0);
     } else {
         return neighborhood[output_index];
+    }
+}
+
+void KeyPathExch::complete_algorithm(Subgraph &input_subgraph) {
+
+    int debug_while_loop_counter = 0;
+
+    while(true) {
+        debug_while_loop_counter++;
+
+        std::vector<ImprovingChangement> improvements = KeyPathExch::evaluate_neighborhood(input_subgraph, LocalSearchAux::several_moves);
+        if(improvements.empty()) {
+            // lokales Optimum erreicht
+            break;
+        }
+
+        LocalSearchAux::perform_improving_changements(input_subgraph, improvements);
+
     }
 }

@@ -5,6 +5,7 @@
 #include "vor_diag_aux_functions.h"
 
 #include "iostream"
+#include "algorithm"
 
 #include "EdgeSequence.h"
 
@@ -72,6 +73,26 @@ std::vector< EdgeSequence > VorDiagAux::get_bound_paths_inc_to_nodeset(const Vor
     return output;
 }
 
+std::vector< Graph::EdgeId > VorDiagAux::get_bound_edges_inc_to_nodeset(const Voronoi_diagram& vd, const std::vector<Graph::NodeId>& input_nodes) {
+    std::vector< Graph::EdgeId > output;
+
+    for( auto curr_node_id : input_nodes ) {
+        for( auto curr_edge_id : vd.original_graph().get_node(curr_node_id).incident_edge_ids() ) {
+            Graph::Edge curr_edge = vd.original_graph().get_edge(curr_edge_id);
+            if( vd.check_if_bound_edge(curr_edge) ) {
+                output.push_back(curr_edge_id);
+            }
+        }
+    }
+
+    /*//debug
+    if( output.empty() ) {
+        std::cout << "(VorDiagAux::get_bound_edges_inc_to_nodeset) Ausgabe ist leer. \n";
+    }*/
+
+    return output;
+}
+
 std::vector<Graph::EdgeId> VorDiagAux::get_all_bound_edges(const Voronoi_diagram& input_vd) {
     std::vector<Graph::EdgeId> output;
 
@@ -91,7 +112,33 @@ std::vector<Graph::EdgeId> VorDiagAux::get_all_bound_edges(const Voronoi_diagram
 
 EdgeSequence VorDiagAux::compute_bound_path(Voronoi_diagram original_vd, Graph::EdgeId bound_edge_id) {
 
+    Graph::Edge bound_edge = original_vd.original_graph().get_edge(bound_edge_id);
+
+    if(not original_vd.check_if_bound_edge(bound_edge)) {
+        throw std::runtime_error("(VorDiagAux::compute_bound_path) Eingabekante keine boundary edge im Eingabe-Voronoi-Diagramm.");
+    }
+
+    std::vector<Graph::EdgeId> output_edge_ids = VorDiagAux::compute_bound_path_as_vect(original_vd, bound_edge_id);
+
+    Graph::NodeId node_a = bound_edge.node_a();
+    Graph::NodeId node_b = bound_edge.node_b();
+
+    Graph::NodeId base_a = original_vd.base()[node_a];
+    Graph::NodeId base_b = original_vd.base()[node_b];
+
+    Graph::PathLength output_length = VorDiagAux::compute_length_of_boundegde(original_vd, bound_edge_id);
+
+    EdgeSequence output_path(output_edge_ids, base_a, base_b, output_length);
+
+    return output_path;
+}
+
+std::vector<Graph::EdgeId> VorDiagAux::compute_bound_path_as_vect(Voronoi_diagram original_vd, Graph::EdgeId bound_edge_id) {
     std::vector<Graph::EdgeId> output_edge_ids;
+
+    if(bound_edge_id == Graph::invalid_node_id) {
+        return output_edge_ids;
+    }
 
     const std::vector<std::pair<Graph::NodeId, Graph::EdgeId>>& predecessor = original_vd.predecessor();
     Graph::Edge bound_edge = original_vd.original_graph().get_edge(bound_edge_id);
@@ -126,26 +173,28 @@ EdgeSequence VorDiagAux::compute_bound_path(Voronoi_diagram original_vd, Graph::
         next_node_id = predecessor[next_node_id].first;
     }
 
-    //konstruire die Ausgabe mit den entsprechenden Basen als Endknoten und entsprechender Länge
-
-    Graph::NodeId node_a = bound_edge.node_a();
-    Graph::NodeId node_b = bound_edge.node_b();
-
-    Graph::NodeId base_a = original_vd.base()[node_a];
-    Graph::NodeId base_b = original_vd.base()[node_b];
-
-    Graph::PathLength output_length = original_vd.dist_to_base()[node_a] + original_vd.dist_to_base()[node_b] + bound_edge.weight();
-
-    EdgeSequence output_path(output_edge_ids, base_a, base_b, output_length);
-
-    return output_path;
+    return output_edge_ids;
 }
 
-std::pair<Graph::NodeId, Graph::NodeId> VorDiagAux::get_bases_of_edge(Voronoi_diagram original_vd, Graph::EdgeId input_edge_id) {
+std::pair<Graph::NodeId, Graph::NodeId> VorDiagAux::get_bases_of_edge(const Voronoi_diagram& original_vd, Graph::EdgeId input_edgeid) {
     std::pair<Graph::NodeId, Graph::NodeId> output;
 
-    output.first = original_vd.base()[original_vd.original_graph().get_edge(input_edge_id).node_a()];
-    output.second = original_vd.base()[original_vd.original_graph().get_edge(input_edge_id).node_b()];
+    output.first = original_vd.base()[original_vd.original_graph().get_edge(input_edgeid).node_a()];
+    output.second = original_vd.base()[original_vd.original_graph().get_edge(input_edgeid).node_b()];
 
     return output;
+}
+
+Graph::PathLength VorDiagAux::compute_length_of_boundegde(const Voronoi_diagram& original_vd, Graph::EdgeId input_edgeid) {
+    if(input_edgeid >= original_vd.original_graph().num_edges() ){
+        throw std::runtime_error("(VorDiagAux::compute_length_of_boundegde) Eingabekante liegt nicht in dem Eingabe-V-D zugrundeliegenden Graphen.");
+    }
+
+    Graph::Edge input_edge = original_vd.original_graph().get_edge(input_edgeid);
+
+    if( not original_vd.check_if_bound_edge(input_edge)) {
+        throw std::runtime_error("(VorDiagAux::compute_length_of_boundegde) Eingabekante ist keine boundary edge im Eingabe-Vor-Diagramm.");
+    }
+
+    return input_edge.weight() + original_vd.dist_to_base()[input_edge.node_a()] + original_vd.dist_to_base()[input_edge.node_b()];
 }

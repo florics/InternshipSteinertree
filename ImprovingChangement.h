@@ -9,6 +9,8 @@
 
 #include "graph.h"
 
+//in struct umdefinieren?
+
 class ImprovingChangement {
 public:
     ImprovingChangement(std::vector<Graph::EdgeId> edgesToRemove,
@@ -19,11 +21,11 @@ public:
     const std::vector<Graph::EdgeId> &getEdgesToInsert() const;
     const Graph::PathLength getImprovementValue() const;
 
-
 private:
 
     //path anstelle von std::vector<Graph::EdgeId> verwenden ?
 
+    // const machen?
     const std::vector<Graph::EdgeId> _edges_to_remove;
     const std::vector<Graph::EdgeId> _edges_to_insert;
 

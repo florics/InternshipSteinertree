@@ -12,6 +12,7 @@
 #include "voronoi_diagram.h"
 #include "EdgeSequence.h"
 #include "Union_Find_Structure.h"
+#include "local_search_aux.h"
 
 //todo:debug alles
 
@@ -38,10 +39,11 @@ public:
 
     //cleanup für Key-EdgeSequence-Exchange
     // todo: ggf. vereinfachen, wenn ich cleanup für KVE umschreibe
-    // todo: wichtig! oberste Kante nicht entfernen!
     std::pair<Graph::PathLength, Graph::EdgeId> cleanup_one_heap(Voronoi_diagram::BaseId node_to_cleanup,
                                                                  Union_Find_Structure &ufs,
-                                                                 const std::vector<Union_Find_Structure::ElementId>& endpoints_to_discard);
+                                                                 const std::vector<Union_Find_Structure::ElementId>& endpoints_to_discard,
+                                                                 LocalSearchAux::MovesPerPass moves_per_pass,
+                                                                 const std::vector<bool>& forbidden);
 
     void merge(Voronoi_diagram::BaseId destination_id, std::vector<Voronoi_diagram::BaseId> nodes_to_merge);
 

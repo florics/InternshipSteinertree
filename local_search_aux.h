@@ -13,8 +13,12 @@
 #include "graph.h"
 #include "voronoi_diagram.h"
 #include "EdgeSequence.h"
+#include "Subgraph.h"
+#include "ImprovingChangement.h"
 
 namespace LocalSearchAux{
+
+    enum MovesPerPass {one_move, several_moves};
 
     //Ausgabe: die crucial nodes des Eingabegraphens in einer post-order von dem Eingabeknoten aus (so dass children immer vor ihrem parent stehen)
     // aber ohne den Eingabeknoten selbst (!)
@@ -35,8 +39,18 @@ namespace LocalSearchAux{
     bool check_if_crucial (const Graph::Node& input_node);
 
     // findet alle Kanten, die nach Entfernen der bases_to_delete boundary edges werden
-    // todo: nach repair ein restore durchführen, um so das vd nicht kopieren zu müssen
     std::vector<EdgeSequence> get_new_bound_paths(Voronoi_diagram input_vd, const std::vector<Graph::NodeId>& bases_to_delete);
+
+    // führt die eingegebenen Verbesserungen auf dem Eingabe-Subgraph aus
+    void perform_improving_changements(Subgraph &input_subgraph, std::vector<ImprovingChangement> changements);
+
+    // aktualisiert die pinned-Markierungen für eine boundary edge, die zum Lösungsgraphen hinzugefügt werden soll
+    // markiert also die Endpunkte des zugehörigen boundary path als pinned
+    void update_pinned_for_bound_egde(const Voronoi_diagram& vor_diag, const std::vector<Graph::NodeId>& solution_nodeids_of_original_nodes,
+                                      std::vector<bool>& pinned, Graph::EdgeId bound_edge_id);
+    // aktualisiert die forbidden-Markierungen
+    // markiert alle Nachfolger des Eingabeknotens als forbidden (nicht aber den Eingabeknoten selbst)
+    void update_forbidden(const Graph& solution_graph, std::vector<bool>& forbidden, Graph::NodeId node_to_mark);
 
 }
 

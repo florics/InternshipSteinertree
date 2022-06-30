@@ -238,8 +238,10 @@ Subgraph GraphAux::copy_subgraph_wo_iso_nodes(const Subgraph &input_subgraph) {
     std::vector< Graph::NodeId > old_node_ids;
 
     //Knoten hinzufügen
+
     unsigned int output_graph_numnodes = 0;
     const std::vector<Graph::NodeId>& input_subgraph_nodeids_of_nodes_in_or_graph = input_subgraph.getSubgraphNodeidsOfNodesInOriginalgraph();
+
     for(Graph::NodeId i=0; i<original_graph.num_nodes(); i++){
         if(input_subgraph_nodeids_of_nodes_in_or_graph[i] != Graph::invalid_node_id){
             const Graph::Node& curr_node = input_graph.get_node( input_subgraph_nodeids_of_nodes_in_or_graph[i] );
@@ -270,7 +272,7 @@ Subgraph GraphAux::copy_subgraph_wo_iso_nodes(const Subgraph &input_subgraph) {
         output_graph.add_edge(new_node_a, new_node_b, curr_edge.weight());
     }
 
-    //die neuen NodeIds haben wir mit new_node_ids gefunden, die EdgeIds bleiben gleich
+    //die alten & die neuen NodeIds haben wir oben gefunden, die EdgeIds bleiben gleich
     Subgraph output(original_graph, output_graph, new_node_ids, old_node_ids, input_original_edge_ids);
 
     return output;

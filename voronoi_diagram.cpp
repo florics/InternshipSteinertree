@@ -5,6 +5,7 @@
 #include <utility>
 #include <iostream>
 #include <queue>
+#include <tuple>
 //? #include <functional>
 //? #include <algorithm>
 
@@ -127,11 +128,13 @@ Voronoi_diagram::Voronoi_diagram(const std::vector<Graph::NodeId>& set_of_b, con
 
 }
 
-void Voronoi_diagram::repair(const std::vector<Graph::NodeId>& bases_to_delete){
+Voronoi_diagram::RestoreData Voronoi_diagram::repair(const std::vector<Graph::NodeId>& bases_to_delete){
     //prüfe die Eingabe (ersten und letzten Check weglassen?)
+    /*
     if(bases_to_delete.empty()){
         throw std::runtime_error("(Voronoi_diagram::repair) Eingabemenge ist leer");
     }
+     */
     for(auto curr_old_base : bases_to_delete){
         if( curr_old_base >= _original_graph.num_nodes() ) {
             throw std::runtime_error("(Voronoi_diagram::repair) Knoten aus Eingabemenge liegt nicht im zugrundeliegenden Graphen");
@@ -148,6 +151,12 @@ void Voronoi_diagram::repair(const std::vector<Graph::NodeId>& bases_to_delete){
 
     _num_bases -= bases_to_delete.size();
 
+    //finde alle Knoten, deren Basis etc. aktualisiert werden müssen; im Paper wird diese Menge mit 'C' notiert
+    std::vector<Graph::NodeId> nodes_to_update = compute_some_vor_regions(bases_to_delete);
+
+    //bereite die Ausgabe vor
+    RestoreData output_restore_data = get_restoredata_of_nodeset(nodes_to_update);
+
     //Initialisierung der priority_queue, mit der wir in jeder Iteration den nächsten besten Knoten (Kandidat) finden
     //std::greater< std::pair<Graph::PathLength,Graph::NodeId> > sorgt dafür, dass wir immer an den Knoten mit der kleinsten Distanz gelangen
     std::priority_queue<
@@ -155,9 +164,6 @@ void Voronoi_diagram::repair(const std::vector<Graph::NodeId>& bases_to_delete){
             std::vector< std::pair<Graph::PathLength,Graph::NodeId> >,
             std::greater< std::pair<Graph::PathLength,Graph::NodeId> >
     > candidates;
-
-    //finde alle Knoten, deren Basis etc. aktualisiert werden müssen; im Paper wird diese Menge mit 'C' notiert
-    std::vector<Graph::NodeId> nodes_to_update = compute_some_vor_regions(bases_to_delete);
 
     // 'first stage' jeder Knoten aus C wird zu der Region seines besten Nachbarn (der nicht in C liegt) (wenn ein solcher existiert) hinzugefügt
     //Zurücksetzen der Knoten aus C
@@ -245,7 +251,50 @@ void Voronoi_diagram::repair(const std::vector<Graph::NodeId>& bases_to_delete){
         }
     }
 
+    return output_restore_data;
 }
+
+
+Voronoi_diagram::RestoreData Voronoi_diagram::get_restoredata_of_nodeset (const std::vector<Graph::NodeId>& input_nodeids) {
+
+    std::vector<Graph::NodeId> old_bases_of_nodes_to_update;
+    std::vector<std::pair<Graph::NodeId, Graph::EdgeId>> old_predecessor_of_nodes_to_update;
+    std::vector<Graph::PathLength> old_dist_to_base_of_nodes_to_updates;
+
+    for(auto curr_nodeid: input_nodeids) {
+        if( curr_nodeid == Graph::invalid_node_id) {
+            throw std::runtime_error("(Voronoi_diagram::get_restoredata_of_nodeset) ein Eingabeknoten ist ungueltig.");
+        }
+        if( curr_nodeid >= _original_graph.num_nodes()) {
+            throw std::runtime_error("(Voronoi_diagram::get_restoredata_of_nodeset) ein Eingabeknoten liegt nicht im zugrundeliegenden Graphen.");
+        }
+
+        old_bases_of_nodes_to_update.push_back( _base[curr_nodeid] );
+        old_predecessor_of_nodes_to_update.push_back( _predecessor[curr_nodeid] );
+        old_dist_to_base_of_nodes_to_updates.push_back(_dist_to_base[curr_nodeid]);
+    }
+
+    //struct Voronoi_diagram::RestoreData output(input_nodeids, old_bases_of_nodes_to_update, old_predecessor_of_nodes_to_update, old_dist_to_base_of_nodes_to_updates);
+
+    return {input_nodeids, old_bases_of_nodes_to_update, old_predecessor_of_nodes_to_update, old_dist_to_base_of_nodes_to_updates};
+}
+
+
+void Voronoi_diagram::restore(const Voronoi_diagram::RestoreData& input_restore_data) {
+    std::vector<Graph::NodeId> nodes_to_update = input_restore_data.node_ids;
+    std::vector<Graph::NodeId> old_bases_of_nodes_to_update = input_restore_data.bases;
+    std::vector<std::pair<Graph::NodeId, Graph::EdgeId>> old_predecessor_of_nodes_to_update = input_restore_data.predecessor;
+    std::vector<Graph::PathLength> old_dist_to_base_of_nodes_to_updates = input_restore_data.dist_to_base;
+
+    for( unsigned int i = 0; i < nodes_to_update.size(); i++) {
+        Graph::NodeId curr_nodeid = nodes_to_update[i];
+        _base[curr_nodeid] = old_bases_of_nodes_to_update[i];
+        _predecessor[curr_nodeid] = old_predecessor_of_nodes_to_update[i];
+        _dist_to_base[curr_nodeid] = old_dist_to_base_of_nodes_to_updates[i];
+    }
+
+}
+
 
 void Voronoi_diagram::assign_bases(const std::vector<Graph::NodeId>& new_set_of_bases) {
     _num_bases = new_set_of_bases.size();
@@ -451,3 +500,4 @@ std::vector< Graph::NodeId > Voronoi_diagram::compute_some_vor_regions(const std
 
     return output;
 }
+

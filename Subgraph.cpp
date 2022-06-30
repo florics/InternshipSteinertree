@@ -36,3 +36,25 @@ const std::vector<Graph::NodeId> &Subgraph::getOriginalNodeids() const {
 Graph &Subgraph::accessThisGraph() {
     return this_graph;
 }
+
+std::vector<Graph::NodeId> &Subgraph::accessSubgraphNodeidsOfNodesInOriginalgraph() {
+    return subgraph_nodeids_of_nodes_in_originalgraph;
+}
+
+std::vector<Graph::NodeId> &Subgraph::accessOriginalNodeids() {
+    return original_nodeids;
+}
+
+std::vector<Graph::EdgeId> &Subgraph::accessOriginalEdgeids() {
+    return original_edgeids;
+}
+
+void Subgraph::assign(Subgraph &subgraph_to_assign) {
+    //todo: Checks einbauen, dass original-Graphen gleich sind
+
+    //? hier Problem, wenn Dinge im Graph const
+    this_graph = subgraph_to_assign.this_graph;
+    subgraph_nodeids_of_nodes_in_originalgraph = subgraph_to_assign.getSubgraphNodeidsOfNodesInOriginalgraph();
+    original_nodeids = subgraph_to_assign.getOriginalNodeids();
+    original_edgeids = subgraph_to_assign.getOriginalEdgeids();
+}

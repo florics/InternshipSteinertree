@@ -326,6 +326,32 @@ std::vector<Graph::EdgeId> Graph::get_outgoing_edge_ids(Graph::NodeId input_node
     return output;
 }
 
+std::vector<Graph::NodeId> Graph::get_ingoing_neighbors(Graph::NodeId input_node_id) const {
+    std::vector<Graph::EdgeId> ingoing_edge_ids = get_ingoing_edge_ids(input_node_id);
+
+    std::vector<Graph::NodeId> output;
+
+    for( auto curr_edge_id: ingoing_edge_ids) {
+        const Graph::Edge& curr_edge = get_edge(curr_edge_id);
+        output.push_back(curr_edge.node_a());
+    }
+
+    return output;
+}
+
+std::vector<Graph::NodeId> Graph::get_outgoing_neighbors(Graph::NodeId input_node_id) const {
+    std::vector<Graph::EdgeId> outgoing_edge_ids = get_outgoing_edge_ids(input_node_id);
+
+    std::vector<Graph::NodeId> output;
+
+    for( auto curr_edge_id: outgoing_edge_ids) {
+        const Graph::Edge& curr_edge = get_edge(curr_edge_id);
+        output.push_back(curr_edge.node_b());
+    }
+
+    return output;
+}
+
 Graph::NodeId Graph::get_tail(Graph::EdgeId input_edge_id) const {
     if( dir_type() == Graph::undirected) {
         throw std::runtime_error("(Graph::get_tail) Graph ist ungerichtet.");
@@ -643,7 +669,7 @@ Graph::Graph(char const* filename){
         std::cout << "angegebene Kantenanzahl: " << m << "\n";
         std::cout << "Anzahl aufgelisteter Kanten " << num_edges() << "\n";
         if( num_edges() != m/2){
-            throw std::runtime_error("(Einlesen) angegebene Kantenanzahl ungleich Anzahl aufgelisteter Kanten");
+            //throw std::runtime_error("(Einlesen) angegebene Kantenanzahl ungleich Anzahl aufgelisteter Kanten");
         }
     }
     if( get_vect_term().size() != t_num){

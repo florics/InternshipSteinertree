@@ -38,13 +38,14 @@ void BoundEdgeHeaps::initialise_with_bound_edges() {
     for( auto curr_edge : _original_vd.original_graph().edges() ) {
         if( _original_vd.check_if_bound_edge(curr_edge) ) {
 
+            Graph::EdgeId curr_edge_id = curr_edge.edge_id();
+
             //finde entsprechende Endknoten, Länge des boundary path, zugehörige Basen
+
+            Graph::PathLength length_bound_path = VorDiagAux::compute_length_of_boundegde(_original_vd, curr_edge_id);
 
             Graph::NodeId curr_node_a = curr_edge.node_a();
             Graph::NodeId curr_node_b = curr_edge.node_b();
-
-            Graph::PathLength length_bound_path = _original_vd.dist_to_base()[curr_node_a] + _original_vd.dist_to_base()[curr_node_b] + curr_edge.weight();
-
             Graph::NodeId base_a = _base_ids[ _original_vd.base()[curr_node_a] ];
             Graph::NodeId base_b = _base_ids[ _original_vd.base()[curr_node_b] ];
 
@@ -54,8 +55,8 @@ void BoundEdgeHeaps::initialise_with_bound_edges() {
 
             //boundedges erstellen?
 
-            heap_vect[base_a].push( {length_bound_path, curr_edge.edge_id()} );
-            heap_vect[base_b].push( {length_bound_path, curr_edge.edge_id()} );
+            heap_vect[base_a].push( {length_bound_path, curr_edge_id} );
+            heap_vect[base_b].push( {length_bound_path, curr_edge_id} );
         }
     }
 }
@@ -67,6 +68,7 @@ BoundEdgeHeaps::get_heap_of_base(Voronoi_diagram::BaseId input_base) {
     return heap_vect[input_base];
 }
 
+/*
 std::vector<std::pair<Graph::PathLength, Graph::EdgeId>>
 BoundEdgeHeaps::cleanup_multiple_heaps(const std::vector<Voronoi_diagram::BaseId>& nodes_to_cleanup,
                                        Union_Find_Structure &ufs,
@@ -87,11 +89,14 @@ BoundEdgeHeaps::cleanup_multiple_heaps(const std::vector<Voronoi_diagram::BaseId
 
     return output;
 }
+*/
 
 std::pair<Graph::PathLength, Graph::EdgeId>
 BoundEdgeHeaps::cleanup_one_heap(Voronoi_diagram::BaseId node_to_cleanup,
                                  Union_Find_Structure &ufs,
-                                 const std::vector<Union_Find_Structure::ElementId> &endpoints_to_discard) {
+                                 const std::vector<Union_Find_Structure::ElementId> &endpoints_to_discard,
+                                 LocalSearchAux::MovesPerPass moves_per_pass,
+                                 const std::vector<bool>& forbidden) {
 
     std::priority_queue<std::pair<Graph::PathLength, Graph::EdgeId>,
             std::vector<std::pair<Graph::PathLength, Graph::EdgeId>>,
@@ -99,23 +104,30 @@ BoundEdgeHeaps::cleanup_one_heap(Voronoi_diagram::BaseId node_to_cleanup,
 
 
     while(not heap_to_cleanup.empty()) {
-        //'delete min'
         std::pair<Graph::PathLength, Graph::EdgeId> top_heap_entry = heap_to_cleanup.top();
-        heap_to_cleanup.pop();
 
-        //finde die Elemente der ufs, die den Basen der aktuellen boundary edge entsprechen
+        //finde die Basen der aktuellen boundary edge
         std::pair<Graph::NodeId, Graph::NodeId> bases_of_top_entry = VorDiagAux::get_bases_of_edge( _original_vd, top_heap_entry.second);
-        Union_Find_Structure::ElementId endbase_a = (Union_Find_Structure::ElementId) _base_ids[bases_of_top_entry.first];
-        Union_Find_Structure::ElementId endbase_b = (Union_Find_Structure::ElementId) _base_ids[bases_of_top_entry.second];
+        Graph::NodeId endbase_a = _base_ids[bases_of_top_entry.first];
+        Graph::NodeId endbase_b = _base_ids[bases_of_top_entry.second];
 
         //falls die Endpunkte der aktuellen boundary edge in der gleichen Menge liegen (also beide Endbasen in S_i), suchen wir weiter
         if(ufs.check_if_in_same_set(endbase_a, endbase_b)) {
+            heap_to_cleanup.pop();
             continue;
         }
 
         //falls die aktuelle boundary edge eine Endbase in einer der Mengen hat, die wir nicht zulassen wollen, suchen wir weiter
         else if(ufs.check_if_elt_belongs_to_other_elts(endbase_a, endpoints_to_discard)
                 || ufs.check_if_elt_belongs_to_other_elts(endbase_b, endpoints_to_discard)) {
+            heap_to_cleanup.pop();
+            continue;
+        }
+
+        else if( moves_per_pass == LocalSearchAux::several_moves
+                && (forbidden[endbase_a] || forbidden[endbase_b]) ) {
+            // falls die Endpunkte als forbidden markiert sind, suchen wir weiter
+            heap_to_cleanup.pop();
             continue;
         }
 

@@ -5,9 +5,13 @@
 #include "local_search_aux.h"
 
 #include "iostream"
+#include "stack"
+#include "algorithm"
 
 #include "vor_diag_aux_functions.h"
 #include "EdgeSequence.h"
+#include "general_aux_functions.h"
+#include "graph_aux_functions.h"
 
 
 std::vector<Graph::NodeId> LocalSearchAux::get_crucialnodes_in_postorder(const Graph& input_graph, Graph::NodeId root_id) {
@@ -149,3 +153,95 @@ std::vector<EdgeSequence> LocalSearchAux::get_new_bound_paths(Voronoi_diagram in
 
     return new_bound_paths;
 }
+
+
+void LocalSearchAux::perform_improving_changements(Subgraph &input_subgraph, std::vector<ImprovingChangement> changements) {
+
+    std::vector<Graph::EdgeId>& original_edge_ids = input_subgraph.accessOriginalEdgeids();
+    const Graph& original_graph = input_subgraph.getOriginalGraph();
+    //Graph& this_graph = input_subgraph.accessThisGraph();
+
+
+    //Aktualisieren von original_edge_ids
+
+    //entferne alle zu entfernenden Kanten aus original_edge_ids
+    for(auto curr_change: changements) {
+        for (auto curr_edge_to_remove: curr_change.getEdgesToRemove()) {
+            original_edge_ids[curr_edge_to_remove] = Graph::invalid_edge_id;
+        }
+    }
+
+    for(unsigned int i = 0; i < original_edge_ids.size(); i=i) {
+        if( original_edge_ids[i] == Graph::invalid_edge_id) {
+            original_edge_ids.erase(original_edge_ids.begin() + i);
+        } else {
+            i++;
+        }
+    }
+
+    //füge alle hinzuzufügende Kanten zu original_edge_ids hinzu
+
+    //speichert die bereits hinzugefügten Kanten, um Dopplungen zu vermeiden
+    //? alternativ kann man jedes Mal checken, ob die entsprechenden Knoten schon inzident sind (Laufzeit)
+    std::vector<bool> added_edges(original_graph.num_edges(), false);
+    for(auto curr_or_edge_id: original_edge_ids) {
+        added_edges[curr_or_edge_id] = true;
+    }
+
+    for(auto curr_change: changements) {
+        for( auto curr_edge_to_insert: curr_change.getEdgesToInsert()){
+            if( not added_edges[curr_edge_to_insert]) {
+                original_edge_ids.push_back(curr_edge_to_insert);
+                added_edges[curr_edge_to_insert] = true;
+            }
+        }
+    }
+
+
+
+
+    //erstelle Graph mit allen Knoten des zugrundeliegenden Graphen und allen Kanten aus original_edge_ids
+    Graph new_this_graph = GraphAux::copygraph_wo_edges(original_graph);
+    for( auto curr_edge_id_to_add: original_edge_ids) {
+        Graph::Edge curr_edge_to_add = original_graph.get_edge(curr_edge_id_to_add);
+        new_this_graph.add_existing_edge_w_newid(curr_edge_to_add);
+    }
+
+    //erstelle Subgraph zu diesem Graphen
+    Subgraph var_subgraph(original_graph, new_this_graph,
+                          GeneralAux::get_range_of_uns_ints(0, original_graph.num_nodes()),
+                          GeneralAux::get_range_of_uns_ints(0, original_graph.num_nodes()),
+                          original_edge_ids);
+
+
+    Subgraph new_subgraph = GraphAux::copy_subgraph_wo_iso_nodes(var_subgraph);
+
+    //aktualisiere den Eingabe-Subgraphen mit den Werten des berechneten Subgraphen
+    input_subgraph.assign(new_subgraph);
+}
+
+void LocalSearchAux::update_pinned_for_bound_egde(const Voronoi_diagram &vor_diag, const std::vector<Graph::NodeId>& solution_nodeids_of_original_nodes,
+                                                  std::vector<bool>& pinned, Graph::EdgeId bound_edge_id) {
+    std::pair<Graph::NodeId, Graph::NodeId> endpoints_in_solution_graph = VorDiagAux::get_bases_of_edge(vor_diag, bound_edge_id);
+    pinned[ solution_nodeids_of_original_nodes[ endpoints_in_solution_graph.first ] ] = true;
+    pinned[ solution_nodeids_of_original_nodes[ endpoints_in_solution_graph.second ] ] = true;
+}
+
+void LocalSearchAux::update_forbidden(const Graph &solution_graph, std::vector<bool> &forbidden,
+                                      Graph::NodeId node_to_mark) {
+    std::stack<Graph::NodeId> next_nodes;
+    next_nodes.push(node_to_mark);
+
+    while( not next_nodes.empty() ) {
+        Graph::NodeId curr_node_id = next_nodes.top();
+        next_nodes.pop();
+
+        for( auto curr_neighbor: solution_graph.get_outgoing_neighbors(curr_node_id)) {
+            if( not forbidden[curr_neighbor]) {
+                next_nodes.push(curr_neighbor);
+                forbidden[curr_node_id] = true;
+            }
+        }
+    }
+}
+

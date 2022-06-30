@@ -17,12 +17,19 @@ public:
     const Graph &getOriginalGraph() const;
 
     const Graph &getThisGraph() const;
-
     Graph &accessThisGraph();
 
     const std::vector<Graph::NodeId> &getSubgraphNodeidsOfNodesInOriginalgraph() const;
+    std::vector<Graph::NodeId> &accessSubgraphNodeidsOfNodesInOriginalgraph();
+
+    const std::vector<Graph::NodeId> &getOriginalNodeids() const;
+    std::vector<Graph::NodeId> &accessOriginalNodeids();
 
     const std::vector<Graph::EdgeId> &getOriginalEdgeids() const;
+    std::vector<Graph::EdgeId> &accessOriginalEdgeids();
+
+    //setzt alle Attribute des Subgraphen auf die der Eingabe (bis auf original_graph)
+    void assign(Subgraph& subgraph_to_assign);
 
 private:
 
@@ -37,10 +44,6 @@ private:
 
     //speichert für jeden Knoten des Subgraphen dessen NodeId im zugrundeliegenden Graphen
     std::vector<Graph::NodeId> original_nodeids;
-public:
-    const std::vector<Graph::NodeId> &getOriginalNodeids() const;
-
-private:
 
     //speichert für jede Kante des Subgraphen deren EdgeId im zugrundeliegenden Graphen
     std::vector<Graph::EdgeId> original_edgeids;

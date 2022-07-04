@@ -14,13 +14,13 @@
 #include "graph_aux_functions.h"
 
 
-std::vector<Graph::NodeId> LocalSearchAux::get_crucialnodes_in_postorder(const Graph& input_graph, Graph::NodeId root_id) {
+std::vector<Graph::NodeId> LocalSearchAux::get_crucialvertices_in_postorder(const Graph& input_graph, Graph::NodeId root_id) {
     // Checks weglassen ?
     if( root_id == Graph::invalid_node_id) {
-        throw std::runtime_error("(KeyPathExch::get_crucialnodes_in_postorder) Eingabeknoten ungueltig");
+        throw std::runtime_error("(LocalSearchAux::get_crucialvertices_in_postorder) Eingabeknoten ungueltig");
     }
     if( root_id > input_graph.num_nodes()) {
-        throw std::runtime_error("(KeyPathExch::get_crucialnodes_in_postorder) Eingabeknoten nicht im Graphen");
+        throw std::runtime_error("(LocalSearchAux::get_crucialvertices_in_postorder) Eingabeknoten nicht im Graphen");
     }
 
     //speichert die crucial nodes in Reihenfolge der Graphendurchmusterung
@@ -60,21 +60,20 @@ std::vector<Graph::NodeId> LocalSearchAux::get_crucialnodes_in_postorder(const G
 }
 
 
-
 EdgeSequence LocalSearchAux::find_ingoing_keypath (const Graph& input_graph,
                                                    Graph::NodeId start_node,
                                                    std::vector<Graph::NodeId>& internal_node_ids) {
     if( input_graph.dir_type() == Graph::undirected) {
-        throw std::runtime_error("(LocalSearchAux::find_crucial_parent) Graph ist ungerichtet.");
+        throw std::runtime_error("(LocalSearchAux::find_ingoing_keypath) Graph ist ungerichtet.");
     }
     if( start_node == Graph::invalid_node_id) {
-        throw std::runtime_error("(LocalSearchAux::find_crucial_parent) Eingabeknoten ist ungueltig.");
+        throw std::runtime_error("(LocalSearchAux::find_ingoing_keypath) Eingabeknoten ist ungueltig.");
     }
     if( start_node > input_graph.num_nodes() ) {
-        throw std::runtime_error("(LocalSearchAux::find_crucial_parent) Eingabeknoten liegt nicht im Eingabegraphen.");
+        throw std::runtime_error("(LocalSearchAux::find_ingoing_keypath) Eingabeknoten liegt nicht im Eingabegraphen.");
     }
     if( not LocalSearchAux::check_if_crucial(input_graph.get_node(start_node)) ) {
-        throw std::runtime_error("(LocalSearchAux::find_crucial_parent) Eingabeknoten kein crucial node.");
+        throw std::runtime_error("(LocalSearchAux::find_ingoing_keypath) Eingabeknoten kein crucial node.");
     }
 
     internal_node_ids.clear();
@@ -89,13 +88,13 @@ EdgeSequence LocalSearchAux::find_ingoing_keypath (const Graph& input_graph,
 
         if( curr_in_edge_id.size() > 1) {
             std::cout << "aktueller Knoten hat NodeId: " << curr_node_id << "\n";
-            throw std::runtime_error("(LocalSearchAux::find_crucial_parent) Eingabegraph hat Knoten mit Eingangsgrad > 1");
+            throw std::runtime_error("(LocalSearchAux::find_ingoing_keypath) Eingabegraph hat Knoten mit Eingangsgrad > 1");
         }
 
         if( curr_in_edge_id.size() == 0) {
-            if( not input_graph.get_node(curr_node_id).check_terminal()) {
+            if( not input_graph.get_node(curr_node_id).check_if_terminal()) {
                 std::cout << "aktueller Knoten hat NodeId: " << curr_node_id << "\n";
-                throw std::runtime_error("(LocalSearchAux::find_crucial_parent) Eingabegraph hat Knoten mit Eingangsgrad > 1");
+                throw std::runtime_error("(LocalSearchAux::find_ingoing_keypath) Eingabegraph hat Knoten mit Eingangsgrad 0, der kein Terminal ist.");
             } else {
                 //in diesem Fall ist der aktuelle Knoten die Wurzel
                 break;
@@ -114,7 +113,7 @@ EdgeSequence LocalSearchAux::find_ingoing_keypath (const Graph& input_graph,
 
         if( LocalSearchAux::check_if_crucial(curr_in_neighbor) ){
             if( curr_node_id == start_node) {
-                throw std::runtime_error("(LocalSearchAux::find_crucial_parent) Eingabegraph hat Kreis");
+                throw std::runtime_error("(LocalSearchAux::find_ingoing_keypath) Eingabegraph hat Kreis");
             }
             //In dem Fall ist der aktuelle Knoten der andere Endpunkt des Key-Paths
             break;
@@ -136,6 +135,8 @@ bool LocalSearchAux::check_if_crucial (const Graph::Node& input_node) {
     }
 }
 
+/*
+ * löschen?
 std::vector<EdgeSequence> LocalSearchAux::get_new_bound_paths(Voronoi_diagram input_vd, const std::vector<Graph::NodeId>& bases_to_delete) {
     std::vector<EdgeSequence> new_bound_paths;
 
@@ -153,14 +154,12 @@ std::vector<EdgeSequence> LocalSearchAux::get_new_bound_paths(Voronoi_diagram in
 
     return new_bound_paths;
 }
-
+*/
 
 void LocalSearchAux::perform_improving_changements(Subgraph &input_subgraph, std::vector<ImprovingChangement> changements) {
 
     std::vector<Graph::EdgeId>& original_edge_ids = input_subgraph.accessOriginalEdgeids();
     const Graph& original_graph = input_subgraph.getOriginalGraph();
-    //Graph& this_graph = input_subgraph.accessThisGraph();
-
 
     //Aktualisieren von original_edge_ids
 
@@ -197,27 +196,7 @@ void LocalSearchAux::perform_improving_changements(Subgraph &input_subgraph, std
         }
     }
 
-
-
-
-    //erstelle Graph mit allen Knoten des zugrundeliegenden Graphen und allen Kanten aus original_edge_ids
-    Graph new_this_graph = GraphAux::copygraph_wo_edges(original_graph);
-    for( auto curr_edge_id_to_add: original_edge_ids) {
-        Graph::Edge curr_edge_to_add = original_graph.get_edge(curr_edge_id_to_add);
-        new_this_graph.add_existing_edge_w_newid(curr_edge_to_add);
-    }
-
-    //erstelle Subgraph zu diesem Graphen
-    Subgraph var_subgraph(original_graph, new_this_graph,
-                          GeneralAux::get_range_of_uns_ints(0, original_graph.num_nodes()),
-                          GeneralAux::get_range_of_uns_ints(0, original_graph.num_nodes()),
-                          original_edge_ids);
-
-
-    Subgraph new_subgraph = GraphAux::copy_subgraph_wo_iso_nodes(var_subgraph);
-
-    //aktualisiere den Eingabe-Subgraphen mit den Werten des berechneten Subgraphen
-    input_subgraph.assign(new_subgraph);
+    input_subgraph.reset_with_set_of_edges(original_edge_ids);
 }
 
 void LocalSearchAux::update_pinned_for_bound_egde(const Voronoi_diagram &vor_diag, const std::vector<Graph::NodeId>& solution_nodeids_of_original_nodes,
@@ -239,7 +218,7 @@ void LocalSearchAux::update_forbidden(const Graph &solution_graph, std::vector<b
         for( auto curr_neighbor: solution_graph.get_outgoing_neighbors(curr_node_id)) {
             if( not forbidden[curr_neighbor]) {
                 next_nodes.push(curr_neighbor);
-                forbidden[curr_node_id] = true;
+                forbidden[curr_neighbor] = true;
             }
         }
     }

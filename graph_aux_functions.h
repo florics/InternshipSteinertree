@@ -21,6 +21,11 @@ namespace GraphAux{
     //gibt 1 aus gdw. Graph einfach
     bool check_if_simple(const Graph& input_graph);
 
+    // gibt die isolierten Knoten des Eingabegraphen aus
+    std::vector<Graph::NodeId> get_isolated_nodes(const Graph& input_graph);
+    // gibt 1 aus gdw. der Graph zusammenhängend ist
+    bool check_if_connected(const Graph& input_graph);
+
     //gibt Kopie des Graphen aus, aber ohne Kanten
     Graph copygraph_wo_edges(const Graph& input_graph);
     //gibt Kopie des Graphen aus, in der alle Knoten ohne Nachbarn entfernt wurden

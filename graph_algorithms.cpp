@@ -84,8 +84,17 @@ Graph GraphAlgorithms::mst_prim(const Graph &input_graph, Graph::NodeId start_no
 
     }
 
-    //Laufzeit?
-    output = GraphAux::copygraph_wo_iso_nodes(output);
+    //Laufzeit? Weglassen ok?
+    //output = GraphAux::copygraph_wo_iso_nodes(output);
+
+    //debug
+    if(output.num_edges() != input_graph.num_nodes()-1) {
+        throw std::runtime_error("(GraphAlgorithms::mst_prim) Der berechnete Graph hat nicht n-1 Kanten.");
+    }
+
+    if( not GraphAux::get_isolated_nodes(output).empty()) {
+        throw std::runtime_error("(GraphAlgorithms::mst_prim) Es wurden nicht alle Knoten erreicht.");
+    }
 
     return output;
 }
@@ -172,12 +181,14 @@ Subgraph GraphAlgorithms::mst_prim_for_subgraphs(const Subgraph &input_subgraph,
 
     //die alten EdgeIds haben wir mit output_original_edge_ids gefunden, die NodeIds ändern sich nicht
     const Graph &original_graph = input_subgraph.getOriginalGraph();
-    Subgraph output_w_iso_nodes(original_graph, output_graph,
+    Subgraph output(original_graph, output_graph,
                                 input_subgraph.getSubgraphNodeidsOfNodesInOriginalgraph(),
                                 input_subgraph.getOriginalNodeids(),
                                 output_original_edge_ids);
 
-    Subgraph output = GraphAux::copy_subgraph_wo_iso_nodes(output_w_iso_nodes);
+    if( not GraphAux::get_isolated_nodes(output.getThisGraph()).empty()) {
+        throw std::runtime_error("(GraphAlgorithms::mst_prim_for_subgraphs) Es wurden nicht alle Knoten erreicht.");
+    }
 
     return output;
 }
@@ -205,7 +216,7 @@ Graph GraphAlgorithms::compute_spann_forest(const Graph &input_graph) {
 
 
     std::cout << "Der von 'GraphAlgorithms::compute_spann_forest' berechnete Spannwald ist: \n";
-    print_graph(output_graph);
+    GraphAuxPrint::print_graph(output_graph);
     std::cout << "\n";
 
     return output_graph;

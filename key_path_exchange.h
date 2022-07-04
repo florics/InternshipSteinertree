@@ -25,7 +25,9 @@ namespace KeyPathExch{
     // gibt beste gefundene Nachbarschaftlösung aus (wenn keine echte Verbesserung gefunden wurde, wird die "leere" Verbesserung ausgegeben)
     ImprovingChangement best_neighbor_solution(Subgraph& input_subgraph);
 
-    // berechnet die Nachbarschaft der Eingabelösung
+    // berechnet die Nachbarschaft der Eingabelösung, falls ein move per pass eingegeben wird
+    // falls mehrere moves per pass eingegeben wird, so wird eine Menge von Verbesserungen ausgegeben, die simultan ausgeführt werden können
+    // (so dass die Lösung ein Baum bleibt)
     std::vector<ImprovingChangement> evaluate_neighborhood(Subgraph& input_subgraph, LocalSearchAux::MovesPerPass moves_per_pass);
 
     //Subroutine der main loop des Algorithmus
@@ -51,6 +53,8 @@ namespace KeyPathExch{
                               Graph::NodeId input_node_id,
                               Graph::NodeId crucial_parent_id, const std::vector<Graph::NodeId>& internal_node_ids,
                               Union_Find_Structure::ElementId internal_nodes_ufsroot);
+
+
 }
 
 #endif //PRAKTIKUMSTEINERBAUM_KEY_PATH_EXCHANGE_H

@@ -314,15 +314,15 @@ void Voronoi_diagram::print_simple() const {
     std::cout << "Ausgabe des Voronoi-Diagramms (als NodeNames ausgegeben)\n";
     std::cout << "(Knoten) (Basis) (Distanz zur Basis) (Vorgaengerknoten und -kante auf kuerz. Weg von Basis) \n";
     for(Graph::NodeId i = 0; i<original_graph().num_nodes(); i++){
-        print_nodename(_original_graph, i);
+        GraphAuxPrint::print_nodename(_original_graph, i);
         std::cout << " ";
-        print_nodename(_original_graph, _base[i]);
+        GraphAuxPrint::print_nodename(_original_graph, _base[i]);
         std::cout << " ";
-        print_pathlength(_dist_to_base[i]);
+        GraphAuxPrint::print_pathlength(_dist_to_base[i]);
         std::cout << " ";
-        print_nodename(_original_graph, _predecessor[i].first);
+        GraphAuxPrint::print_nodename(_original_graph, _predecessor[i].first);
         std::cout << " ";
-        print_edge_as_pair(_original_graph, _predecessor[i].second);
+        GraphAuxPrint::print_edge_as_pair(_original_graph, _predecessor[i].second);
         std::cout << "\n";
     }
     std::cout << "\n";
@@ -333,17 +333,17 @@ void Voronoi_diagram::print_region_naiv(Graph::NodeId input_base) const {
         std::cout << "(void Voronoi_diagram::print_region_naiv(Graph::NodeId var_base)) var_base = " << input_base << " ist keine Basis \n";
     }
     std::cout << "Die Voronoi-Region des Knotens ";
-    print_nodename(_original_graph, input_base);
+    GraphAuxPrint::print_nodename(_original_graph, input_base);
     std::cout << " ist: (als NodeNames ausgegeben)\n";
     std::cout << "(Knoten) (Distanz zur Basis) (Vorgaenger auf kuerz. Weg von Basis) \n";
     unsigned int region_num_nodes = 0;
     for(Graph::NodeId i=0; i<original_graph().num_nodes(); i++){
         if(_base[i] == input_base){
-            print_nodename(_original_graph, i);
+            GraphAuxPrint::print_nodename(_original_graph, i);
             std::cout << " ";
-            print_pathlength(_dist_to_base[i]);
+            GraphAuxPrint::print_pathlength(_dist_to_base[i]);
             std::cout << " ";
-            print_nodename(_original_graph, _predecessor[i].first);
+            GraphAuxPrint::print_nodename(_original_graph, _predecessor[i].first);
             std::cout << "\n";
 
             region_num_nodes++;
@@ -357,15 +357,15 @@ void Voronoi_diagram::print_region_fast(Graph::NodeId input_base) {
         std::cout << "(void Voronoi_diagram::print_region_fast(Graph::NodeId var_base)) var_base = " << input_base << " ist keine Basis \n";
     }
     std::cout << "Die Voronoi-Region des Knotens ";
-    print_nodename(_original_graph, input_base);
+    GraphAuxPrint::print_nodename(_original_graph, input_base);
     std::cout << " ist: (als NodeNames ausgegeben)\n";
     std::cout << "(Knoten) (Distanz zur Basis) (Vorgaenger auf kuerz. Weg von Basis) \n";
     for(auto curr_node : compute_vor_region(input_base)){
-            print_nodename(_original_graph, curr_node);
+            GraphAuxPrint::print_nodename(_original_graph, curr_node);
             std::cout << " ";
-            print_pathlength(_dist_to_base[curr_node]);
+            GraphAuxPrint::print_pathlength(_dist_to_base[curr_node]);
             std::cout << " ";
-            print_nodename(_original_graph, _predecessor[curr_node].first);
+            GraphAuxPrint::print_nodename(_original_graph, _predecessor[curr_node].first);
             std::cout << "\n";
     }
     std::cout << "Insgesamt liegen " << compute_vor_region(input_base).size() << " Knoten in dieser Voronoi-Region. \n";
@@ -454,13 +454,36 @@ std::vector<Graph::NodeId> Voronoi_diagram::compute_vor_region(Graph::NodeId inp
         throw std::runtime_error("(Voronoi_diagram::compute_vor_region) Eingabeknoten ist keine Basis.");
     }
 
-    std::vector<Graph::NodeId> vor_region;
+    // Ausgabe
+    std::vector<Graph::NodeId> vor_region(1, input_base);
 
-    //rekursiv arbeitende Subroutine
-    compute_vor_region_subroutine(input_base, input_base, vor_region);
+    //es folgt eine Graphendurchmusterung
 
-    //mache die Markierungen der Subroutine rückgängig
-    //das ist der Grund, weshalb diese Funktion (sowie alle, die sie benutzen) nicht const ist
+    std::vector<Graph::NodeId> next_nodes(1, input_base);
+
+    //Markierung als 'betrachtet', siehe unten
+    _base[input_base] = Graph::invalid_node_id;
+
+    while(not next_nodes.empty()) {
+        Graph::NodeId curr_node_id = next_nodes.back();
+        next_nodes.pop_back();
+
+        for(auto curr_neighbor_id: original_graph().adjacency_vect(curr_node_id) ) {
+            if(_base[curr_neighbor_id] == input_base) {
+                next_nodes.push_back(curr_neighbor_id);
+
+                //markiere den Knoten als "betrachtet", um die Rekursion nicht mehrfach für den gleichen Knoten aufzurufen
+                //das ist der Grund, weshalb diese Funktion (sowie alle, die sie benutzen) nicht const ist
+                // (ein Vektor mit Länge original_nodes.num_nodes() würde zu Laufzeit O(n) führen)
+                _base[curr_neighbor_id] = Graph::invalid_node_id;
+
+                vor_region.push_back(curr_neighbor_id);
+            }
+        }
+
+    }
+
+    //mache die Markierungen rückgängig
     for(auto var_node_id : vor_region) {
         _base[var_node_id] = input_base;
     }

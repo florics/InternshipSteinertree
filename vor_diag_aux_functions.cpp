@@ -126,7 +126,7 @@ EdgeSequence VorDiagAux::compute_bound_path(Voronoi_diagram original_vd, Graph::
     Graph::NodeId base_a = original_vd.base()[node_a];
     Graph::NodeId base_b = original_vd.base()[node_b];
 
-    Graph::PathLength output_length = VorDiagAux::compute_length_of_boundegde(original_vd, bound_edge_id);
+    Graph::PathLength output_length = VorDiagAux::compute_length_of_boundpath(original_vd, bound_edge_id);
 
     EdgeSequence output_path(output_edge_ids, base_a, base_b, output_length);
 
@@ -185,15 +185,15 @@ std::pair<Graph::NodeId, Graph::NodeId> VorDiagAux::get_bases_of_edge(const Voro
     return output;
 }
 
-Graph::PathLength VorDiagAux::compute_length_of_boundegde(const Voronoi_diagram& original_vd, Graph::EdgeId input_edgeid) {
+Graph::PathLength VorDiagAux::compute_length_of_boundpath(const Voronoi_diagram& original_vd, Graph::EdgeId input_edgeid) {
     if(input_edgeid >= original_vd.original_graph().num_edges() ){
-        throw std::runtime_error("(VorDiagAux::compute_length_of_boundegde) Eingabekante liegt nicht in dem Eingabe-V-D zugrundeliegenden Graphen.");
+        throw std::runtime_error("(VorDiagAux::compute_length_of_boundpath) Eingabekante liegt nicht in dem Eingabe-V-D zugrundeliegenden Graphen.");
     }
 
     Graph::Edge input_edge = original_vd.original_graph().get_edge(input_edgeid);
 
     if( not original_vd.check_if_bound_edge(input_edge)) {
-        throw std::runtime_error("(VorDiagAux::compute_length_of_boundegde) Eingabekante ist keine boundary edge im Eingabe-Vor-Diagramm.");
+        throw std::runtime_error("(VorDiagAux::compute_length_of_boundpath) Eingabekante ist keine boundary edge im Eingabe-Vor-Diagramm.");
     }
 
     return input_edge.weight() + original_vd.dist_to_base()[input_edge.node_a()] + original_vd.dist_to_base()[input_edge.node_b()];

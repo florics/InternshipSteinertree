@@ -128,7 +128,7 @@ void Graph::Node::set_terminal(Graph::TerminalState t){
     _terminal_state = t;
 }
 
-bool Graph::Node::check_terminal() const{
+bool Graph::Node::check_if_terminal() const{
     if(_terminal_state == Graph::terminal){
         return true;
     }
@@ -152,7 +152,7 @@ void Graph::set_terminal(Graph::NodeId v, Graph::TerminalState t){
 std::vector<Graph::NodeId> Graph::get_vect_term() const{
     std::vector<Graph::NodeId> output;
     for(Graph::NodeId i = 0; i<num_nodes(); i++){
-        if(get_node(i).check_terminal()){
+        if(get_node(i).check_if_terminal()){
             output.push_back(i);
         }
     }
@@ -176,6 +176,14 @@ void Graph::add_one_existing_node(const Graph::Node new_node){
     }
 
     _nodes.push_back(new_node);
+}
+
+void Graph::add_one_existing_node_w_newid(const Graph::Node new_node){
+    Graph::NodeId id = num_nodes();
+
+    Graph::Node node_to_add(id, new_node.node_name(), new_node.terminal_state());
+
+    _nodes.push_back(node_to_add);
 }
 
 void Graph::add_nodes(int num_new_nodes){
@@ -493,7 +501,7 @@ Graph::Graph(char const* filename){
 
     std::ifstream file(filename);
     if (not file) {
-        throw std::runtime_error("Fehler beim Öffnen der Datei");
+        throw std::runtime_error("(Graph::Graph) Fehler beim Öffnen der Datei");
     }
 
     _dir_type = Graph::undirected;

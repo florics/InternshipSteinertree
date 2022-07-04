@@ -12,10 +12,10 @@ const Union_Find_Structure::ElementId Union_Find_Structure::invalid_elt_id = std
 Union_Find_Structure::Union_Find_Structure(unsigned int num_elts):
     _num_elements(num_elts)
 {
-    std::vector<ElementId> var_parents(_num_elements, Union_Find_Structure::invalid_elt_id);
+    std::vector<Union_Find_Structure::ElementId> var_parents(_num_elements, Union_Find_Structure::invalid_elt_id);
     _parents = var_parents;
 
-    std::vector<Rank> var_ranks(_num_elements, 0);
+    std::vector<Union_Find_Structure::Rank> var_ranks(_num_elements, 0);
     _ranks = var_ranks;
 }
 
@@ -130,6 +130,23 @@ bool Union_Find_Structure::check_if_elt_belongs_to_other_elts(Union_Find_Structu
         }
     }
     return false;
+}
+
+bool Union_Find_Structure::check_if_root(Union_Find_Structure::ElementId input_elt) {
+    if(input_elt >= _num_elements) {
+        std::cout << "Eingegebenes Element (input_elt): " << input_elt << "\n";
+        throw std::runtime_error("(Union_Find_Structure::check_if_root) eingegebenes Element liegt nicht in der Datenstruktur");
+    }
+
+    if( _parents[input_elt] == input_elt) {
+        return true;
+    } else {
+        return false;
+    }
+}
+
+unsigned int Union_Find_Structure::num_elements() {
+    return _num_elements;
 }
 
 

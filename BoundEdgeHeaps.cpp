@@ -6,6 +6,7 @@
 
 #include "iostream"
 #include "vor_diag_aux_functions.h"
+#include "graph_printfunctions.h"
 
 //? kann ich hier auch einfach nur das vd übergeben und daraus dann die base_ids berechnen? (-> Fehlermeldung wegen const...)
 BoundEdgeHeaps::BoundEdgeHeaps(const Voronoi_diagram& original_vd, const std::vector<Voronoi_diagram::BaseId>& base_ids):
@@ -42,7 +43,7 @@ void BoundEdgeHeaps::initialise_with_bound_edges() {
 
             //finde entsprechende Endknoten, Länge des boundary path, zugehörige Basen
 
-            Graph::PathLength length_bound_path = VorDiagAux::compute_length_of_boundegde(_original_vd, curr_edge_id);
+            Graph::PathLength length_bound_path = VorDiagAux::compute_length_of_boundpath(_original_vd, curr_edge_id);
 
             Graph::NodeId curr_node_a = curr_edge.node_a();
             Graph::NodeId curr_node_b = curr_edge.node_b();
@@ -79,7 +80,7 @@ BoundEdgeHeaps::cleanup_multiple_heaps(const std::vector<Voronoi_diagram::BaseId
     //betrachte alle Heaps, die zu Nachfolgern des zu bearbeitenden Knotes gehören
     for( auto curr_node_to_cleanup: nodes_to_cleanup) {
 
-        std::pair<Graph::PathLength, Graph::EdgeId> curr_best_heap_elt = cleanup_one_heap(curr_node_to_cleanup, ufs, endpoints_to_discard);
+        std::pair<Graph::PathLength, Graph::EdgeId> curr_best_heap_elt = cleanup_one_heap_kpe(curr_node_to_cleanup, ufs, endpoints_to_discard);
 
         //falls wir ein gültiges Element im Heap gefunden haben, fügen wir es zu dem Ausgabevektor hinzu
         if(curr_best_heap_elt.second != Graph::invalid_edge_id) {
@@ -92,11 +93,11 @@ BoundEdgeHeaps::cleanup_multiple_heaps(const std::vector<Voronoi_diagram::BaseId
 */
 
 std::pair<Graph::PathLength, Graph::EdgeId>
-BoundEdgeHeaps::cleanup_one_heap(Voronoi_diagram::BaseId node_to_cleanup,
-                                 Union_Find_Structure &ufs,
-                                 const std::vector<Union_Find_Structure::ElementId> &endpoints_to_discard,
-                                 LocalSearchAux::MovesPerPass moves_per_pass,
-                                 const std::vector<bool>& forbidden) {
+BoundEdgeHeaps::cleanup_one_heap_kpe(Voronoi_diagram::BaseId node_to_cleanup,
+                                     Union_Find_Structure &ufs,
+                                     const std::vector<Union_Find_Structure::ElementId> &endpoints_to_discard,
+                                     LocalSearchAux::MovesPerPass moves_per_pass,
+                                     const std::vector<bool>& forbidden) {
 
     std::priority_queue<std::pair<Graph::PathLength, Graph::EdgeId>,
             std::vector<std::pair<Graph::PathLength, Graph::EdgeId>>,
@@ -159,6 +160,70 @@ void BoundEdgeHeaps::merge(Graph::NodeId destination_node_id, std::vector<Graph:
             destination_heap.push(top_heap_entry);
         }
     }
+}
+
+std::vector<std::pair<Graph::PathLength, Graph::EdgeId>>
+BoundEdgeHeaps::cleanup_heaps_kve(const std::vector<Voronoi_diagram::BaseId> &nodes_to_cleanup,
+                                  Ext_Union_Find_Structure &ufs,
+                                  LocalSearchAux::MovesPerPass moves_per_pass,
+                                  const std::vector<bool>& forbidden) {
+
+    std::vector<std::pair<Graph::PathLength, Graph::EdgeId>> output;
+
+    for( auto curr_node_to_cleanup: nodes_to_cleanup) {
+        std::pair<Graph::PathLength, Graph::EdgeId> curr_bound_edge =
+                BoundEdgeHeaps::cleanup_one_heap_kve(curr_node_to_cleanup, ufs, moves_per_pass, forbidden);
+        output.push_back(curr_bound_edge);
+    }
+
+    return output;
+}
+
+std::pair<Graph::PathLength, Graph::EdgeId>
+BoundEdgeHeaps::cleanup_one_heap_kve(const Voronoi_diagram::BaseId node_to_cleanup, Ext_Union_Find_Structure &ufs,
+                                     LocalSearchAux::MovesPerPass moves_per_pass, const std::vector<bool> &forbidden) {
+
+    std::priority_queue<std::pair<Graph::PathLength, Graph::EdgeId>,
+            std::vector<std::pair<Graph::PathLength, Graph::EdgeId>>,
+            std::greater<std::pair<Graph::PathLength, Graph::EdgeId>>>& heap_to_cleanup = get_heap_of_base(node_to_cleanup);
+
+
+    while(not heap_to_cleanup.empty()) {
+        std::pair<Graph::PathLength, Graph::EdgeId> top_heap_entry = heap_to_cleanup.top();
+
+        //debug
+        //GraphAuxPrint::print_edge_sequence(_original_vd.original_graph(), VorDiagAux::compute_bound_path(_original_vd, top_heap_entry.second) );
+        //fflush(stdout);
+
+        //finde die Basen der aktuellen boundary edge
+        std::pair<Graph::NodeId, Graph::NodeId> bases_of_top_entry = VorDiagAux::get_bases_of_edge( _original_vd, top_heap_entry.second);
+        Graph::NodeId endbase_a = _base_ids[bases_of_top_entry.first];
+        Graph::NodeId endbase_b = _base_ids[bases_of_top_entry.second];
+
+        if( moves_per_pass == LocalSearchAux::several_moves ) {
+            if (forbidden[endbase_a] || forbidden[endbase_b]) {
+                // falls die Endpunkte als forbidden markiert sind, suchen wir weiter
+                heap_to_cleanup.pop();
+                continue;
+            }
+        }
+
+        //debug
+        if( ufs.allowed(endbase_a) && ufs.allowed(endbase_b) ) {
+            throw std::runtime_error("(BoundEdgeHeaps::cleanup_one_heap_kve) Kante verläuft innerhalb des Subbaums des Vorgängers.");
+        }
+
+        if( not ufs.allowed(endbase_a) && not ufs.allowed(endbase_b) ) {
+            // falls die Endpunkte in einer der Mengen der UFS liegen, die wir verboten haben, suchen wir weiter
+            heap_to_cleanup.pop();
+            continue;
+        } else {
+            return top_heap_entry;
+        }
+    }
+
+    //falls wir keine passende boundary edge im heap gefunden haben, geben wir ein ungültiges Paar zurück
+    return {Graph::infinite_length, Graph::invalid_edge_id};
 }
 
 

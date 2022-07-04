@@ -40,7 +40,7 @@ bool GraphAux::check_if_isomorph(const Graph& graph1, const Graph& graph2){
     }
 
     //Matrix für alle Knotenpaare, Adjazenzmatrix
-    // edge_weight_matrice[i][j] entspricht Knotenpaar i+1, j (wobei i >= j)
+    // Eintrag [i][j] entspricht Knotenpaar i+1, j (wobei i >= j)
     std::vector< std::vector<Graph::EdgeWeight> > edge_weight_matrice;
     std::vector< std::vector<bool> > adjacency_matrice;
 
@@ -69,13 +69,13 @@ bool GraphAux::check_if_isomorph(const Graph& graph1, const Graph& graph2){
 
         if( not adjacency_matrice[ curr_edge_nodes.second-1 ][ curr_edge_nodes.first ] ){
             std::cout << "(GraphAux::check_if_isomorph) Kante ";
-            print_edge_as_pair(graph2, curr_edge.edge_id() );
+            GraphAuxPrint::print_edge_as_pair(graph2, curr_edge.edge_id() );
             std::cout << " liegt im zweiten eingegebenen Graph aber nicht im ersten. \n";
             return false;
         }
         if( edge_weight_matrice[ curr_edge_nodes.second-1 ][ curr_edge_nodes.first ] != curr_edge.weight() ){
             std::cout << "(GraphAux::check_if_isomorph) Kantengewicht der Kante ";
-            print_edge_as_pair(graph2, curr_edge.edge_id() );
+            GraphAuxPrint::print_edge_as_pair(graph2, curr_edge.edge_id() );
             std::cout << "ungleich. \n";
             return false;
         }
@@ -136,7 +136,7 @@ bool GraphAux::check_if_simple(const Graph& input_graph) {
         std::pair<Graph::NodeId, Graph::NodeId> curr_edge_nodes = curr_edge.get_nodes_orderedbyid();
         if( adjacency_matrice[ curr_edge_nodes.second-1 ][ curr_edge_nodes.first ] ){
             std::cout << "(GraphAux::check_if_simple) Kante (bzw. Knotenpaar) ";
-            print_edge_as_pair(input_graph, curr_edge.edge_id() );
+            GraphAuxPrint::print_edge_as_pair(input_graph, curr_edge.edge_id() );
             std::cout << " ist doppelt. \n";
             return false;
         }
@@ -192,7 +192,7 @@ Graph GraphAux::copygraph_wo_steinerleafs(const Graph& input_graph){
     unsigned int output_graph_numnodes = 0;
     for(Graph::NodeId i=0; i<input_graph.num_nodes(); i++){
         Graph::Node curr_node = input_graph.get_node(i);
-        if( curr_node.num_neighbors() == 1 && not curr_node.check_terminal() ) {
+        if( curr_node.num_neighbors() == 1 && not curr_node.check_if_terminal() ) {
             continue;
         } else {
             output_graph.add_one_node( curr_node.node_name(), curr_node.terminal_state() );
@@ -296,7 +296,7 @@ Subgraph GraphAux::copy_subgraph_wo_steinerleafs(const Subgraph &input_subgraph)
     for(Graph::NodeId i=0; i<original_graph.num_nodes(); i++){
         if(input_subgraph_nodeids_of_nodes_in_or_graph[i] != Graph::invalid_node_id) {
             Graph::Node curr_node = input_graph.get_node( input_subgraph_nodeids_of_nodes_in_or_graph[i] );
-            if (curr_node.num_neighbors() == 1 && not curr_node.check_terminal()) {
+            if (curr_node.num_neighbors() == 1 && not curr_node.check_if_terminal()) {
                 continue;
             } else {
                 output_graph.add_one_node(curr_node.node_name(), curr_node.terminal_state());
@@ -332,3 +332,53 @@ Subgraph GraphAux::copy_subgraph_wo_steinerleafs(const Subgraph &input_subgraph)
 
     return output;
 }
+
+std::vector<Graph::NodeId> GraphAux::get_isolated_nodes(const Graph& input_graph) {
+    std::vector<Graph::NodeId> output;
+
+    for( auto curr_node: input_graph.nodes()) {
+        if( curr_node.num_neighbors() == 0) {
+            output.push_back(curr_node.node_id());
+        }
+    }
+
+    return output;
+}
+
+bool GraphAux::check_if_connected(const Graph &input_graph) {
+
+    // wir sagen, dass der leere Graph zusammenhängend ist
+    if( input_graph.num_nodes() == 0) {
+        return true;
+    }
+
+    //Graphendurchmusterung
+
+    std::vector<Graph::NodeId> next_nodes;
+    std::vector<bool> reached(input_graph.num_nodes(), false);
+
+    //starte bei dem Knoten mit NodeId 0
+    next_nodes.push_back(0);
+    reached[0] = true;
+
+    while( not next_nodes.empty() ) {
+        Graph::NodeId curr_node = next_nodes.back();
+        next_nodes.pop_back();
+
+        for(auto curr_neighbor: input_graph.adjacency_vect(curr_node)) {
+            if( not reached[curr_neighbor]) {
+                next_nodes.push_back(curr_neighbor);
+                reached[curr_neighbor] = true;
+            }
+        }
+    }
+
+    for(unsigned int i=0; i<input_graph.num_nodes(); i++) {
+        if( not reached[i]) {
+            return false;
+        }
+    }
+
+    return true;
+}
+

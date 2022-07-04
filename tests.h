@@ -8,7 +8,6 @@
 #include <iostream>
 
 #include "graph.h"
-#include "graph_printfunctions.h"
 #include "graph_aux_functions.h"
 #include "graph_algorithms.h"
 #include "voronoi_diagram.h"
@@ -18,10 +17,19 @@
 #include "key_path_exchange.h"
 #include "EdgeSequence.h"
 #include "BoundEdgeHeaps.h"
+#include "key_vertex_elimination.h"
 
 namespace DebugTests{
 
-    void kpe_evaluate_neighborhood();
+    //void kpe_evaluate_neighborhood();
+
+    void kve_1_evaluate_neighborhood();
+    void kve_2_evaluate_neighborhood();
+    void kve_3_evaluate_neighborhood();
+
+    std::vector<Graph> get_standard_test_instances();
+
+    std::vector<Graph> get_test_instances_from_file(char const* filename);
 
 }
 

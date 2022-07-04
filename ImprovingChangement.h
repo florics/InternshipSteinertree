@@ -8,6 +8,7 @@
 #include <vector>
 
 #include "graph.h"
+#include "Subgraph.h"
 
 //in struct umdefinieren?
 
@@ -20,6 +21,9 @@ public:
     const std::vector<Graph::EdgeId> &getEdgesToRemove() const;
     const std::vector<Graph::EdgeId> &getEdgesToInsert() const;
     const Graph::PathLength getImprovementValue() const;
+
+    //debug
+    void print(const Subgraph& original_subgraph);
 
 private:
 

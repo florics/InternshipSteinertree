@@ -10,7 +10,7 @@
 
 namespace GraphAlgorithms {
 
-    //berechnet min. Spannbaum der Zsmhangskomp. des Startknoten
+    //berechnet min. Spannbaum des Graphen (der zusammenhängend sein muss)
     Graph mst_prim(const Graph &input_graph, Graph::NodeId start_node);
 
     Subgraph mst_prim_for_subgraphs(const Subgraph &input_subgraph, Graph::NodeId start_node);

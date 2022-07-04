@@ -37,8 +37,8 @@ namespace VorDiagAux{
 
     //gibt die Basen der Voronoi-Regionen aus, zu denen die Endpunkte der Eingabekante gehören
     std::pair<Graph::NodeId, Graph::NodeId> get_bases_of_edge(const Voronoi_diagram& original_vd, Graph::EdgeId input_edgeid);
-    // berechnet die Länge der Eingabekante (die muss eine boundary edge sein)
-    Graph::PathLength compute_length_of_boundegde(const Voronoi_diagram& original_vd, Graph::EdgeId input_edgeid);
+    // berechnet die Länge des zur Eingabekante (die muss eine boundary edge sein) gehörenden boundary path
+    Graph::PathLength compute_length_of_boundpath(const Voronoi_diagram& original_vd, Graph::EdgeId input_edgeid);
 
 }
 

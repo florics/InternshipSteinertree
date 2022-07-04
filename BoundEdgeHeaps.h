@@ -12,6 +12,7 @@
 #include "voronoi_diagram.h"
 #include "EdgeSequence.h"
 #include "Union_Find_Structure.h"
+#include "Ext_Union_Find_Structure.h"
 #include "local_search_aux.h"
 
 //todo:debug alles
@@ -31,19 +32,35 @@ public:
                             std::vector<  std::pair<Graph::PathLength, Graph::EdgeId> >,
                                 std::greater< std::pair<Graph::PathLength, Graph::EdgeId> > >& get_heap_of_base(Voronoi_diagram::BaseId input_base);
 
-    //cleanup für Key-Vertex-Elimination
+
+    // Ausgabe: in dem i-ten Eintrag steht die beste vertikale boundary edge, die zwischen dem Subbaum, der zum i-ten crucial child gehört,
+    // und dem Subbaum des crucial parent verläuft (i=1,...) (falls keine solche Kante gefunden wurde, gibt es einen 'ungueltigen' Eintrag
+    // Eingabe (nodes_to_cleanup) muss entsprechend die crucial children enthalten
+    std::vector<std::pair<Graph::PathLength, Graph::EdgeId>> cleanup_heaps_kve(const std::vector<Voronoi_diagram::BaseId>& nodes_to_cleanup,
+                                                                               Ext_Union_Find_Structure &ufs,
+                                                                               LocalSearchAux::MovesPerPass moves_per_pass,
+                                                                               const std::vector<bool>& forbidden);
+
+    // Ausgabe: die beste vertikale boundary edge zwischen dem Subbaum des Eingabeknotens und dem Subbaum des crucial parent
+    std::pair<Graph::PathLength, Graph::EdgeId> cleanup_one_heap_kve(const Voronoi_diagram::BaseId node_to_cleanup,
+                                                                               Ext_Union_Find_Structure &ufs,
+                                                                               LocalSearchAux::MovesPerPass moves_per_pass,
+                                                                               const std::vector<bool>& forbidden);
+
+    /*//cleanup für Key-Vertex-Elimination
     //? näher beschreiben?
     std::vector<std::pair<Graph::PathLength, Graph::EdgeId>> cleanup_multiple_heaps(const std::vector<Voronoi_diagram::BaseId>& nodes_to_cleanup,
                                                                                     Union_Find_Structure &ufs,
                                                                                     const std::vector<Union_Find_Structure::ElementId>& endpoints_to_discard);
+    */
 
     //cleanup für Key-EdgeSequence-Exchange
     // todo: ggf. vereinfachen, wenn ich cleanup für KVE umschreibe
-    std::pair<Graph::PathLength, Graph::EdgeId> cleanup_one_heap(Voronoi_diagram::BaseId node_to_cleanup,
-                                                                 Union_Find_Structure &ufs,
-                                                                 const std::vector<Union_Find_Structure::ElementId>& endpoints_to_discard,
-                                                                 LocalSearchAux::MovesPerPass moves_per_pass,
-                                                                 const std::vector<bool>& forbidden);
+    std::pair<Graph::PathLength, Graph::EdgeId> cleanup_one_heap_kpe(Voronoi_diagram::BaseId node_to_cleanup,
+                                                                     Union_Find_Structure &ufs,
+                                                                     const std::vector<Union_Find_Structure::ElementId>& endpoints_to_discard,
+                                                                     LocalSearchAux::MovesPerPass moves_per_pass,
+                                                                     const std::vector<bool>& forbidden);
 
     void merge(Voronoi_diagram::BaseId destination_id, std::vector<Voronoi_diagram::BaseId> nodes_to_merge);
 

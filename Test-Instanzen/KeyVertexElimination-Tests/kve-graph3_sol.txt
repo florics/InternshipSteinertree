@@ -1,0 +1,23 @@
+33D32945 STP File, STP Format Version 1.0
+
+SECTION Graph
+Nodes 4
+Edges 3
+E 1 4 3
+E 4 3 3
+E 2 4 3
+END
+
+SECTION Terminals
+Terminals 3
+T 1
+T 2
+T 3
+END
+
+EOF
+
+
+std::vector<Graph::NodeId> subgraph_nodeids_of_nodes_in_originalgraph = {0, 3, Graph::invalid_edge_id, 2, 1};
+std::vector<Graph::NodeId> original_nodeids = {0, 4, 3, 1};
+std::vector<Graph::EdgeId> original_edgeids = {0, 2, 1};

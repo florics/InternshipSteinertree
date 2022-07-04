@@ -32,6 +32,9 @@ public:
 
     //weitere Funktionen:
 
+    //gibt 1 aus gdw. Eingabeelement Wurzel ist
+    bool check_if_root(ElementId input_elt);
+
     //gibt 1 aus gdw. das Element in einer Menge liegt
     bool check_if_in_existing_set(ElementId input_elt);
     // vereinigt alle Mengen, in denen die eingegebenen Elemente liegen
@@ -40,6 +43,8 @@ public:
     bool check_if_in_same_set(ElementId elt_x, ElementId elt_y);
     // gibt 1 aus gdw. das Eingabeelement in der gleichen Menge liegt wie eines der Elemente aus dem Eingabevektor
     bool check_if_elt_belongs_to_other_elts(Union_Find_Structure::ElementId input_elt, const std::vector<ElementId>& other_elts);
+
+    unsigned int num_elements();
 
     //zeigt an, dass Element noch nicht zu einer Menge zugewiesen wurde
     static const ElementId invalid_elt_id;

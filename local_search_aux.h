@@ -20,14 +20,13 @@ namespace LocalSearchAux{
 
     enum MovesPerPass {one_move, several_moves};
 
-    //Ausgabe: die crucial nodes des Eingabegraphens in einer post-order von dem Eingabeknoten aus (so dass children immer vor ihrem parent stehen)
+    //Ausgabe: die crucial vertices des Eingabegraphens in einer post-order von dem Eingabeknoten aus (so dass children immer vor ihrem parent stehen)
     // aber ohne den Eingabeknoten selbst (!)
-    //Laufzeit: könnte man auch gleich in Graph::make_rooted_arborescence ausgeben
-    std::vector<Graph::NodeId> get_crucialnodes_in_postorder(const Graph& input_graph, Graph::NodeId root_id);
-
+    //? Laufzeit: könnte man auch gleich in Graph::make_rooted_arborescence ausgeben
+    std::vector<Graph::NodeId> get_crucialvertices_in_postorder(const Graph& input_graph, Graph::NodeId root_id);
 
     //findet den Key-Path, der in start_node endet
-    // Ausgabe: Key-Path als EdgeSequence (endnode_a ist der crucial parent des Startknoten)(internal_node_ids speichert in post-order)
+    // Ausgabe: Key-Path als EdgeSequence (endnode_a ist der crucial parent des Startknoten)
     // Eingabe: Graph muss Arboreszenz mit einem Terminal als Wurzel sein
     // start_node muss crucial node sein
     // internal_node_ids wird überschrieben mit den inneren Knoten des Key-Path (internal_node_ids speichert in post-order)
@@ -39,7 +38,7 @@ namespace LocalSearchAux{
     bool check_if_crucial (const Graph::Node& input_node);
 
     // findet alle Kanten, die nach Entfernen der bases_to_delete boundary edges werden
-    std::vector<EdgeSequence> get_new_bound_paths(Voronoi_diagram input_vd, const std::vector<Graph::NodeId>& bases_to_delete);
+    //? std::vector<EdgeSequence> get_new_bound_paths(Voronoi_diagram input_vd, const std::vector<Graph::NodeId>& bases_to_delete);
 
     // führt die eingegebenen Verbesserungen auf dem Eingabe-Subgraph aus
     void perform_improving_changements(Subgraph &input_subgraph, std::vector<ImprovingChangement> changements);

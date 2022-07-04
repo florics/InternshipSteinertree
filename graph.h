@@ -11,11 +11,13 @@
 
 class Graph {
 public:
+
     using NodeId = unsigned int;
     using EdgeId = unsigned int;
     using NodeName = unsigned int;
     using EdgeWeight = double;
     using PathLength = double;
+
     enum TerminalState {no_terminal , terminal};
     enum DirType {directed , undirected };
 
@@ -78,7 +80,7 @@ public:
         //macht den entsprechenden Knoten zu einem Terminal oder zu einem Nicht-Terminal
         void set_terminal(TerminalState t);
         //gibt 1 aus, wenn Knoten Terminal ist
-        bool check_terminal() const;
+        bool check_if_terminal() const;
 
     private:
         //Stelle, an dem Knoten in _nodes gespeichert ist
@@ -114,6 +116,9 @@ public:
     //fügt existierenden Knoten zum Graphen hinzu (!prüft aber nicht ob _node_name eindeutig!)
     //(NodeId von v wird nicht verändert und muss deshalb der Anzahl der Knoten des Graphen (vor Aufruf der Funktion) entsprechen)
     void add_one_existing_node(const Node new_node);
+    //entspricht add_one_existing_node, hier wird aber die NodeId des Eingabeknotens einfach angepasst
+    //todo: diese Fktn ggf. an ein paar Stellen eher verwenden als die anderen
+    void add_one_existing_node_w_newid(const Node new_node);
     //fügt n Knoten hinzu (Knoten sind keine Terminale, _node_name wird einfach auf "1 + Stelle in _nodes, wo der neue Knoten gespeichert wird" gesetzt)
     void add_nodes(int num_new_nodes);
 

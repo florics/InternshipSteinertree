@@ -800,7 +800,7 @@ Graph::Graph(char const* filename){
     //prüfen, ob angegebene Kanten-/Terminalanzahl mit aufgelisteten Kanten/Terminalen übereinstimmt
     if( num_edges() != claimed_num_edges) {
         //debug
-        std::cout << "Warnung: ";
+        std::cout << "(Einleseroutine Graph) Warnung: ";
         std::cout << " angegebene Kantenanzahl (" << claimed_num_edges << ") ";
         std::cout << " ungleich Anzahl aufgelisteter Kanten (" << num_edges() << ")\n";
 

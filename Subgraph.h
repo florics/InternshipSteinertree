@@ -10,29 +10,33 @@
 class Subgraph {
 
 public:
-    Subgraph(const Graph &originalGraph, const Graph &thisGraph,
-             const std::vector<Graph::NodeId> &subgraphNodeidsOfNodesInOriginalgraph,
-             const std::vector<Graph::NodeId> &originalNodeids, const std::vector<Graph::EdgeId> &originalEdgeids);
+    Subgraph(const Graph& originalGraph, const Graph &thisGraph,
+             const std::vector<Graph::NodeId>& subgraphNodeidsOfNodesInOriginalgraph,
+             const std::vector<Graph::NodeId>& originalNodeids,
+             const std::vector<Graph::EdgeId>& originalEdgeids);
 
     //konstruiert einen Subgraphen, der Subgraph von sich selbst ist
-    Subgraph(const Graph &input_graph);
+    Subgraph(const Graph& input_graph);
 
-    const Graph &original_graph() const;
+    //konstruiert Subgraphen, der alle Eingabekanten sowie die inzidenten Knoten enthält
+    Subgraph(const Graph& original_graph, const std::vector<Graph::EdgeId>& edges_of_subgraph);
 
-    const Graph &this_graph() const;
-    Graph &this_graph();
+    const Graph& original_graph() const;
 
-    const std::vector<Graph::NodeId> &subgraph_nodeids_of_nodes_in_originalgraph() const;
+    const Graph& this_graph() const;
+    Graph& this_graph();
+
+    const std::vector<Graph::NodeId>& subgraph_nodeids_of_nodes_in_originalgraph() const;
     //? std::vector<Graph::NodeId> &subgraph_nodeids_of_nodes_in_originalgraph();
 
-    const std::vector<Graph::NodeId> &original_nodeids() const;
+    const std::vector<Graph::NodeId>& original_nodeids() const;
     //? std::vector<Graph::NodeId> &original_nodeids();
 
-    const std::vector<Graph::EdgeId> &original_edgeids() const;
-    std::vector<Graph::EdgeId> &original_edgeids();
+    const std::vector<Graph::EdgeId>& original_edgeids() const;
+    std::vector<Graph::EdgeId>& original_edgeids();
 
     //verändert den Subgraphen so, dass er dem Graphen entspricht der alle eingegebenen Kanten enthält und keine isolierten Knoten
-    void reset(std::vector<Graph::EdgeId>& new_original_edgeids);
+    void reset(const std::vector<Graph::EdgeId>& new_original_edgeids);
 
     //löscht alle Kanten und fügt alle Eingabekanten hinzu
     void reset_edges(const std::vector<Graph::EdgeId>& new_original_edgeids);

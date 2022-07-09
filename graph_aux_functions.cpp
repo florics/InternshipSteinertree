@@ -424,7 +424,7 @@ bool GraphAux::check_if_terminals_connected(const Graph &input_graph) {
         Graph::NodeId curr_node = next_nodes.back();
         next_nodes.pop_back();
 
-        const std::vector<Graph::NodeId> &var_vect = input_graph.adjacency_vect(curr_node);
+        //? const std::vector<Graph::NodeId> &var_vect = input_graph.adjacency_vect(curr_node);
         for(auto curr_neighbor: input_graph.adjacency_vect(curr_node)) {
             if( not reached[curr_neighbor]) {
                 next_nodes.push_back(curr_neighbor);

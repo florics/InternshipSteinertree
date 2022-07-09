@@ -70,7 +70,8 @@ Graph::PathLength SteinerVertexInsertion::process_node(Graph::NodeId node_to_ins
         }
 
         // dies erfolgt Schritt für Schritt für die Kanten und Pfade, um keine Konflikte zu erzeugen
-        for(int i=reversed_paths.size()-1; i>-1; i--) {
+        //todo: ändern
+        for(int i = (signed) reversed_paths.size()-1; i > -1; i--) {
             tree_data_structure.reverse_path(reversed_paths[i]);
             tree_data_structure.set_edge(removed_edges[i]);
         }

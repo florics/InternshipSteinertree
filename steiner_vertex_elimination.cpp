@@ -240,10 +240,9 @@ ImprovingChangement SteinerVertexElim::process_node(const Subgraph& input_subgra
         return ImprovingChangement(std::vector<Graph::EdgeId>(), std::vector<Graph::EdgeId>(), 0);
     }
 
-    // der Supergraph als Subgraph von sich selbst
-    const Subgraph supergraph_as_subgraph(super_graph.this_graph());
-
-    const Subgraph mst_of_supergraph = GraphAlgorithms::mst_prim_for_subgraphs(supergraph_as_subgraph, 0);
+    // berechne den MST des Supergraphen
+    Subgraph mst_of_supergraph(super_graph.this_graph());
+    GraphAlgorithms::compute_mst_for_subgraphs(mst_of_supergraph, 0);
 
     // Wert der Verbesserung berechnen
     Graph::PathLength weight_incident_edges = 0;

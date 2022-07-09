@@ -17,6 +17,22 @@ Subgraph::Subgraph(const Graph &originalGraph, const Graph &thisGraph,
                    _subgraph_nodeids_of_nodes_in_originalgraph(subgraphNodeidsOfNodesInOriginalgraph),
                    _original_nodeids(originalNodeids), _original_edgeids(originalEdgeids) {}
 
+
+Subgraph::Subgraph(const Graph &input_graph):
+        _original_graph(input_graph),
+        _this_graph(input_graph),
+        _subgraph_nodeids_of_nodes_in_originalgraph( GeneralAux::get_range_of_uns_ints(0, input_graph.num_nodes()) ),
+        _original_nodeids( GeneralAux::get_range_of_uns_ints(0, input_graph.num_nodes()) ),
+        _original_edgeids( GeneralAux::get_range_of_uns_ints(0, input_graph.num_edges()) )
+{}
+
+Subgraph::Subgraph(const Graph& original_graph, const std::vector<Graph::EdgeId>& edges_of_subgraph):
+    _original_graph(original_graph),
+    _this_graph(0)
+{
+    reset(edges_of_subgraph);
+}
+
 const Graph &Subgraph::original_graph() const {
     return _original_graph;
 }
@@ -67,7 +83,7 @@ void Subgraph::assign(Graph& new_this_graph, std::vector<Graph::NodeId>& new_sub
 }
 */
 
-void Subgraph::reset(std::vector<Graph::EdgeId>& new_original_edgeids) {
+void Subgraph::reset(const std::vector<Graph::EdgeId>& new_original_edgeids) {
 
     //lösche die alten Werte
 
@@ -119,14 +135,6 @@ void Subgraph::reset(std::vector<Graph::EdgeId>& new_original_edgeids) {
     }
 
 }
-
-Subgraph::Subgraph(const Graph &input_graph):
-    _original_graph(input_graph),
-    _this_graph(input_graph),
-    _subgraph_nodeids_of_nodes_in_originalgraph( GeneralAux::get_range_of_uns_ints(0, input_graph.num_nodes()) ),
-    _original_nodeids( GeneralAux::get_range_of_uns_ints(0, input_graph.num_nodes()) ),
-    _original_edgeids( GeneralAux::get_range_of_uns_ints(0, input_graph.num_edges()) )
-    {}
 
 void Subgraph::add_nodes(const std::vector<Graph::NodeId>& nodes_to_add) {
     //prüfe, ob Eingabeknoten tatsächlich im zugrundeliegenden Graphen liegen

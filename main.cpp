@@ -21,7 +21,7 @@
 
 int main(int argc, char *argv[]) {
 
-
+/*
     if(argc!=2) {
         std::cout << "Kein Dateiname eingegeben\n";
         return 1;
@@ -48,19 +48,19 @@ int main(int argc, char *argv[]) {
     //Ausgabe der Lösung
     GraphAuxPrint::print_subgraph(sol_sg);
 
-
+*/
     //für mehrere Instanzen auf einmal:
-/*
-
 
     std::vector<Graph> my_graphs =
-          DebugTests::get_test_instances_from_file("...");
+          DebugTests::get_test_instances_from_file("C:\\Users\\Lukas\\CLionProjects\\PraktikumSteinerbaum\\Pfade_von_TestInstanzen\\I080");
+    //std::vector<Graph> my_graphs = DebugTests::get_standard_test_instances();
+
 
     //int improve_counter = 0;
     for(unsigned int i=0; i<my_graphs.size(); i++) {
 
-        //std::cout << i << "\n";
-        //fflush(stdout);
+        std::cout << i << "\n";
+        fflush(stdout);
 
         Subgraph sol_sg = Mehlhorn::complete_algorithm(my_graphs[i]);
 
@@ -69,10 +69,12 @@ int main(int argc, char *argv[]) {
         //Graph::PathLength value_before = GraphAux::length_of_all_edges(sol_sg.this_graph());
         //GraphAuxPrint::print_length_of_all_edges(sol_sg.this_graph());
 
-        SteinerVertexElim::complete_algorithm(sol_sg);
-        SteinerVertexInsertion::find_local_minimum(sol_sg);
+
+        //SteinerVertexElim::complete_algorithm(sol_sg);
+        //SteinerVertexInsertion::find_local_minimum(sol_sg);
         KeyVertexElim::complete_algorithm(sol_sg);
         KeyPathExch::complete_algorithm(sol_sg);;
+
 
         //Graph::PathLength value_after = GraphAux::length_of_all_edges(sol_sg.this_graph());
         //GraphAuxPrint::print_length_of_all_edges(sol_sg.this_graph());
@@ -84,7 +86,7 @@ int main(int argc, char *argv[]) {
     }
 
     //std::cout << improve_counter << " von " << my_graphs.size() << " Instanzen wurden verbessert. \n";
-*/
+
 
     return 0;
 }

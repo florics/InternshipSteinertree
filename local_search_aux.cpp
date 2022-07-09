@@ -178,7 +178,7 @@ void LocalSearchAux::perform_improving_changements(Subgraph &input_subgraph, std
         }
     }
 
-    for(unsigned int i = 0; i < original_edge_ids.size(); i=i) {
+    for(unsigned int i = 0; i < original_edge_ids.size(); ) {
         if( original_edge_ids[i] == Graph::invalid_edge_id) {
             original_edge_ids.erase(original_edge_ids.begin() + i);
         } else {

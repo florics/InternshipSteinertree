@@ -14,8 +14,6 @@
 #include "general_aux_functions.h"
 #include "vor_diag_aux_functions.h"
 
-//todo: glaub man kann hier noch so Subgraph-Dinge beschleunigen, wie in LocalSearchAux::perform_improving_changements
-
 namespace Mehlhorn {
 
     //berechnet die boundary edges (1. Eintrag des pair), die auf kürz. Weg zwischen den entsprechenden Basen liegen,
@@ -24,23 +22,22 @@ namespace Mehlhorn {
     //Eintrag (i,j) der ausgegebenen "Matrix" entspricht den Basen i+1 und j (wobei i>=j)
     // (wenn man die Basen durchnummeriert (in der Reihenfolge ihrer NodeIds), wie in 'Voronoi_diagram::compute_base_ids')
     std::vector< std::vector< std::pair< Graph::EdgeId, Graph::PathLength >>>
-    compute_min_bound_edges_of_vd(const Voronoi_diagram& input_vd);
+    compute_min_bound_edges_of_vordiag(const Voronoi_diagram& input_vd);
 
     //erstellt den Hilfsgraphen (auxiliary graph) für Mehlhorns ALgo. (in dem Paper als G'_1 notiert)
-    // die NodeIds der Knoten entsprechen der Durchnummerierung der Basen wie bei 'compute_min_bound_edges_of_vd'
-    Graph construct_aux_graph_of_vd(const Voronoi_diagram& input_vd,
-                                    const std::vector<
-                                            std::vector<
-                                                    std::pair<Graph::EdgeId, Graph::PathLength>>>& min_bound_edges);
+    // die NodeIds der Knoten entsprechen der Durchnummerierung der Basen wie bei 'compute_min_bound_edges_of_vordiag'
+    Graph construct_aux_graph_of_vordiag(const Voronoi_diagram& input_vd,
+                                         const std::vector<std::vector<std::pair<
+                                                 Graph::EdgeId, Graph::PathLength>>>& min_bound_edges);
 
     //gibt den dem eingebenen Graphen (in Mehlhorns Algo. der MST des Hilfsgraphen(auxiliary graph)) entsprechenden
     // Subgraphen des zugrundeliegenden Graphen aus
-    //Eingabe: min_bound_edges ist in dem Format wie die Ausgabe der Funktion compute_min_bound_edges_of_vd
+    //Eingabe: min_bound_edges ist in dem Format wie die Ausgabe der Funktion compute_min_bound_edges_of_vordiag
     // (so dass sich Eintrag (i,j) dieser 'Matrix' auf die Knoten des Hilfsgraphen mit NodeId i+1 und j bezieht)
-    Subgraph turn_into_subgraph_of_vds_original_graph(const Voronoi_diagram& input_vd,
-                                                      const Graph& graph_to_process,
-                                                      const std::vector<std::vector<std::pair<Graph::EdgeId,
-                                                      Graph::PathLength>>>& min_bound_edges);
+    Subgraph turn_into_subgraph_of_vordiags_original_graph(const Voronoi_diagram& input_vd,
+                                                           const Graph& graph_to_process,
+                                                           const std::vector<std::vector<std::pair<
+                                                                   Graph::EdgeId,Graph::PathLength>>>& min_bound_edges);
 
     //debug
     //ruft min_bound_edges auf und gibt die ausgegebene Matrix auf Konsole aus (debug)
@@ -48,37 +45,41 @@ namespace Mehlhorn {
 
 }
 
-//? Graph const machen!
+
 Subgraph Mehlhorn::complete_algorithm(const Graph& input_graph) {
 
     Voronoi_diagram vor_diag(input_graph.get_terminals(), input_graph);
 
     std::vector<std::vector<std::pair<Graph::EdgeId, Graph::PathLength>>> min_bound_edges =
-            Mehlhorn::compute_min_bound_edges_of_vd(vor_diag);
+            Mehlhorn::compute_min_bound_edges_of_vordiag(vor_diag);
 
-    Graph aux_graph = Mehlhorn::construct_aux_graph_of_vd(vor_diag, min_bound_edges);
 
-    if( not GraphAux::check_if_graph_is_connected(aux_graph) ) {
+    Graph auxiliary_graph = Mehlhorn::construct_aux_graph_of_vordiag(vor_diag, min_bound_edges);
+
+
+    if( not GraphAux::check_if_graph_is_connected(auxiliary_graph) ) {
         throw std::runtime_error("(Mehlhorn::complete_algorithm) Der auxiliary graph ist nicht zsmhängend, "
                                  "d. h. es liegen nicht alle Terminale in einer Zusammnehangskomponente.");
     }
 
-    Graph mst_of_aux_graph = GraphAlgorithms::mst_prim(aux_graph, 0);
 
-    Subgraph sub_of_mst_of_aux_graph = Mehlhorn::turn_into_subgraph_of_vds_original_graph(vor_diag,
-                                                                                          mst_of_aux_graph,
-                                                                                          min_bound_edges);
-
-    Subgraph output = GraphAlgorithms::mst_prim_for_subgraphs(sub_of_mst_of_aux_graph, 0);
-
-    GraphAux::remove_steinerbranches(output);
+    GraphAlgorithms::compute_mst_for_graphs(auxiliary_graph, 0);
 
 
-    return output;
+    Subgraph solution_subgraph = Mehlhorn::turn_into_subgraph_of_vordiags_original_graph(vor_diag,
+                                                                                         auxiliary_graph,
+                                                                                         min_bound_edges);
+
+    GraphAlgorithms::compute_mst_for_subgraphs(solution_subgraph, 0);
+
+    GraphAux::remove_steinerbranches(solution_subgraph);
+
+
+    return solution_subgraph;
 }
 
 std::vector<std::vector<std::pair<Graph::EdgeId, Graph::PathLength>>>
-Mehlhorn::compute_min_bound_edges_of_vd(const Voronoi_diagram& input_vd) {
+Mehlhorn::compute_min_bound_edges_of_vordiag(const Voronoi_diagram& input_vd) {
 
     //Initialisierung der Ausgabe-Matrix: output[i][j] entspricht den Basen i+1, j
     // (diese einfache Nummerierung der Basen wird hier mit base_ids gespeichert)
@@ -102,7 +103,7 @@ Mehlhorn::compute_min_bound_edges_of_vd(const Voronoi_diagram& input_vd) {
             std::sort(curr_bases.begin(), curr_bases.end());
             //debug
             if(curr_bases[0] > curr_bases[1]){
-                throw std::runtime_error("(compute_min_bound_edges_of_vd) sort tut nicht das was es soll");
+                throw std::runtime_error("(compute_min_bound_edges_of_vordiag) sort tut nicht das was es soll");
             }
             Graph::PathLength curr_dist = curr_edge.weight() + input_vd.dist_to_base()[ curr_edge.node_a() ] + input_vd.dist_to_base()[ curr_edge.node_b() ];
             if( curr_dist < output[ curr_bases[1]-1 ][ curr_bases[0] ].second){
@@ -116,8 +117,8 @@ Mehlhorn::compute_min_bound_edges_of_vd(const Voronoi_diagram& input_vd) {
     return output;
 }
 
-Graph Mehlhorn::construct_aux_graph_of_vd(const Voronoi_diagram& input_vd,
-                                          const std::vector<std::vector<std::pair<Graph::EdgeId,
+Graph Mehlhorn::construct_aux_graph_of_vordiag(const Voronoi_diagram& input_vd,
+                                               const std::vector<std::vector<std::pair<Graph::EdgeId,
                                           Graph::PathLength>>>& min_bound_edges) {
     Graph output(0);
 
@@ -141,9 +142,9 @@ Graph Mehlhorn::construct_aux_graph_of_vd(const Voronoi_diagram& input_vd,
     return output;
 }
 
-Subgraph Mehlhorn::turn_into_subgraph_of_vds_original_graph(const Voronoi_diagram& input_vd,
-                                                            const Graph& graph_to_process,
-                                                            const std::vector<
+Subgraph Mehlhorn::turn_into_subgraph_of_vordiags_original_graph(const Voronoi_diagram& input_vd,
+                                                                 const Graph& graph_to_process,
+                                                                 const std::vector<
                                                                     std::vector<
                                                                             std::pair<
                                                                                     Graph::EdgeId, Graph::PathLength>>>&
@@ -176,20 +177,15 @@ Subgraph Mehlhorn::turn_into_subgraph_of_vds_original_graph(const Voronoi_diagra
         }
     }
 
-    //todo hierfür Konstruktor implementieren
-    Graph null_graph(0);
-    Subgraph output(original_graph, null_graph, std::vector<Graph::NodeId>(), std::vector<Graph::NodeId>(), std::vector<Graph::EdgeId>());
-    output.reset(output_original_edge_ids);
-
-    return output;
+    return Subgraph(original_graph, output_original_edge_ids);
 }
 
 
 void Mehlhorn::print_min_bound_edges_of_vd(const Voronoi_diagram& input_vd) {
-    std::vector<std::vector<std::pair<Graph::EdgeId, Graph::PathLength>>> output = compute_min_bound_edges_of_vd(input_vd);
+    std::vector<std::vector<std::pair<Graph::EdgeId, Graph::PathLength>>> output = compute_min_bound_edges_of_vordiag(input_vd);
     const std::vector<Graph::NodeId>& set_of_bases = input_vd.compute_set_of_bases();
 
-    std::cout << "Ausgabe von compute_min_bound_edges_of_vd \n";
+    std::cout << "Ausgabe von compute_min_bound_edges_of_vordiag \n";
 
     std::cout << "Kanten (EdgeIds): \n";
     std::cout << "Basis     ";

@@ -15,14 +15,14 @@ class Supergraph {
 
 public:
 
-    // erstellt Graphen mit num_supervertices-vielen Knoten, erstellt Matrix für _weight_of_superedges mit unendlichen Gewichten
+    // erstellt Graphen mit num_supernodes-vielen Knoten, erstellt Matrix für _weight_of_superedges mit unendlichen Gewichten
     Supergraph(unsigned int num_supernodes);
 
     //todo: checken, was ich hier const machen kann, löschen kann
     Graph& this_graph(); //löschen?
-    const Graph& get_this_graph() const;
+    const Graph& this_graph() const;
     std::vector<Graph::EdgeId>& original_edge_ids();//löschen?
-    const std::vector<Graph::EdgeId>& get_original_edge_ids() const;
+    const std::vector<Graph::EdgeId>& original_edge_ids() const;
     std::vector< std::vector<Graph::EdgeWeight> >& weight_of_superedges();
 
     //? Laufzeit: //bemerke, dass wir hier beim Hinzufügen der vertikalen Kanten nicht prüfen müssen,

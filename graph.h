@@ -14,7 +14,7 @@ public:
 
     using NodeId = unsigned int;
     using EdgeId = unsigned int;
-    using NodeName = unsigned int;
+    //using NodeName = unsigned int;
     using EdgeWeight = double;
     using PathLength = double;
 
@@ -59,10 +59,10 @@ public:
 
     class Node{
     public:
-        Node(NodeId id, NodeName name, TerminalState t);
+        Node(NodeId id, TerminalState t);
 
         NodeId node_id() const;
-        NodeName node_name() const;
+        //NodeName node_name() const;
         const std::vector<EdgeId>& incident_edge_ids() const;
         TerminalState terminal_state() const;
 
@@ -70,7 +70,7 @@ public:
         //void set_node_id(NodeId new_id); ?
 
         //setzt _node_name auf einen neuen Wert (!prüft aber nicht, ob dadurch 2 Knoten den gleichen _node_name erhalten)
-        void set_node_name(NodeName new_name);
+        //void set_node_name(NodeName new_name);
 
         //fügt Kante zum Inzidenz-Vektor des Knotens hinzu
         void add_neighbor_edge(EdgeId e);
@@ -82,6 +82,9 @@ public:
         //gibt 1 aus, wenn Knoten Terminal ist
         bool check_if_terminal() const;
 
+        //löscht alle Einträge der Inzidenzliste
+        void clear_incident_edges();
+
     private:
         //Stelle, an dem Knoten in _nodes gespeichert ist
         // const NodeId _node_id; ?? das hat irgendwie ganz große Probleme gemacht,
@@ -91,7 +94,7 @@ public:
         //Name für den Knoten, wird vor allem für die Ausgabe benutzt, beim Einlesen wird hier genau die Zahl genommen, die im SteinLib_Format verwendet wird
         //nicht eindeutig
         //(in der Regel wird aber über die Stelle, an der der Knoten in _nodes gespeichert ist, auf den Knoten zugegriffen)
-        NodeName _node_name;
+        //NodeName _node_name;
 
         //Inzidenz-Vektor: enthält die EdgeId's der mit dem Knoten inzidenten Kanten
         std::vector<EdgeId> _incident_edge_ids;
@@ -111,29 +114,31 @@ public:
     unsigned int num_nodes() const;
     unsigned int num_edges() const;
 
-    //fügt einen Knoten zum Graphen hinzu (!prüft aber nicht ob _node_name eindeutig!)
-    void add_one_node(NodeName name, TerminalState t);
-    //fügt existierenden Knoten zum Graphen hinzu (!prüft aber nicht ob _node_name eindeutig!)
+    //fügt einen Knoten zum Graphen hinzu
+    void add_one_node(TerminalState t);
+    //fügt existierenden Knoten zum Graphen hinzu
     //(NodeId von v wird nicht verändert und muss deshalb der Anzahl der Knoten des Graphen (vor Aufruf der Funktion) entsprechen)
-    void add_one_existing_node(const Node new_node);
+    //void add_one_existing_node(const Node new_node);?
     //entspricht add_one_existing_node, hier wird aber die NodeId des Eingabeknotens einfach angepasst
-    //todo: diese Fktn ggf. an ein paar Stellen eher verwenden als die anderen
-    void add_one_existing_node_w_newid(const Node new_node);
-    //fügt n Knoten hinzu (Knoten sind keine Terminale, _node_name wird einfach auf "1 + Stelle in _nodes, wo der neue Knoten gespeichert wird" gesetzt)
+    //? diese Fktn ggf. an ein paar Stellen eher verwenden als die anderen
+    //void add_one_existing_node_w_newid(const Node new_node);?
+    //fügt n Knoten hinzu (Knoten sind keine Terminale)
     void add_nodes(int num_new_nodes);
 
     //erstellt Kante entsprechend der Eingabe und fügt sie zum Graphen hinzu
     void add_edge(NodeId a, NodeId b, EdgeWeight w);
     //fügt existierende Kante zu Graph hinzu (EdgeId von new_edge wird nicht verändert und muss deshalb der Anzahl der Kanten des Graphen (vor Aufruf der Fktn) entsprechen)
-    void add_existing_edge(const Edge& new_edge);
+    //? void add_existing_edge(const Edge& new_edge);
     //fügt existierende Kante zu Graph hinzu, wobei die EdgeId angepasst wird //? eher unnötig: ggf. löschen!
-    void add_existing_edge_w_newid(Edge new_edge);
+    //? void add_existing_edge_w_newid(Edge new_edge);
 
 
     //macht den Knoten v zu einem Terminal oder zu einem Nicht-Terminal
     void set_terminal(NodeId v, TerminalState t);
     //gibt Vektor mit allen Terminalen aus, in dem Vektor stehen jeweils die Stellen, an denen die Terminale in _nodes gespeichert sind, also die NodeId's
     std::vector<NodeId> get_vect_term() const;
+    //gibt 1 aus, wenn Knoten Terminal ist
+    bool check_if_terminal(NodeId input_node) const;
 
     //Graph::Node& get_node(NodeId v) const; //brauche ich das überhaupt? direkter zugriff auf knoten v mit _nodes[v] !?
 
@@ -161,8 +166,6 @@ public:
     std::vector<NodeId> get_outgoing_neighbors(NodeId input_node_id) const;
     //? beachte, dass Laufzeit von ingoing_neighbors, outgoing_neighbors jeweils O( grad(input_node) ) ist
 
-
-
     // nach Edge verschieben? Problem: Edge weiß nicht, ob Graph gerichtet
     //gibt node_a der Eingabekante aus, Graph muss gerichtet sein
     NodeId get_tail(EdgeId input_edge_id) const;
@@ -176,6 +179,8 @@ public:
     //Ausgabe: Knoten des Graphen in einer 'post-order' bzgl der Arboreszenz (neben der Modifizierung des Graphen)
     void make_rooted_arborescence(NodeId root_id);
 
+    //löscht alle Kanten aus dem Graph
+    void clear_edges();
 
     static const EdgeWeight infinite_weight;
     static const PathLength infinite_length;

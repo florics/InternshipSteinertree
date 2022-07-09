@@ -81,7 +81,7 @@ void DebugTests::kve_1_evaluate_neighborhood() {
 
     KeyVertexElim::complete_algorithm(instance);
 
-    GraphAuxPrint::print_graph(instance.getThisGraph());
+    GraphAuxPrint::print_graph(instance.this_graph());
 
 }
 
@@ -97,7 +97,7 @@ void DebugTests::kve_2_evaluate_neighborhood() {
 
     KeyVertexElim::complete_algorithm(instance);
 
-    GraphAuxPrint::print_graph(instance.getThisGraph());
+    GraphAuxPrint::print_graph(instance.this_graph());
 
 }
 
@@ -113,7 +113,7 @@ void DebugTests::kve_3_evaluate_neighborhood() {
 
     KeyVertexElim::complete_algorithm(instance);
 
-    GraphAuxPrint::print_graph(instance.getThisGraph());
+    GraphAuxPrint::print_graph(instance.this_graph());
 
 }
 
@@ -127,6 +127,8 @@ std::vector<Graph> DebugTests::get_test_instances_from_file(const char *filename
 
     std::string line;
 
+    //debug
+    int graph_counter = 1;
     while (getline(file, line)) {
 
         if(line == "EOF") {
@@ -138,6 +140,11 @@ std::vector<Graph> DebugTests::get_test_instances_from_file(const char *filename
         Graph var_graph(var_char);
 
         output.push_back(var_graph);
+
+        //std::cout << "Graph Nr. " << graph_counter << "\n";
+        //fflush(stdout);
+
+        graph_counter++;
 
     }
 

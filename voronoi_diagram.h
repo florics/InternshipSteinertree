@@ -60,6 +60,8 @@ public:
 
     //gibt Voronoi-Region des eingegebenen Knoten (muss Basis sein) aus
     std::vector<Graph::NodeId> compute_vor_region(Graph::NodeId input_base);
+    //ist das schneller?
+    std::vector<Graph::NodeId> compute_vor_region_fast(Graph::NodeId input_base);
     //gibt Voronoi-Regionen der eingegebenen Knoten (müssen alle Basen sein) aus (Ausgabe als eine Menge, ohne Differenzierung nach Basis/Region)
     std::vector< Graph::NodeId > compute_some_vor_regions(const std::vector<Graph::NodeId>& subset_of_bases);
 
@@ -69,6 +71,7 @@ public:
         std::vector<Graph::NodeId> bases;
         std::vector<std::pair<Graph::NodeId, Graph::EdgeId>> predecessor;
         std::vector<Graph::PathLength> dist_to_base;
+        unsigned int num_bases_deleted;
     };
 
     //entspricht der Methode repair, wie sie in dem Paper (Seite 4) beschrieben ist
@@ -76,7 +79,7 @@ public:
     //Methode berechnet Voronoi-Diagramm mit einer neuen Basis, die aus der alten durch Entfernen der Eingabemenge entsteht
     Voronoi_diagram::RestoreData repair(const std::vector<Graph::NodeId>& bases_to_delete);
     // berechnet die restore-data für jeden Eingabeknoten (d. h. Eingabe entspricht V-Regionen und nicht Basen)
-    RestoreData get_restoredata_of_nodeset (const std::vector<Graph::NodeId>& input_nodeids);
+    RestoreData get_restoredata_of_nodeset (const std::vector<Graph::NodeId>& input_nodeids, unsigned int num_bases_deleted);
     // stellt das alte Diagramm wieder her (wie vor repair), wenn die Ausgabe von repair eingegeben wird
     // setzt die Informationen aus der RestoreData-Eingabe in das Diagramm ein
     void restore(const RestoreData& input_restore_data);

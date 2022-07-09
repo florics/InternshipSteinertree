@@ -9,8 +9,10 @@ add_executable(PraktikumSteinerbaum main.cpp
         voronoi_diagram.cpp vor_diag_aux_functions.cpp
         mehlhorns_algo.cpp
         Union_Find_Structure.cpp Ext_Union_Find_Structure.cpp
-        BoundEdgeHeaps.cpp EdgeSequence.cpp ImprovingChangement.cpp
-        local_search_aux.cpp key_path_exchange.cpp key_vertex_elimination.cpp
+        Edge_Heaps.cpp EdgeSequence.cpp ImprovingChangement.cpp
+        local_search_aux.cpp key_path_exchange.cpp key_vertex_elimination.cpp steiner_vertex_elimination.cpp
         tests.cpp
         Subgraph.cpp Supergraph.cpp
-        Tree_Data_Structure.cpp)
+        NCA_Tree_Data_Structure.cpp
+        Horizontal_Edges_Lists.cpp
+        Insertion_Tree_Data_Structure.cpp  steiner_vertex_insertion.cpp)

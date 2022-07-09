@@ -18,7 +18,8 @@ public:
 
     // setzt den super_ids-Wert der Wurzel des Eingabeelements auf new_superid
     void set_superid(Union_Find_Structure::ElementId input_elt, Graph::NodeId new_superid);
-    //reset-Funktion?
+    // setzt die super_id's der Eingabe-Elemente wieder auf den default-Wert 0
+    void reset_superids(const std::vector<Union_Find_Structure::ElementId>& input_elts);
 
     // gibt den super_ids-Wert der Wurzel des Eingabeelements aus
     Graph::NodeId get_superid(Union_Find_Structure::ElementId input_elt);

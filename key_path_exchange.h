@@ -13,7 +13,7 @@
 #include "graph.h"
 #include "local_search_aux.h"
 #include "ImprovingChangement.h"
-#include "BoundEdgeHeaps.h"
+#include "Edge_Heaps.h"
 #include "Union_Find_Structure.h"
 #include "Subgraph.h"
 
@@ -32,13 +32,13 @@ namespace KeyPathExch{
 
     //Subroutine der main loop des Algorithmus
     ImprovingChangement process_node(Graph::NodeId input_node_id,
-                                            const Subgraph& input_subgraph,
-                                            Voronoi_diagram& vor_diag,
-                                            Union_Find_Structure& subtrees_ufs,
-                                            BoundEdgeHeaps& bound_edge_heaps,
-                                            LocalSearchAux::MovesPerPass moves_per_pass,
-                                            std::vector<bool>& forbidden,
-                                            std::vector<bool>& pinned);
+                                     const Subgraph& input_subgraph,
+                                     Voronoi_diagram& vor_diag,
+                                     Union_Find_Structure& subtrees_ufs,
+                                     Edge_Heaps& bound_edge_heaps,
+                                     LocalSearchAux::MovesPerPass moves_per_pass,
+                                     std::vector<bool>& forbidden,
+                                     std::vector<bool>& pinned);
 
     std::pair<Graph::PathLength, Graph::EdgeId> compute_best_new_boundedge(const Voronoi_diagram& vor_diag,
                                                                            Union_Find_Structure& subtrees_ufs,
@@ -49,7 +49,7 @@ namespace KeyPathExch{
                                                                            const std::vector<bool>& forbidden);
 
 
-    void update_heaps_and_ufs(BoundEdgeHeaps& bound_edge_heaps, Union_Find_Structure& subtrees_ufs,
+    void update_heaps_and_ufs(Edge_Heaps& bound_edge_heaps, Union_Find_Structure& subtrees_ufs,
                               Graph::NodeId input_node_id,
                               Graph::NodeId crucial_parent_id, const std::vector<Graph::NodeId>& internal_node_ids,
                               Union_Find_Structure::ElementId internal_nodes_ufsroot);

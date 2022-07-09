@@ -110,7 +110,7 @@ std::vector<Graph::EdgeId> VorDiagAux::get_all_bound_edges(const Voronoi_diagram
     return output;
 }
 
-EdgeSequence VorDiagAux::compute_bound_path(Voronoi_diagram original_vd, Graph::EdgeId bound_edge_id) {
+EdgeSequence VorDiagAux::compute_bound_path(const Voronoi_diagram& original_vd, Graph::EdgeId bound_edge_id) {
 
     Graph::Edge bound_edge = original_vd.original_graph().get_edge(bound_edge_id);
 
@@ -133,7 +133,7 @@ EdgeSequence VorDiagAux::compute_bound_path(Voronoi_diagram original_vd, Graph::
     return output_path;
 }
 
-std::vector<Graph::EdgeId> VorDiagAux::compute_bound_path_as_vect(Voronoi_diagram original_vd, Graph::EdgeId bound_edge_id) {
+std::vector<Graph::EdgeId> VorDiagAux::compute_bound_path_as_vect(const Voronoi_diagram& original_vd, Graph::EdgeId bound_edge_id) {
     std::vector<Graph::EdgeId> output_edge_ids;
 
     if(bound_edge_id == Graph::invalid_node_id) {

@@ -14,22 +14,36 @@ public:
              const std::vector<Graph::NodeId> &subgraphNodeidsOfNodesInOriginalgraph,
              const std::vector<Graph::NodeId> &originalNodeids, const std::vector<Graph::EdgeId> &originalEdgeids);
 
-    const Graph &getOriginalGraph() const;
+    //konstruiert einen Subgraphen, der Subgraph von sich selbst ist
+    Subgraph(const Graph &input_graph);
 
-    const Graph &getThisGraph() const;
-    Graph &accessThisGraph();
+    const Graph &original_graph() const;
 
-    const std::vector<Graph::NodeId> &getSubgraphNodeidsOfNodesInOriginalgraph() const;
-    std::vector<Graph::NodeId> &accessSubgraphNodeidsOfNodesInOriginalgraph();
+    const Graph &this_graph() const;
+    Graph &this_graph();
 
-    const std::vector<Graph::NodeId> &getOriginalNodeids() const;
-    std::vector<Graph::NodeId> &accessOriginalNodeids();
+    const std::vector<Graph::NodeId> &subgraph_nodeids_of_nodes_in_originalgraph() const;
+    //? std::vector<Graph::NodeId> &subgraph_nodeids_of_nodes_in_originalgraph();
 
-    const std::vector<Graph::EdgeId> &getOriginalEdgeids() const;
-    std::vector<Graph::EdgeId> &accessOriginalEdgeids();
+    const std::vector<Graph::NodeId> &original_nodeids() const;
+    //? std::vector<Graph::NodeId> &original_nodeids();
+
+    const std::vector<Graph::EdgeId> &original_edgeids() const;
+    std::vector<Graph::EdgeId> &original_edgeids();
 
     //verändert den Subgraphen so, dass er dem Graphen entspricht der alle eingegebenen Kanten enthält und keine isolierten Knoten
-    void reset_with_set_of_edges(std::vector<Graph::EdgeId>& new_original_edgeids);
+    void reset(std::vector<Graph::EdgeId>& new_original_edgeids);
+
+    //löscht alle Kanten und fügt alle Eingabekanten hinzu
+    void reset_edges(const std::vector<Graph::EdgeId>& new_original_edgeids);
+
+    //Eingabe: Knoten aus dem zugrundeliegenden Graphen (keine Terminale)
+    // fügt Eingabeknoten zu Subgraph (this_graph) hinzu (als Nicht-Terminale)
+    void add_nodes(const std::vector<Graph::NodeId>& nodes_to_add);
+
+    //Eingabe: Kanten aus dem zugrundeliegenden Graphen
+    // fügt Eingabekanten zu Subgraph (this_graph) hinzu
+    void add_edges(const std::vector<Graph::EdgeId>& edges_to_add);
 
 private:
 

@@ -22,6 +22,7 @@ Graph::Graph(int n)
     _dir_type = Graph::undirected;
 
     Graph::add_nodes(n);
+
     //instance_name etc nicht definiert
 }
 
@@ -32,9 +33,8 @@ Graph::Edge::Edge(Graph::EdgeId id, Graph::NodeId a, Graph::NodeId b, Graph::Edg
         _weight(w)
 {}
 
-Graph::Node::Node(Graph::NodeId id, Graph::NodeName name, Graph::TerminalState t):
+Graph::Node::Node(Graph::NodeId id, Graph::TerminalState t):
         _node_id(id),
-        _node_name(name),
         _terminal_state(t)
 {}
 
@@ -135,6 +135,10 @@ bool Graph::Node::check_if_terminal() const{
     return false;
 }
 
+bool Graph::check_if_terminal(Graph::NodeId input_node) const {
+    return get_node(input_node).check_if_terminal();
+}
+
 Graph::TerminalState Graph::Node::terminal_state() const {
     return _terminal_state;
 }
@@ -151,20 +155,21 @@ void Graph::set_terminal(Graph::NodeId v, Graph::TerminalState t){
 
 std::vector<Graph::NodeId> Graph::get_vect_term() const{
     std::vector<Graph::NodeId> output;
+    output.reserve(num_nodes());
     for(Graph::NodeId i = 0; i<num_nodes(); i++){
-        if(get_node(i).check_if_terminal()){
+        if(check_if_terminal(i)){
             output.push_back(i);
         }
     }
     return output;
 }
 
-void Graph::add_one_node(Graph::NodeName name, Graph::TerminalState t){
+void Graph::add_one_node(Graph::TerminalState t){
     NodeId id = num_nodes();
-    Graph::Node new_node(id, name, t);
-    add_one_existing_node(new_node);
+    _nodes.emplace_back(id, t);
 }
 
+/*  löschen?
 void Graph::add_one_existing_node(const Graph::Node new_node){
     Graph::NodeId id = new_node.node_id();
     unsigned int new_n = num_nodes();
@@ -181,10 +186,11 @@ void Graph::add_one_existing_node(const Graph::Node new_node){
 void Graph::add_one_existing_node_w_newid(const Graph::Node new_node){
     Graph::NodeId id = num_nodes();
 
-    Graph::Node node_to_add(id, new_node.node_name(), new_node.terminal_state());
+    Graph::Node node_to_add(id, new_node.terminal_state());
 
     _nodes.push_back(node_to_add);
 }
+*/
 
 void Graph::add_nodes(int num_new_nodes){
     if(num_new_nodes<0){
@@ -192,9 +198,12 @@ void Graph::add_nodes(int num_new_nodes){
     }
 
     unsigned int num_old_nodes = num_nodes();
+
+    _nodes.reserve(num_new_nodes + num_old_nodes);
+
     for(unsigned int i=0; i< (unsigned) num_new_nodes; i++){
-        //_node_name wird einfach auf "1 + Stelle in _nodes, wo der neue Knoten gespeichert wird" gesetzt
-        Graph::add_one_node( (Graph::NodeName) num_old_nodes +i +1, Graph::no_terminal);
+        Graph::NodeId new_id = num_old_nodes +i;
+        _nodes.emplace_back(new_id, Graph::TerminalState::no_terminal);
     }
 }
 
@@ -209,6 +218,7 @@ void Graph::Node::set_node_id(Graph::NodeId new_id){
 }
 */
 
+/*?
 Graph::NodeName Graph::Node::node_name() const{
     return _node_name;
 }
@@ -216,6 +226,7 @@ Graph::NodeName Graph::Node::node_name() const{
 void Graph::Node::set_node_name(Graph::NodeName new_name){
     _node_name = new_name;
 }
+ */
 
 /*  ?? siehe Header-Datei
 Graph::Node& Graph::get_node(Graph::NodeId v) const{
@@ -250,6 +261,10 @@ unsigned int Graph::Node::num_neighbors()  const{
     return _incident_edge_ids.size();
 }
 
+void Graph::Node::clear_incident_edges() {
+    _incident_edge_ids.clear();
+}
+
 const std::vector<Graph::EdgeId>& Graph::incident_edge_ids(Graph::NodeId input_node) const {
     return get_node(input_node).incident_edge_ids();
 }
@@ -274,13 +289,17 @@ std::vector<Graph::NodeId> Graph::adjacency_vect(Graph::NodeId input_node_id) co
         throw std::runtime_error("(Graph::adjacency_vect) Eingabeknoten nicht im Graph");
     }
 
+    const std::vector<EdgeId>& incident_edge_ids_of_input = incident_edge_ids(input_node_id);
+
     std::vector<Graph::NodeId> output;
-    std::vector<EdgeId> incident_edge_ids_of_input = incident_edge_ids(input_node_id);
+    output.reserve(incident_edge_ids_of_input.size());
+
     for(auto curr_edge_id : incident_edge_ids_of_input) {
-        Graph::Edge curr_edge = get_edge(curr_edge_id);
+        const Graph::Edge& curr_edge = get_edge(curr_edge_id);
         Graph::NodeId curr_neighbor_id = curr_edge.get_other_node(input_node_id);
         output.push_back(curr_neighbor_id);
     }
+
     return output;
 }
 
@@ -295,16 +314,20 @@ std::vector<Graph::EdgeId> Graph::get_ingoing_edge_ids(Graph::NodeId input_node_
         throw std::runtime_error("(Graph::get_ingoing_edge_ids) Eingabeknoten nicht im Graph");
     }
 
-    std::vector<Graph::EdgeId> output;
-
     std::vector<EdgeId> incident_edge_ids_of_input = incident_edge_ids(input_node_id);
+
+    std::vector<Graph::EdgeId> output;
+    output.reserve(incident_edge_ids_of_input.size());
+
     for(auto curr_edge_id : incident_edge_ids_of_input) {
-        Graph::Edge curr_edge = get_edge(curr_edge_id);
+        const Graph::Edge& curr_edge = get_edge(curr_edge_id);
         Graph::NodeId curr_neighbor_id = curr_edge.get_other_node(input_node_id);
         if( curr_neighbor_id == curr_edge.node_a()){
             output.push_back(curr_edge_id);
         }
     }
+
+    output.shrink_to_fit();
 
     return output;
 }
@@ -320,16 +343,20 @@ std::vector<Graph::EdgeId> Graph::get_outgoing_edge_ids(Graph::NodeId input_node
         throw std::runtime_error("(Graph::get_outgoing_edge_ids) Eingabeknoten nicht im Graph");
     }
 
-    std::vector<Graph::EdgeId> output;
-
     std::vector<EdgeId> incident_edge_ids_of_input = incident_edge_ids(input_node_id);
+
+    std::vector<Graph::EdgeId> output;
+    output.reserve(incident_edge_ids_of_input.size());
+
     for(auto curr_edge_id : incident_edge_ids_of_input) {
-        Graph::Edge curr_edge = get_edge(curr_edge_id);
+        const Graph::Edge& curr_edge = get_edge(curr_edge_id);
         Graph::NodeId curr_neighbor_id = curr_edge.get_other_node(input_node_id);
         if( curr_neighbor_id == curr_edge.node_b()){
             output.push_back(curr_edge_id);
         }
     }
+
+    output.shrink_to_fit();
 
     return output;
 }
@@ -338,11 +365,14 @@ std::vector<Graph::NodeId> Graph::get_ingoing_neighbors(Graph::NodeId input_node
     std::vector<Graph::EdgeId> ingoing_edge_ids = get_ingoing_edge_ids(input_node_id);
 
     std::vector<Graph::NodeId> output;
+    output.reserve(ingoing_edge_ids.size());
 
     for( auto curr_edge_id: ingoing_edge_ids) {
         const Graph::Edge& curr_edge = get_edge(curr_edge_id);
         output.push_back(curr_edge.node_a());
     }
+
+    output.shrink_to_fit();
 
     return output;
 }
@@ -351,11 +381,14 @@ std::vector<Graph::NodeId> Graph::get_outgoing_neighbors(Graph::NodeId input_nod
     std::vector<Graph::EdgeId> outgoing_edge_ids = get_outgoing_edge_ids(input_node_id);
 
     std::vector<Graph::NodeId> output;
+    output.reserve(outgoing_edge_ids.size());
 
     for( auto curr_edge_id: outgoing_edge_ids) {
         const Graph::Edge& curr_edge = get_edge(curr_edge_id);
         output.push_back(curr_edge.node_b());
     }
+
+    output.shrink_to_fit();
 
     return output;
 }
@@ -383,6 +416,7 @@ const Graph::Edge& Graph::get_edge(Graph::EdgeId e) const {
     return _edges[e];
 }
 
+/*?
 void Graph::add_existing_edge(const Edge& e){
     Graph::NodeId a = e.node_a();
     Graph::NodeId b = e.node_b();
@@ -424,18 +458,45 @@ void Graph::add_existing_edge(const Edge& e){
     _nodes[a].add_neighbor_edge(id);
     _nodes[b].add_neighbor_edge(id);
 }
+*/
 
 void Graph::add_edge(Graph::NodeId a, Graph::NodeId b, Graph::EdgeWeight w){
+    if(a == Graph::invalid_node_id){
+        std::cout << "Kante (" << a << "," << b << ") kann nicht hinzugefuegt werden, da " << a  << " = invalid_node_id \n";
+        throw std::runtime_error("Funktion add_edge");
+    }
+    if(b == Graph::invalid_node_id){
+        std::cout << "Kante (" << a << "," << b << ") kann nicht hinzugefuegt werden, da " << b  << " = invalid_node_id \n";
+        throw std::runtime_error("Funktion add_edge");
+    }
+    if(a >= Graph::num_nodes()){
+        std::cout << "Kante (" << a << "," << b << ") kann nicht hinzugefuegt werden, da " << a  << " kein Knoten ist. \n";
+        throw std::runtime_error("Funktion add_edge");
+    }
+    if(b >= Graph::num_nodes()){
+        std::cout << "Kante (" << a << "," << b << ") kann nicht hinzugefuegt werden, da " << b  << " kein Knoten ist. \n";
+        throw std::runtime_error("Funktion add_edge");
+    }
+    if(w == Graph::infinite_weight){
+        //ist sowas debug?
+        std::cout << "(Funktion Graph::add_edge) Warnung: Kante mit unendl. Gewicht hinzugefuegt. \n";
+    }
+
     EdgeId id = num_edges();
-    //Erstellen der Kante
-    Edge e(id, a, b, w);
-    //Hinzufügen der Kante zum Graphen (siehe add_existing_edge)
-    add_existing_edge(e);
+
+    //Hinzufügen zur Kantenliste des Graphen
+    _edges.emplace_back(id, a, b, w);
+
+    //Hinzufügen zur Kanten(pointer)liste der Knoten
+    _nodes[a].add_neighbor_edge(id);
+    _nodes[b].add_neighbor_edge(id);
 }
 
+/*?
 void Graph::add_existing_edge_w_newid(Graph::Edge new_edge) {
     add_edge(new_edge.node_a(), new_edge.node_b(), new_edge.weight());
 }
+*/
 
 Graph::DirType Graph::dir_type() const{
     return _dir_type;
@@ -450,10 +511,13 @@ void Graph::make_rooted_arborescence(Graph::NodeId root_id) {
     }
 
     std::vector<Graph::NodeId> next_nodes (1, root_id);
-    //speichert die bereits erreichten Knoten (die, die bereits zu next_nodes hinzugfügt wurden)
+    next_nodes.reserve(num_nodes());
+
+    //speichert die bereits erreichten Knoten (die, die bereits zu next_nodes hinzugefügt wurden)
     //Laufzeit O(num_nodes()) Problem?
     std::vector<bool> reached_nodes (num_nodes(), false);
     reached_nodes[root_id] = true;
+
     //speichert, ob Kante bereits gerichtet
     //Laufzeit O(num_edges()) Problem?
     std::vector<bool> directed_edges (num_edges(), false);
@@ -488,6 +552,14 @@ void Graph::make_rooted_arborescence(Graph::NodeId root_id) {
     _dir_type = Graph::directed;
 }
 
+
+void Graph::clear_edges() {
+    _edges.clear();
+    for(auto& curr_node: _nodes) {
+        curr_node.clear_incident_edges();
+    }
+}
+
 void Graph::instance_comment() const{
     std::cout << "SECTION Comment \n";
     std::cout << "Name   " << instance_name << "\n";
@@ -518,40 +590,51 @@ Graph::Graph(char const* filename){
     //prüfe, ob die 1. Zeile dem Format entspricht
     std::string firstline1 = "33D32945 STP File, STP Format Version 1.0";
     std::string firstline2 = "33D32945 STP File, STP Format Version  1.00";
-    if(not compare_strings_caseinsensitive(firstline1, line) && not compare_strings_caseinsensitive(firstline2, line)) {
+    std::string firstline3 = "33d32945 STP File, STP Format Version 1.00";
+    std::string firstline4 = "33d32945 STP File, STP Format Version  1.00";
+    std::string firstline5 = "33D32945 STP File, STP Format Version  1.0";
+    if(line != firstline1 && line != firstline2 && line != firstline3 && line!=firstline4 && line!=firstline5) {
         //debug
         std::cout << "line = " << line << "\n";
         throw std::runtime_error("Nicht das SteinLib-Format (1.Zeile)");
     }
 
-    unsigned int m, t_num;	//m ist Anzahl Kanten, t_num ist Anzahl Terminale
+    // diese Variablen werden auf die Werte gesetzt, die in der Datei stehen
+    // claimed_num_terminals wird nur verwendet, um zu prüfen, ob die angegebene Anzahl mit der Zahl der aufgelisteten Terminal übereinstimmt
+    // bemerke, dass dies bei claimed_num_edges leider bei manchen Instanzen einfach nicht so ist (keine solche Übereinstimmung)
+    // claimed_num_edges wird nur verwendet, um den Speicher zu reservieren
+    unsigned int claimed_num_edges, claimed_num_terminals;
+
+    bool section_graph_processed = false;
+    bool section_terminals_processed = false;
+
     //Einlesen des Dokuments, erste Fallunterscheidungen nach SECTION
     while (getline(file, line)) {
         std::string var;
-        if(compare_strings_caseinsensitive(line, "SECTION Comment")) {
+        if(line == "SECTION Comment" || line == "Section Comment") {
 
             while (getline(file, line)){
 
-                if(compare_strings_caseinsensitive(line, "END")) {
+                if(line == "END" || line == "End") {
                     //Ende der Section erreicht
                     break;
                 }
 
                 //Einlesen von instance_name, instance_creator, instance_remark, instance_problem
                 var = line.substr(0,4);
-                if(compare_strings_caseinsensitive(var, "Name")) {
+                if(var == "Name" || var == "NAME") {
                     instance_name = line.substr(4, line.length());
                 }
                 var = line.substr(0, 7);
-                if(compare_strings_caseinsensitive(var, "Creator")) {
+                if(var == "Creator" || var == "CREATOR") {
                     instance_creator = line.substr(7, line.length());
                 }
                 var = line.substr(0, 6);
-                if(compare_strings_caseinsensitive(var, "Remark")) {
+                if(var == "Remark" || var == "REMARK") {
                     instance_remark = line.substr(6, line.length());
                 }
                 var = line.substr(0, 7);
-                if(compare_strings_caseinsensitive(var, "Problem")) {
+                if(var == "Problem" || var == "PROBLEM") {
                     instance_problem = line.substr(7, line.length());
                 }
 
@@ -559,32 +642,32 @@ Graph::Graph(char const* filename){
 
         }
 
-        if(compare_strings_caseinsensitive(line, "SECTION Graph")) {
+        if(line == "SECTION Graph" || line == "Section Graph") {
 
             //Zeile mit "Nodes"
             getline(file, line);
             var = line.substr(0,5);
             //prüfe ob Eingabeformat korrekt
-            if(not compare_strings_caseinsensitive(var, "Nodes")) {
+            if(var != "Nodes" && var != "NODES") {
                 throw std::runtime_error("Eingabeformat: 1. Zeile in Section Graph muss 'Nodes' enthalten");
             }
                 //füge Knoten zum Graphen hinzu
             else{
                 var = line.substr(5, line.length());
                 std::stringstream ssn(var);
-                int n; //Anzahl der Knoten
-                ssn >> n;
-                add_nodes(n);
+                int claimed_num_nodes; //Anzahl der Knoten
+                ssn >> claimed_num_nodes;
+                add_nodes(claimed_num_nodes);
             }
 
             //Zeile mit "Edges"
             getline(file, line);
             var = line.substr(0,5);
-            if(compare_strings_caseinsensitive(var , "Edges")) {
+            if(var == "Edges" || var == "EDGES") {
                 var = line.substr(5, line.length());
                 std::stringstream ssm(var);
-                ssm >> m;
-                // m wird nur einmal unten verwendet, um zu prüfen, ob die Eingabedatei korrekt ist
+                ssm >> claimed_num_edges;
+                _edges.reserve(claimed_num_edges);
             }
             else{
                 throw std::runtime_error("Eingabeformat: 2. Zeile in Section Graph muss 'Edges' enthalten");
@@ -592,20 +675,20 @@ Graph::Graph(char const* filename){
 
             //Kanten einlesen
             while (getline(file, line)){
-                if(compare_strings_caseinsensitive(line, "END")) {
+                if(line == "End" || line == "END") {
                     //Ende der Section erreicht
                     break;
                 }
 
                 var = line.substr(0,1);
                 //teste ob SteinLib-Format eingehalten wird
-                if(not compare_strings_caseinsensitive(var, "E") && not compare_strings_caseinsensitive(var, "A")) {
+                if(var != "E" && var != "A") {
                     //debug
                     std::cout << "Zeile beginnt mit " << var << "\n";
                     throw std::runtime_error("Eingabeformat: Eine Zeile in der Graph-Section (nach 'Nodes', 'Edges') beginnt nicht mit 'E' bzw. 'A' ");
                 }
                     //Kante hinzufügen
-                else{
+                else if (var == "E"){
                     var = line.substr(1, line.length());
                     std::stringstream sse(var);
                     Graph::NodeId a, b;
@@ -615,20 +698,38 @@ Graph::Graph(char const* filename){
                     b--;
                     add_edge(a, b, w);
                 }
+                else if (var == "A"){
+                    var = line.substr(1, line.length());
+                    std::stringstream sse(var);
+                    Graph::NodeId a, b;
+                    Graph::EdgeWeight w1, w2;
+                    sse >> a >> b >> w1 >> w2 ;
+                    if( w1 != w2) {
+                        //in dem Fall sind die gerichteten Kanten nicht symmetrisch
+                        throw std::runtime_error("Eingabedatei: Arc mit verschiedenen Kantengewichten, Graph ist als gerichtet.");
+                    }
+                    a--;    //bemerke "-1", da SteinLib bei 1 anfängt die Knoten zu zählen
+                    b--;
+                    add_edge(a, b, w1);
+                }
             }
 
-            //der Abschnitt zu "arcs" wird hier nicht betrachtet
+            _edges.shrink_to_fit();
+
+            section_graph_processed =true;
+
+            //der Abschnitt zu "arcs" wird hier nicht extra betrachtet
         }
 
-        if(compare_strings_caseinsensitive(line, "SECTION Terminals")) {
+        if(line == "SECTION Terminals" || line == "Section Terminals") {
             //Zeile mit "Terminals"
             getline(file, line);
             var = line.substr(0,9);
-            if(compare_strings_caseinsensitive(var, "Terminals")) {
+            if(var == "Terminals" || var == "TERMINALS") {
                 var = line.substr(9, line.length());
                 std::stringstream sstn(var);
-                sstn >> t_num;
-                // t_num wird nur einmal unten verwendet, um zu prüfen, ob die Eingabedatei korrekt ist
+                sstn >> claimed_num_terminals;
+                // claimed_num_terminals wird nur einmal unten verwendet, um zu prüfen, ob die Eingabedatei korrekt ist
             }
             else{
                 throw std::runtime_error("Eingabeformat: 1. Zeile in Section Terminals muss 'Terminals' enthalten");
@@ -636,14 +737,14 @@ Graph::Graph(char const* filename){
 
             //Terminale einlesen
             while (getline(file, line)){
-                if(compare_strings_caseinsensitive(line, "END")) {
+                if(line == "End" || line == "END") {
                     //Ende der Section erreicht
                     break;
                 }
 
                 var = line.substr(0,1);
                 //prüfe ob Eingabeformat korrekt
-                if(not compare_strings_caseinsensitive(var, "T")) {
+                if(var != "T") {
                     //debug
                     std::cout << "Zeile beginnt mit " << var << "\n";
                     throw std::runtime_error("Eingabeformat: Eine Zeile in der Terminals-Section (nach 'Terminals') beginnt nicht mit T");
@@ -659,11 +760,24 @@ Graph::Graph(char const* filename){
                 }
             }
 
+            section_terminals_processed = true;
+
             //mögliche Zeilen mit RootP, Root, TP werden nicht betrachtet
         }
 
-        if(compare_strings_caseinsensitive(line, "EOF")) {
+        if(line == "SECTION Coordinates" || line == "Section Coordinates"
+            || line == "SECTION MaximumDegrees" || line == "Section MaximumDegrees") {
+            // wenn eine dieser Sections erreicht wird, endet der für diese Anwedung relevante Teil der Datei ggf. schon
+            if( section_graph_processed && section_terminals_processed) {
+                break;
+            }
+        }
+
+        if(line == "EOF") {
             //Ende der Datei erreicht
+            if( not section_graph_processed || not section_terminals_processed) {
+                throw std::runtime_error("(Einlesen) Keine Section zu Graph oder Terminals.");
+            }
             break;
         }
 
@@ -671,29 +785,30 @@ Graph::Graph(char const* filename){
 
     }
 
+    //debug
     //prüfen, ob angegebene Kanten-/Terminalanzahl mit aufgelisteten Kanten/Terminalen übereinstimmt
-    if( num_edges() != m){
+    if( num_edges() < claimed_num_edges) {
         //debug
-        std::cout << "angegebene Kantenanzahl: " << m << "\n";
+        std::cout << "angegebene Kantenanzahl: " << claimed_num_edges << "\n";
         std::cout << "Anzahl aufgelisteter Kanten " << num_edges() << "\n";
-        if( num_edges() != m/2){
-            //throw std::runtime_error("(Einlesen) angegebene Kantenanzahl ungleich Anzahl aufgelisteter Kanten");
-        }
+
+        //throw std::runtime_error("(Einlesen) angegebene Kantenanzahl ungleich Anzahl aufgelisteter Kanten");
     }
-    if( get_vect_term().size() != t_num){
+    if( num_edges() > claimed_num_edges) {
         //debug
-        std::cout << "angegebene Terminalanzahl: " << t_num << "\n";
+        std::cout << "angegebene Kantenanzahl: " << claimed_num_edges << "\n";
+        std::cout << "Anzahl aufgelisteter Kanten " << num_edges() << "\n";
+
+        throw std::runtime_error("(Einlesen) angegebene Kantenanzahl ungleich Anzahl aufgelisteter Kanten");
+    }
+    if( get_vect_term().size() != claimed_num_terminals){
+        //debug
+        std::cout << "angegebene Terminalanzahl: " << claimed_num_terminals << "\n";
         std::cout << "Anzahl aufgelisteter Terminale " << get_vect_term().size() << "\n";
-        //? throw std::runtime_error("(Einlesen) angegebene Terminalanzahl ungleich Anzahl aufgelisteter Terminale");
+        throw std::runtime_error("(Einlesen) angegebene Terminalanzahl ungleich Anzahl aufgelisteter Terminale");
     }
 
 }
 
-/*
- * ?
-Graph::Graph(const Graph& g) {
-    _nodes = g.nodes();
-    _edges = g.edges();
-    //instance_name etc nicht definiert
-}
-*/
+
+

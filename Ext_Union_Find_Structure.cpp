@@ -17,6 +17,13 @@ void Ext_Union_Find_Structure::set_superid(Union_Find_Structure::ElementId input
     _super_ids[root] = new_superid;
 }
 
+void Ext_Union_Find_Structure::reset_superids(const std::vector<Union_Find_Structure::ElementId>& input_elts) {
+    for( auto curr_elt: input_elts) {
+        set_superid(curr_elt, 0);
+    }
+
+}
+
 Graph::NodeId Ext_Union_Find_Structure::get_superid(Union_Find_Structure::ElementId input_elt) {
     Union_Find_Structure::ElementId root = find(input_elt);
     return _super_ids[root];
@@ -38,4 +45,5 @@ bool Ext_Union_Find_Structure::allowed(Union_Find_Structure::ElementId input_elt
     Union_Find_Structure::ElementId root = find(input_elt);
     return _allowed[root];
 }
+
 

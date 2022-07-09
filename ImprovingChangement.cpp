@@ -27,8 +27,8 @@ const Graph::PathLength ImprovingChangement::getImprovementValue() const {
 }
 
 void ImprovingChangement::print(const Subgraph& input_subgraph) {
-    const Graph& original_graph = input_subgraph.getOriginalGraph();
-    const std::vector<Graph::EdgeId>& original_edgeids = input_subgraph.getOriginalEdgeids();
+    const Graph& original_graph = input_subgraph.original_graph();
+    const std::vector<Graph::EdgeId>& original_edgeids = input_subgraph.original_edgeids();
     std::cout << "(ImprovingChangement::print) \n ";
 
     std::cout << "Die edges to remove: \n";

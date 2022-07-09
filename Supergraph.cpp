@@ -5,7 +5,7 @@
 #include "Supergraph.h"
 
 #include "iostream" //später löschen?
-
+#include "algorithm"
 
 Supergraph::Supergraph(unsigned int num_supernodes):
         _this_graph(num_supernodes)
@@ -27,7 +27,7 @@ Graph& Supergraph::this_graph() {
     return _this_graph;
 }
 
-const Graph& Supergraph::get_this_graph() const{
+const Graph& Supergraph::this_graph() const{
     return _this_graph;
 }
 
@@ -35,7 +35,7 @@ std::vector<Graph::EdgeId>& Supergraph::original_edge_ids() {
     return _original_edge_ids;
 }
 
-const std::vector<Graph::EdgeId>& Supergraph::get_original_edge_ids()  const{
+const std::vector<Graph::EdgeId>& Supergraph::original_edge_ids()  const{
     return _original_edge_ids;
 }
 
@@ -51,11 +51,6 @@ void Supergraph::add_edge(Graph::NodeId node_a, Graph::NodeId node_b, Graph::Edg
 
     std::vector<Graph::NodeId> endnodes_sorted = {node_a, node_b};
     std::sort(endnodes_sorted.begin(), endnodes_sorted.end());
-
-    //debug (löschen!!)
-    if( endnodes_sorted[0] > endnodes_sorted[1] ) {
-        throw std::runtime_error("sort tut nicht das, was es soll");
-    }
 
     //prüfe, ob bereits eine Kante zwischen den beiden Endknoten existiert, die günstiger ist
     // (in dem Fall fügen wir die Kante nicht hinzu)
@@ -86,8 +81,8 @@ void Supergraph_KVE::add_edge(Graph::NodeId node_a, Graph::NodeId node_b, Graph:
     Supergraph::add_edge(node_a, node_b, weight, original_id);
 
     //prüfe, ob wir die Kante tatsächlich hinzugefügt haben
-    //? if( get_original_edge_ids().back() == original_id ){
-    if( get_original_edge_ids().size() == _superedges_corresponding_to_new_bound_edges.size()+1 ){
+    //? if( original_edge_ids().back() == original_id ){
+    if(original_edge_ids().size() == _superedges_corresponding_to_new_bound_edges.size() + 1 ){
         _superedges_corresponding_to_new_bound_edges.push_back(b_e_type);
     }
 }

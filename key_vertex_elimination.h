@@ -11,7 +11,7 @@
 #include "EdgeSequence.h"
 #include "ImprovingChangement.h"
 #include "Ext_Union_Find_Structure.h"
-#include "BoundEdgeHeaps.h"
+#include "Edge_Heaps.h"
 #include "local_search_aux.h"
 #include "voronoi_diagram.h"
 #include "Supergraph.h"
@@ -29,13 +29,14 @@ namespace KeyVertexElim{
                                      Graph::NodeId start_node_id,
                                      Voronoi_diagram& vor_diag,
                                      Ext_Union_Find_Structure& subtrees_ufs,
-                                     const std::vector< std::vector<Graph::EdgeId> >& horiz_bound_edges,
-                                     BoundEdgeHeaps& vert_bound_edge_heaps,
+                                     const Horizontal_Edges_Lists& horiz_bound_edges_lists,
+                                     Edge_Heaps& vert_bound_edge_heaps,
                                      LocalSearchAux::MovesPerPass moves_per_pass,
                                      std::vector<bool>& forbidden,
                                      std::vector<bool>& pinned);
 
-    //Ausgabe: die key vertices des Eingabegraphens in einer post-order von dem Eingabeknoten aus (so dass children immer vor ihrem parent stehen)
+    //Ausgabe: die key vertices des Eingabegraphens in einer post-order bzgl einer Graphendurchmusterungs-Arboreszenz
+    // mit dem Eingabeknoten als Wurzel (so dass children immer vor ihrem parent stehen)
     // aber ohne den Eingabeknoten selbst (!)
     //? Laufzeit: könnte man auch gleich in Graph::make_rooted_arborescence ausgeben
     std::vector<Graph::NodeId> get_keynodes_in_postorder(const Graph& input_graph, Graph::NodeId root_id);
@@ -52,7 +53,7 @@ namespace KeyVertexElim{
     //gibt 1 aus gdw. der Eingabeknoten ein KeyVertex (im Eingabegraphen) ist
     bool check_if_keyvertex(const Graph& input_graph, Graph::NodeId input_node_id);
 
-    std::vector< std::vector<Graph::EdgeId> > compute_horizontal_bound_edges(const Subgraph& input_subgraph,
+    Horizontal_Edges_Lists compute_horizontal_bound_edges(const Subgraph& input_subgraph,
                                                                              Graph::NodeId root,
                                                                              const Voronoi_diagram& vor_diag);
 
@@ -81,7 +82,7 @@ namespace KeyVertexElim{
                                            const Voronoi_diagram& vor_diag,
                                            Graph::NodeId start_node_id,
                                            Ext_Union_Find_Structure &subtrees_ufs,
-                                           BoundEdgeHeaps &vert_bound_edge_heaps,
+                                           Edge_Heaps &vert_bound_edge_heaps,
                                            LocalSearchAux::MovesPerPass moves_per_pass,
                                            std::vector<bool> &forbidden,
                                            const std::vector<std::vector<Graph::NodeId>> &vect_internal_nodes,
@@ -99,6 +100,9 @@ namespace KeyVertexElim{
                                                    std::vector<bool>& added_edges,
                                                    LocalSearchAux::MovesPerPass moves_per_pass,
                                                    std::vector<bool>& pinned);
+
+    //gibt alle key nodes des Eingabegraphen aus
+    std::vector<Graph::NodeId> get_key_nodes(const Graph& input_graph);
 
 }
 

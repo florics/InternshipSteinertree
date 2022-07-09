@@ -14,17 +14,22 @@
 #include "graph_aux_functions.h"
 
 
-std::vector<Graph::NodeId> LocalSearchAux::get_crucialvertices_in_postorder(const Graph& input_graph, Graph::NodeId root_id) {
+std::vector<Graph::NodeId> LocalSearchAux::get_crucialnodes_in_postorder(const Graph& input_graph, Graph::NodeId root_id) {
     // Checks weglassen ?
     if( root_id == Graph::invalid_node_id) {
-        throw std::runtime_error("(LocalSearchAux::get_crucialvertices_in_postorder) Eingabeknoten ungueltig");
+        throw std::runtime_error("(LocalSearchAux::get_crucialnodes_in_postorder) Eingabeknoten ungueltig");
     }
     if( root_id > input_graph.num_nodes()) {
-        throw std::runtime_error("(LocalSearchAux::get_crucialvertices_in_postorder) Eingabeknoten nicht im Graphen");
+        throw std::runtime_error("(LocalSearchAux::get_crucialnodes_in_postorder) Eingabeknoten nicht im Graphen");
+    }
+
+    if( not input_graph.check_if_terminal(root_id)) {
+        throw std::runtime_error("(LocalSearchAux::get_crucialnodes_in_postorder) Wurzel ist kein Terminal");
     }
 
     //speichert die crucial nodes in Reihenfolge der Graphendurchmusterung
     std::vector<Graph::NodeId> output;
+    output.reserve(input_graph.num_nodes());
     //? output.push_back(root_id);
 
     // es folgt eine Graphendurchmusterung
@@ -52,6 +57,8 @@ std::vector<Graph::NodeId> LocalSearchAux::get_crucialvertices_in_postorder(cons
             }
         }
     }
+
+    output.shrink_to_fit();
 
     //kehre die Reihenfolge um
     std::reverse(output.begin(), output.end());
@@ -92,7 +99,7 @@ EdgeSequence LocalSearchAux::find_ingoing_keypath (const Graph& input_graph,
         }
 
         if( curr_in_edge_id.size() == 0) {
-            if( not input_graph.get_node(curr_node_id).check_if_terminal()) {
+            if( not input_graph.check_if_terminal(curr_node_id) ) {
                 std::cout << "aktueller Knoten hat NodeId: " << curr_node_id << "\n";
                 throw std::runtime_error("(LocalSearchAux::find_ingoing_keypath) Eingabegraph hat Knoten mit Eingangsgrad 0, der kein Terminal ist.");
             } else {
@@ -102,12 +109,12 @@ EdgeSequence LocalSearchAux::find_ingoing_keypath (const Graph& input_graph,
         }
 
         //füge das Gewicht der Kante zur Länge des Key-Paths hinzu
-        Graph::Edge curr_in_edge = input_graph.get_edge( curr_in_edge_id.front() );
+        const Graph::Edge& curr_in_edge = input_graph.get_edge( curr_in_edge_id.front() );
         key_path_length += curr_in_edge.weight();
         //füge die Kante zur Kantenmenge des Key-Path hinzu
         key_path_edges.push_back(curr_in_edge_id.front());
 
-        Graph::Node curr_in_neighbor = input_graph.get_node( input_graph.get_tail(curr_in_edge_id.front()) );
+        const Graph::Node& curr_in_neighbor = input_graph.get_node( input_graph.get_tail(curr_in_edge_id.front()) );
 
         curr_node_id = curr_in_neighbor.node_id();
 
@@ -158,12 +165,13 @@ std::vector<EdgeSequence> LocalSearchAux::get_new_bound_paths(Voronoi_diagram in
 
 void LocalSearchAux::perform_improving_changements(Subgraph &input_subgraph, std::vector<ImprovingChangement> changements) {
 
-    std::vector<Graph::EdgeId>& original_edge_ids = input_subgraph.accessOriginalEdgeids();
-    const Graph& original_graph = input_subgraph.getOriginalGraph();
+    std::vector<Graph::EdgeId>& original_edge_ids = input_subgraph.original_edgeids();
+    const Graph& original_graph = input_subgraph.original_graph();
 
     //Aktualisieren von original_edge_ids
 
     //entferne alle zu entfernenden Kanten aus original_edge_ids
+
     for(auto curr_change: changements) {
         for (auto curr_edge_to_remove: curr_change.getEdgesToRemove()) {
             original_edge_ids[curr_edge_to_remove] = Graph::invalid_edge_id;
@@ -196,7 +204,7 @@ void LocalSearchAux::perform_improving_changements(Subgraph &input_subgraph, std
         }
     }
 
-    input_subgraph.reset_with_set_of_edges(original_edge_ids);
+    input_subgraph.reset(original_edge_ids);
 }
 
 void LocalSearchAux::update_pinned_for_bound_egde(const Voronoi_diagram &vor_diag, const std::vector<Graph::NodeId>& solution_nodeids_of_original_nodes,
@@ -224,3 +232,15 @@ void LocalSearchAux::update_forbidden(const Graph &solution_graph, std::vector<b
     }
 }
 
+std::vector<Horizontal_Edges_Lists::ListId>
+LocalSearchAux::compute_list_ids_for_horizon_edges_lists(unsigned int num_nodes,
+                                         const std::vector<Graph::NodeId>& nodes_to_process) {
+
+    std::vector<Horizontal_Edges_Lists::ListId> output(num_nodes, Horizontal_Edges_Lists::no_list_available);
+
+    for( unsigned int i=0; i<nodes_to_process.size(); i++) {
+        output[ nodes_to_process[i] ] = i;
+    }
+
+    return output;
+}

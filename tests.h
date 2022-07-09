@@ -16,7 +16,7 @@
 #include "local_search_aux.h"
 #include "key_path_exchange.h"
 #include "EdgeSequence.h"
-#include "BoundEdgeHeaps.h"
+#include "Edge_Heaps.h"
 #include "key_vertex_elimination.h"
 
 namespace DebugTests{

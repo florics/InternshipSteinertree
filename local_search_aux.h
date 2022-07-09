@@ -15,15 +15,17 @@
 #include "EdgeSequence.h"
 #include "Subgraph.h"
 #include "ImprovingChangement.h"
+#include "Horizontal_Edges_Lists.h"
 
 namespace LocalSearchAux{
 
     enum MovesPerPass {one_move, several_moves};
 
-    //Ausgabe: die crucial vertices des Eingabegraphens in einer post-order von dem Eingabeknoten aus (so dass children immer vor ihrem parent stehen)
-    // aber ohne den Eingabeknoten selbst (!)
+    //Ausgabe: die crucial vertices des Eingabegraphens in einer post-order bzgl einer Graphendurchmusterungs-Arboreszenz
+    // mit dem Eingabeknoten als Wurzel (so dass children immer vor ihrem parent stehen), aber ohne den Eingabeknoten selbst (!)
+    // Eingabeknoten muss Terminal sein
     //? Laufzeit: könnte man auch gleich in Graph::make_rooted_arborescence ausgeben
-    std::vector<Graph::NodeId> get_crucialvertices_in_postorder(const Graph& input_graph, Graph::NodeId root_id);
+    std::vector<Graph::NodeId> get_crucialnodes_in_postorder(const Graph& input_graph, Graph::NodeId root_id);
 
     //findet den Key-Path, der in start_node endet
     // Ausgabe: Key-Path als EdgeSequence (endnode_a ist der crucial parent des Startknoten)
@@ -51,7 +53,13 @@ namespace LocalSearchAux{
     // markiert alle Nachfolger des Eingabeknotens als forbidden (nicht aber den Eingabeknoten selbst)
     void update_forbidden(const Graph& solution_graph, std::vector<bool>& forbidden, Graph::NodeId node_to_mark);
 
+    // gibt Vektor der Länge ? aus, in dem die nodes_to_process durchnummeriert werden
+    // alle anderen Knoten erhalten 'no_list_available'
+    std::vector<Horizontal_Edges_Lists::ListId> compute_list_ids_for_horizon_edges_lists(unsigned int num_nodes,
+                                                                                         const std::vector<Graph::NodeId>& nodes_to_process);
+
 }
+
 
 
 #endif //PRAKTIKUMSTEINERBAUM_LOCAL_SEARCH_AUX_H

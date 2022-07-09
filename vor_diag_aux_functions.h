@@ -32,8 +32,8 @@ namespace VorDiagAux{
 
     //berechnet den zur Eingabekante (muss bound edge sein) gehörenden boundary path,
     // bei der 2. Funktion ist auch die Eingabe der ungueltigen EdgeId möglich (dann wird ein leerer Vektor ausgegeben)
-    EdgeSequence compute_bound_path(Voronoi_diagram original_vd, Graph::EdgeId bound_edge_id);
-    std::vector<Graph::EdgeId> compute_bound_path_as_vect(Voronoi_diagram original_vd, Graph::EdgeId bound_edge_id);
+    EdgeSequence compute_bound_path(const Voronoi_diagram& original_vd, Graph::EdgeId bound_edge_id);
+    std::vector<Graph::EdgeId> compute_bound_path_as_vect(const Voronoi_diagram& original_vd, Graph::EdgeId bound_edge_id);
 
     //gibt die Basen der Voronoi-Regionen aus, zu denen die Endpunkte der Eingabekante gehören
     std::pair<Graph::NodeId, Graph::NodeId> get_bases_of_edge(const Voronoi_diagram& original_vd, Graph::EdgeId input_edgeid);

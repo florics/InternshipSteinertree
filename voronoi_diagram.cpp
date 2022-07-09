@@ -155,7 +155,7 @@ Voronoi_diagram::RestoreData Voronoi_diagram::repair(const std::vector<Graph::No
     std::vector<Graph::NodeId> nodes_to_update = compute_some_vor_regions(bases_to_delete);
 
     //bereite die Ausgabe vor
-    RestoreData output_restore_data = get_restoredata_of_nodeset(nodes_to_update);
+    RestoreData output_restore_data = get_restoredata_of_nodeset(nodes_to_update, bases_to_delete.size());
 
     //Initialisierung der priority_queue, mit der wir in jeder Iteration den nächsten besten Knoten (Kandidat) finden
     //std::greater< std::pair<Graph::PathLength,Graph::NodeId> > sorgt dafür, dass wir immer an den Knoten mit der kleinsten Distanz gelangen
@@ -255,7 +255,8 @@ Voronoi_diagram::RestoreData Voronoi_diagram::repair(const std::vector<Graph::No
 }
 
 
-Voronoi_diagram::RestoreData Voronoi_diagram::get_restoredata_of_nodeset (const std::vector<Graph::NodeId>& input_nodeids) {
+Voronoi_diagram::RestoreData Voronoi_diagram::get_restoredata_of_nodeset (const std::vector<Graph::NodeId>& input_nodeids,
+                                                                          unsigned int num_bases_deleted) {
 
     std::vector<Graph::NodeId> old_bases_of_nodes_to_update;
     std::vector<std::pair<Graph::NodeId, Graph::EdgeId>> old_predecessor_of_nodes_to_update;
@@ -274,9 +275,8 @@ Voronoi_diagram::RestoreData Voronoi_diagram::get_restoredata_of_nodeset (const 
         old_dist_to_base_of_nodes_to_updates.push_back(_dist_to_base[curr_nodeid]);
     }
 
-    //struct Voronoi_diagram::RestoreData output(input_nodeids, old_bases_of_nodes_to_update, old_predecessor_of_nodes_to_update, old_dist_to_base_of_nodes_to_updates);
-
-    return {input_nodeids, old_bases_of_nodes_to_update, old_predecessor_of_nodes_to_update, old_dist_to_base_of_nodes_to_updates};
+    return {input_nodeids, old_bases_of_nodes_to_update, old_predecessor_of_nodes_to_update,
+            old_dist_to_base_of_nodes_to_updates, num_bases_deleted};
 }
 
 
@@ -293,6 +293,7 @@ void Voronoi_diagram::restore(const Voronoi_diagram::RestoreData& input_restore_
         _dist_to_base[curr_nodeid] = old_dist_to_base_of_nodes_to_updates[i];
     }
 
+    _num_bases += input_restore_data.num_bases_deleted;
 }
 
 
@@ -300,7 +301,7 @@ void Voronoi_diagram::assign_bases(const std::vector<Graph::NodeId>& new_set_of_
     _num_bases = new_set_of_bases.size();
 
     if(_num_bases > original_graph().num_nodes()){
-        throw std::runtime_error("(void Voronoi_diagram::assign_set_of_bases) neue Menge der Basen zu groß");
+        throw std::runtime_error("(Voronoi_diagram::assign_bases) neue Menge der Basen zu groß");
     }
 
     for(unsigned int i = 0; i<_num_bases; i++){
@@ -314,13 +315,13 @@ void Voronoi_diagram::print_simple() const {
     std::cout << "Ausgabe des Voronoi-Diagramms (als NodeNames ausgegeben)\n";
     std::cout << "(Knoten) (Basis) (Distanz zur Basis) (Vorgaengerknoten und -kante auf kuerz. Weg von Basis) \n";
     for(Graph::NodeId i = 0; i<original_graph().num_nodes(); i++){
-        GraphAuxPrint::print_nodename(_original_graph, i);
+        GraphAuxPrint::print_nodename(i);
         std::cout << " ";
-        GraphAuxPrint::print_nodename(_original_graph, _base[i]);
+        GraphAuxPrint::print_nodename( _base[i]);
         std::cout << " ";
         GraphAuxPrint::print_pathlength(_dist_to_base[i]);
         std::cout << " ";
-        GraphAuxPrint::print_nodename(_original_graph, _predecessor[i].first);
+        GraphAuxPrint::print_nodename( _predecessor[i].first);
         std::cout << " ";
         GraphAuxPrint::print_edge_as_pair(_original_graph, _predecessor[i].second);
         std::cout << "\n";
@@ -333,17 +334,17 @@ void Voronoi_diagram::print_region_naiv(Graph::NodeId input_base) const {
         std::cout << "(void Voronoi_diagram::print_region_naiv(Graph::NodeId var_base)) var_base = " << input_base << " ist keine Basis \n";
     }
     std::cout << "Die Voronoi-Region des Knotens ";
-    GraphAuxPrint::print_nodename(_original_graph, input_base);
+    GraphAuxPrint::print_nodename(input_base);
     std::cout << " ist: (als NodeNames ausgegeben)\n";
     std::cout << "(Knoten) (Distanz zur Basis) (Vorgaenger auf kuerz. Weg von Basis) \n";
     unsigned int region_num_nodes = 0;
     for(Graph::NodeId i=0; i<original_graph().num_nodes(); i++){
         if(_base[i] == input_base){
-            GraphAuxPrint::print_nodename(_original_graph, i);
+            GraphAuxPrint::print_nodename(i);
             std::cout << " ";
             GraphAuxPrint::print_pathlength(_dist_to_base[i]);
             std::cout << " ";
-            GraphAuxPrint::print_nodename(_original_graph, _predecessor[i].first);
+            GraphAuxPrint::print_nodename(_predecessor[i].first);
             std::cout << "\n";
 
             region_num_nodes++;
@@ -357,15 +358,15 @@ void Voronoi_diagram::print_region_fast(Graph::NodeId input_base) {
         std::cout << "(void Voronoi_diagram::print_region_fast(Graph::NodeId var_base)) var_base = " << input_base << " ist keine Basis \n";
     }
     std::cout << "Die Voronoi-Region des Knotens ";
-    GraphAuxPrint::print_nodename(_original_graph, input_base);
+    GraphAuxPrint::print_nodename( input_base);
     std::cout << " ist: (als NodeNames ausgegeben)\n";
     std::cout << "(Knoten) (Distanz zur Basis) (Vorgaenger auf kuerz. Weg von Basis) \n";
     for(auto curr_node : compute_vor_region(input_base)){
-            GraphAuxPrint::print_nodename(_original_graph, curr_node);
+            GraphAuxPrint::print_nodename( curr_node);
             std::cout << " ";
             GraphAuxPrint::print_pathlength(_dist_to_base[curr_node]);
             std::cout << " ";
-            GraphAuxPrint::print_nodename(_original_graph, _predecessor[curr_node].first);
+            GraphAuxPrint::print_nodename( _predecessor[curr_node].first);
             std::cout << "\n";
     }
     std::cout << "Insgesamt liegen " << compute_vor_region(input_base).size() << " Knoten in dieser Voronoi-Region. \n";
@@ -472,7 +473,7 @@ std::vector<Graph::NodeId> Voronoi_diagram::compute_vor_region(Graph::NodeId inp
             if(_base[curr_neighbor_id] == input_base) {
                 next_nodes.push_back(curr_neighbor_id);
 
-                //markiere den Knoten als "betrachtet", um die Rekursion nicht mehrfach für den gleichen Knoten aufzurufen
+                //markiere den Knoten als "betrachtet"
                 //das ist der Grund, weshalb diese Funktion (sowie alle, die sie benutzen) nicht const ist
                 // (ein Vektor mit Länge original_nodes.num_nodes() würde zu Laufzeit O(n) führen)
                 _base[curr_neighbor_id] = Graph::invalid_node_id;
@@ -491,6 +492,51 @@ std::vector<Graph::NodeId> Voronoi_diagram::compute_vor_region(Graph::NodeId inp
     return vor_region;
 }
 
+//todo: die andere Fktn löschen, diese hier umbenennen
+std::vector<Graph::NodeId> Voronoi_diagram::compute_vor_region_fast(Graph::NodeId input_base) {
+    if(not check_if_base(input_base)) {
+        throw std::runtime_error("(Voronoi_diagram::compute_vor_region) Eingabeknoten ist keine Basis.");
+    }
+
+    // Ausgabe
+    std::vector<Graph::NodeId> vor_region(1, input_base);
+
+    //es folgt eine Graphendurchmusterung
+
+    std::vector<Graph::NodeId> next_nodes(1, input_base);
+
+    //Markierung als 'betrachtet', siehe unten
+    _base[input_base] = Graph::invalid_node_id;
+
+    while(not next_nodes.empty()) {
+        Graph::NodeId curr_node_id = next_nodes.back();
+        next_nodes.pop_back();
+
+        for(auto curr_edge_id: original_graph().incident_edge_ids(curr_node_id) ) {
+            Graph::NodeId curr_neighbor_id =  original_graph().get_edge(curr_edge_id).get_other_node(curr_node_id);
+            if(_base[curr_neighbor_id] == input_base) {
+                next_nodes.push_back(curr_neighbor_id);
+
+                //markiere den Knoten als "betrachtet"
+                //das ist der Grund, weshalb diese Funktion (sowie alle, die sie benutzen) nicht const ist
+                // (ein Vektor mit Länge original_nodes.num_nodes() würde zu Laufzeit O(n) führen)
+                _base[curr_neighbor_id] = Graph::invalid_node_id;
+
+                vor_region.push_back(curr_neighbor_id);
+            }
+        }
+
+    }
+
+    //mache die Markierungen rückgängig
+    for(auto var_node_id : vor_region) {
+        _base[var_node_id] = input_base;
+    }
+
+    return vor_region;
+}
+
+//löschen?
 void Voronoi_diagram::compute_vor_region_subroutine(Graph::NodeId input_base, Graph::NodeId curr_node_id,
                                                     std::vector<Graph::NodeId>& vor_region) {
     vor_region.push_back(curr_node_id);
@@ -511,10 +557,11 @@ void Voronoi_diagram::compute_vor_region_subroutine(Graph::NodeId input_base, Gr
 
 std::vector< Graph::NodeId > Voronoi_diagram::compute_some_vor_regions(const std::vector<Graph::NodeId>& subset_of_bases) {
     std::vector< Graph::NodeId > output;
+    output.reserve(subset_of_bases.size());
 
     for( auto curr_base : subset_of_bases) {
         if(check_if_base(curr_base)) {
-            const std::vector<Graph::NodeId>& curr_vor_region = compute_vor_region(curr_base);
+            const std::vector<Graph::NodeId>& curr_vor_region = compute_vor_region_fast(curr_base);
             output.insert( output.end(), curr_vor_region.begin(), curr_vor_region.end() );
         } else {
             throw std::runtime_error("(Voronoi_diagram::compute_some_vor_regions) Eingabemenge keine Teilmenge der Basen.");

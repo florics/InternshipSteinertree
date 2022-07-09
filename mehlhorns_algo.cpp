@@ -19,20 +19,34 @@
 //? Graph const machen!
 Subgraph mehlhorns_algo(Graph& input_graph) {
 
-    //todo: irgendwo checken, dass Graph zsmhängend? (zumindest, dass alle Terminale in einer ZHK)
-
     Voronoi_diagram vor_diag(input_graph.get_vect_term(), input_graph);
     std::vector<std::vector<std::pair<Graph::EdgeId, Graph::PathLength>>> min_bound_edges = compute_min_bound_edges_of_vd(vor_diag);
 
     Graph aux_graph = construct_aux_graph_of_vd(vor_diag, min_bound_edges);
 
+    //hier lassen oder ?
+    if( not GraphAux::check_if_connected(aux_graph) ) {
+        throw std::runtime_error("(mehlhorns_algo) Der auxiliary graph ist nicht zsmhängend, "
+                                 "d. h. es liegen nicht alle Terminale in einer Zusammnehangskomponente.");
+    }
+
     Graph mst_of_aux_graph = GraphAlgorithms::mst_prim(aux_graph, 0);
 
     Subgraph sub_of_mst_of_aux_graph = turn_into_subgraph_of_vds_original_graph(vor_diag, mst_of_aux_graph, min_bound_edges);
 
-    Subgraph output_w_stleafs = GraphAlgorithms::mst_prim_for_subgraphs(sub_of_mst_of_aux_graph, 0);
+    Subgraph output = GraphAlgorithms::mst_prim_for_subgraphs(sub_of_mst_of_aux_graph, 0);
 
-    Subgraph output = GraphAux::copy_subgraph_wo_steinerleafs(output_w_stleafs);
+    GraphAux::remove_steinerbranches(output);
+
+    /*
+    //debug
+    std::vector<Graph::NodeId> var_stleafs = GraphAux::get_steinerleafs(output.this_graph());
+    std::vector<Graph::NodeId> var_iso_nodes = GraphAux::get_isolated_nodes(output.this_graph());
+
+    if( (not var_stleafs.empty()) || (not var_iso_nodes.empty()) ) {
+        throw std::runtime_error("Fehler");
+        //debug
+    }*/
 
     return output;
 }
@@ -41,8 +55,9 @@ std::vector<std::vector<std::pair<Graph::EdgeId, Graph::PathLength>>> compute_mi
 
     //Initialisierung der Ausgabe-Matrix: output[i][j] entspricht den Basen i+1, j (diese einfache Nummerierung der Basen wird hier mit base_ids gespeichert)
     std::vector<std::vector<std::pair<Graph::EdgeId, Graph::PathLength>>> output;
+    output.reserve(input_vd.num_bases() -1);
     std::pair<Graph::EdgeId, Graph::PathLength> invalid_pair = {Graph::invalid_edge_id, Graph::infinite_length};
-    for(unsigned int i = 0; i < input_vd.num_bases()-1; i++){
+    for(unsigned int i = 0; i < input_vd.num_bases() -1; i++){
         std::vector<std::pair<Graph::EdgeId, Graph::PathLength>> var_vector (i+1, invalid_pair);
         output.push_back(var_vector);
     }
@@ -82,7 +97,7 @@ Graph construct_aux_graph_of_vd(const Voronoi_diagram& input_vd,
 
     //Basen als Knoten hinzufügen
     for( auto curr_base : set_of_bases) {
-        output.add_one_node( input_vd.original_graph().get_node(curr_base).node_name(), input_vd.original_graph().get_node(curr_base).terminal_state() );
+        output.add_one_node( input_vd.original_graph().get_node(curr_base).terminal_state() );
     }
 
     //Kanten hinzufügen
@@ -127,7 +142,7 @@ Subgraph turn_into_subgraph_of_vds_original_graph(const Voronoi_diagram& input_v
 
     Graph null_graph(0);
     Subgraph output(original_graph, null_graph, std::vector<Graph::NodeId>(), std::vector<Graph::NodeId>(), std::vector<Graph::EdgeId>());
-    output.reset_with_set_of_edges(output_original_edge_ids);
+    output.reset(output_original_edge_ids);
 
     return output;
 }

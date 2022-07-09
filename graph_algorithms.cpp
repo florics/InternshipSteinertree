@@ -102,7 +102,7 @@ Graph GraphAlgorithms::mst_prim(const Graph &input_graph, Graph::NodeId start_no
 Subgraph GraphAlgorithms::mst_prim_for_subgraphs(const Subgraph &input_subgraph, Graph::NodeId start_node) {
     //Checks für start_node?
 
-    Graph input_graph = input_subgraph.getThisGraph();
+    const Graph& input_graph = input_subgraph.this_graph();
 
     Graph output_graph = GraphAux::copygraph_wo_edges(input_graph);
 
@@ -118,13 +118,13 @@ Subgraph GraphAlgorithms::mst_prim_for_subgraphs(const Subgraph &input_subgraph,
     std::vector<bool> reached(input_graph.num_nodes(), false);
     reached[start_node] = true;
 
-    std::vector<Graph::EdgeId> input_original_edge_ids = input_subgraph.getOriginalEdgeids();
+    const std::vector<Graph::EdgeId>& input_original_edge_ids = input_subgraph.original_edgeids();
     // entspricht (später) den original_edge_ids des Ausgabegraphen (siehe Subgraph-Klasse)
     std::vector<Graph::EdgeId> output_original_edge_ids;
 
     //erste Schleife über die Nachbarn des Startknoten //? irgendwie in die Hauptschleife packen?
     for (auto curr_edge_id: input_graph.get_node(start_node).incident_edge_ids()) {
-        Graph::Edge curr_edge = input_graph.get_edge(curr_edge_id);
+        const Graph::Edge& curr_edge = input_graph.get_edge(curr_edge_id);
         Graph::NodeId curr_neighbor = curr_edge.get_other_node(start_node);
         if (best_edges[curr_neighbor] == Graph::invalid_edge_id) {
             candidates.push({curr_edge.weight(), curr_neighbor});
@@ -180,13 +180,13 @@ Subgraph GraphAlgorithms::mst_prim_for_subgraphs(const Subgraph &input_subgraph,
     }
 
     //die alten EdgeIds haben wir mit output_original_edge_ids gefunden, die NodeIds ändern sich nicht
-    const Graph &original_graph = input_subgraph.getOriginalGraph();
+    const Graph &original_graph = input_subgraph.original_graph();
     Subgraph output(original_graph, output_graph,
-                                input_subgraph.getSubgraphNodeidsOfNodesInOriginalgraph(),
-                                input_subgraph.getOriginalNodeids(),
+                                input_subgraph.subgraph_nodeids_of_nodes_in_originalgraph(),
+                                input_subgraph.original_nodeids(),
                                 output_original_edge_ids);
 
-    if( not GraphAux::get_isolated_nodes(output.getThisGraph()).empty()) {
+    if( not GraphAux::get_isolated_nodes(output.this_graph()).empty()) {
         throw std::runtime_error("(GraphAlgorithms::mst_prim_for_subgraphs) Es wurden nicht alle Knoten erreicht.");
     }
 
@@ -209,7 +209,7 @@ Graph GraphAlgorithms::compute_spann_forest(const Graph &input_graph) {
         }
 
         if (ufs.find(curr_node_a) != ufs.find(curr_node_b)) {
-            output_graph.add_existing_edge_w_newid(curr_edge);
+            output_graph.add_edge(curr_node_a, curr_node_b, curr_edge.weight());
             ufs.union_by_rank(curr_node_a, curr_node_b);
         }
     }

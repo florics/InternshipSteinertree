@@ -101,7 +101,6 @@ void Graph::Edge::direct_edge(Graph::NodeId tail, Graph::NodeId head) {
     if( tail == Graph::invalid_node_id ) {
         throw std::runtime_error("(Graph::Edge::direct_edge) Eingabeknoten tail ungueltig");
     }
-    //kann ich hier prüfen, ob die Eingabeknoten im Graphen liegen? Wie greife ich von Edge aus auf num_nodes() zu?
 
     if( node_a() == tail && node_b() == head ) {
         return;
@@ -153,7 +152,7 @@ void Graph::set_terminal(Graph::NodeId v, Graph::TerminalState t){
     }
 }
 
-std::vector<Graph::NodeId> Graph::get_vect_term() const{
+std::vector<Graph::NodeId> Graph::get_terminals() const{
     std::vector<Graph::NodeId> output;
     output.reserve(num_nodes());
     for(Graph::NodeId i = 0; i<num_nodes(); i++){
@@ -801,10 +800,10 @@ Graph::Graph(char const* filename){
 
         throw std::runtime_error("(Einlesen) angegebene Kantenanzahl ungleich Anzahl aufgelisteter Kanten");
     }
-    if( get_vect_term().size() != claimed_num_terminals){
+    if(get_terminals().size() != claimed_num_terminals){
         //debug
         std::cout << "angegebene Terminalanzahl: " << claimed_num_terminals << "\n";
-        std::cout << "Anzahl aufgelisteter Terminale " << get_vect_term().size() << "\n";
+        std::cout << "Anzahl aufgelisteter Terminale " << get_terminals().size() << "\n";
         throw std::runtime_error("(Einlesen) angegebene Terminalanzahl ungleich Anzahl aufgelisteter Terminale");
     }
 

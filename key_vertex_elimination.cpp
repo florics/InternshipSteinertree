@@ -662,7 +662,7 @@ KeyVertexElim::evaluate_neighborhood(Subgraph &input_subgraph, LocalSearchAux::M
 
     //richte den Graph mit beliebiger (?) Wurzel, berechne Reihenfolge der Knoten für die Prozessierung
     //? hier kann man root_id frei wählen
-    const Graph::NodeId root_id = solution_graph.get_vect_term()[0];
+    const Graph::NodeId root_id = solution_graph.get_terminals()[0];
     solution_graph.make_rooted_arborescence(root_id);
     std::vector<Graph::NodeId> crucialnodes_in_postorder = LocalSearchAux::get_crucialnodes_in_postorder(solution_graph, root_id);
 

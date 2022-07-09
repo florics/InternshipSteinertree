@@ -12,6 +12,7 @@ namespace SteinerVertexInsertion {
 
     // führt Steiner-Vertex-Elimination aus, bis ein lokales Minimum erreicht wird
     // die Verbesserungen werden direkt an dem eingegebenen Graphen ausgeführt
+    // danach werden evtl. enstandene Steinerblätter ( bzw. -Äste) entfernt
     void find_local_minimum(Subgraph& input_subgraph);
 
     // prüft Steiner-Vertex-Elimination für alle Knoten, die nicht in dem Lösungsgraphen liegen

@@ -6,6 +6,9 @@
 
 #include "iostream"
 
+#include "graph_printfunctions.h"
+#include "graph_aux_functions.h"
+
 Graph::PathLength SteinerVertexInsertion::process_node(Graph::NodeId node_to_insert, const Graph& original_graph,
                                           Insertion_Tree_Data_Structure &tree_data_structure) {
 
@@ -96,7 +99,7 @@ Graph::PathLength SteinerVertexInsertion::evaluate_neighborhood(const Subgraph &
         //debug
         if(id==50 || id==11) {
 
-            int var = 0;
+            //int var = 0;
             //std::cout << "AChtungg";
 
         }
@@ -122,9 +125,13 @@ Graph::PathLength SteinerVertexInsertion::evaluate_neighborhood(const Subgraph &
 void SteinerVertexInsertion::find_local_minimum(Subgraph &input_subgraph) {
 
     //? Wurzel iwie wählen?
-    Graph::NodeId root_of_tree_data_structure =  input_subgraph.this_graph().get_vect_term()[0];
+    Graph::NodeId root_of_tree_data_structure =  input_subgraph.this_graph().get_terminals()[0];
 
     Insertion_Tree_Data_Structure tree_data_structure(input_subgraph, root_of_tree_data_structure);
+
+    //debug
+    //std::cout << "Wurzel: " << root_of_tree_data_structure +1 << "\n";
+    //GraphAuxPrint::print_edge_vect(input_subgraph.original_graph(), tree_data_structure.get_all_edges_as_original_edge_ids());
 
     // Zwischenspeicher für die hinzugefügten Knoten (als NodeIds im zugrundeliegenden Graphen)
     std::vector<Graph::NodeId> added_nodes;
@@ -144,7 +151,16 @@ void SteinerVertexInsertion::find_local_minimum(Subgraph &input_subgraph) {
         }
     }
 
+    //debug
+    //std::cout << "nach der Schleife: \n";
+    //GraphAuxPrint::print_edge_vect(input_subgraph.original_graph(), tree_data_structure.get_all_edges_as_original_edge_ids());
+
     //führe die Modifikationen, die wir bereits in der Baum-Datenstruktur vollzogen haben, auch im Subgraphen aus
     input_subgraph.add_nodes(added_nodes);
     input_subgraph.reset_edges(tree_data_structure.get_all_edges_as_original_edge_ids());
+
+    GraphAux::remove_steinerbranches(input_subgraph);
+
+    //debug
+    //GraphAuxPrint::print_subgraph(input_subgraph);
 }

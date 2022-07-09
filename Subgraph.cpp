@@ -173,5 +173,7 @@ void Subgraph::reset_edges(const std::vector<Graph::EdgeId> &new_original_edgeid
 
         _this_graph.add_edge(node_a, node_b, curr_edge.weight());
     }
+
+    _original_edgeids = new_original_edgeids;
 }
 

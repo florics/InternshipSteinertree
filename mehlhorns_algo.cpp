@@ -19,7 +19,7 @@
 //? Graph const machen!
 Subgraph mehlhorns_algo(Graph& input_graph) {
 
-    Voronoi_diagram vor_diag(input_graph.get_vect_term(), input_graph);
+    Voronoi_diagram vor_diag(input_graph.get_terminals(), input_graph);
     std::vector<std::vector<std::pair<Graph::EdgeId, Graph::PathLength>>> min_bound_edges = compute_min_bound_edges_of_vd(vor_diag);
 
     Graph aux_graph = construct_aux_graph_of_vd(vor_diag, min_bound_edges);

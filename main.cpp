@@ -37,6 +37,7 @@ int main() {
     GraphAuxPrint::print_length_of_all_edges(sol_sg.this_graph());
 
     SteinerVertexInsertion::find_local_minimum(sol_sg);
+    SteinerVertexElim::complete_algorithm(sol_sg);
 
     Graph::PathLength value_after = GraphAux::length_of_all_edges(sol_sg.this_graph());
     GraphAuxPrint::print_length_of_all_edges(sol_sg.this_graph());
@@ -44,35 +45,38 @@ int main() {
 
 
     std::vector<Graph> my_graphs =
-          DebugTests::get_test_instances_from_file("C:\\Users\\Lukas\\CLionProjects\\PraktikumSteinerbaum\\Pfade_von_TestInstanzen\\VariableFile");
+          DebugTests::get_test_instances_from_file("C:\\Users\\Lukas\\CLionProjects\\PraktikumSteinerbaum\\Pfade_von_TestInstanzen\\Mix1");
     //std::vector<Graph> my_graphs = DebugTests::get_standard_test_instances();
 
     //int improve_counter = 0;
     for(unsigned int i=0; i<my_graphs.size(); i++) {
 
-        //std::cout << i << "\n";
-        //fflush(stdout);
+        std::cout << i << "\n";
+        fflush(stdout);
 
         Subgraph sol_sg = mehlhorns_algo(my_graphs[i]);
 
+        //GraphAuxPrint::print_subgraph(sol_sg);
+
         //Graph::PathLength value_before = GraphAux::length_of_all_edges(sol_sg.this_graph());
-        //GraphAuxPrint::print_length_of_all_edges(sol_sg.this_graph());
+        GraphAuxPrint::print_length_of_all_edges(sol_sg.this_graph());
 
         SteinerVertexInsertion::find_local_minimum(sol_sg);
-        //SteinerVertexElim::complete_algorithm(sol_sg);
+        SteinerVertexElim::complete_algorithm(sol_sg);
         //KeyVertexElim::complete_algorithm(sol_sg);
         //KeyPathExch::complete_algorithm(sol_sg);
 
         //Graph::PathLength value_after = GraphAux::length_of_all_edges(sol_sg.this_graph());
-        //GraphAuxPrint::print_length_of_all_edges(sol_sg.this_graph());
-
-        /*if( value_after < value_before) {
+        GraphAuxPrint::print_length_of_all_edges(sol_sg.this_graph());
+/*
+        if( value_after < value_before) {
             improve_counter ++;
-        }*/
-
+        }
+*/
     }
 
     //std::cout << improve_counter << " von " << my_graphs.size() << " Instanzen wurden verbessert. \n";
+
 
     return 0;
 }

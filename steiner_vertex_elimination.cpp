@@ -26,8 +26,8 @@ namespace SteinerVertexElim {
     // falls das Entfernen des Eingabeknotens (Steinerknoten) zu einer Verbesserung der Lösung führt,
     // wird die entsprechende Veränderung des Graphen ausgegeben
     // falls es keine echte Verbesserung gibt, wird ein leeres ImprovingChangement ausgegeben
-    // Ausgabe: die edges_to_remove sind EdgeIds der aktuellen Lösung,
-    // die edges_to_insert sind EdgeIds des zugrundeliegenden Graphen.
+    // (zur Ausgabe: Die edges_to_remove sind EdgeIds der aktuellen Lösung,
+    // die edges_to_insert sind EdgeIds des zugrundeliegenden Graphen.)
     // der Eingabeknoten darf auch ein Terminal sein, dann werden lediglich die Strukturen aktualisiert
     ImprovingChangement process_node(const Subgraph& input_subgraph,
                                      Graph::NodeId start_node_id,
@@ -157,7 +157,7 @@ SteinerVertexElim::evaluate_neighborhood(Subgraph &input_subgraph, LocalSearchAu
 
     //richte den Graph mit beliebiger (?) Wurzel, berechne Reihenfolge der Knoten für die Prozessierung
     //? hier kann man root_id frei wählen
-    Graph::NodeId root_id = solution_graph.get_vect_term()[0];
+    Graph::NodeId root_id = solution_graph.get_terminals()[0];
     solution_graph.make_rooted_arborescence(root_id);
     std::vector<Graph::NodeId> nodes_in_postorder = SteinerVertexElim::get_nodes_in_postorder(solution_graph, root_id);
 

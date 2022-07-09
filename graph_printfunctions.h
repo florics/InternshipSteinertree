@@ -62,5 +62,7 @@ namespace GraphAuxPrint {
     //void print_thisgraph_of_subgraph(const Subgraph& input_subgraph);
 
     void print_edge_sequence(const Graph& input_graph, const EdgeSequence &input_path);
+
+    void print_edge_vect(const Graph& input_graph, const std::vector<Graph::EdgeId> &input_edges);
 }
 #endif //PRAKTIKUMSTEINERBAUM_GRAPH_PRINTFUNCTIONS_H

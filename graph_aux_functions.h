@@ -53,9 +53,8 @@ namespace GraphAux{
     Graph copygraph_wo_iso_nodes(const Graph& input_graph);
     Subgraph copy_subgraph_wo_iso_nodes(const Subgraph& input_graph);
     //gibt Kopie des Graphen aus, in der alle Nicht-Terminale mit Knotengrad 1 entfernt wurden
-    //todo: die Funktionen sind nicht ganz korrekt, es könnten nach Entfernen der Steinerblätter neue Steinerblätter entstehen
     //? Graph copygraph_wo_steinerleafs(const Graph& input_graph);
-    Subgraph copy_subgraph_wo_steinerleafs_old(const Subgraph& input_subgraph);
+    //? Subgraph copy_subgraph_wo_steinerleafs_old(const Subgraph& input_subgraph);
     void remove_steinerbranches(Subgraph& input_subgraph);
 
     //gibt das Gewicht des gesamten Graphen aus

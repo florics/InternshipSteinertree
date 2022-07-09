@@ -28,7 +28,7 @@ void GraphAuxPrint::print_graph(const Graph& input_graph) {
     std::cout << "\n";
 
     std::cout<< "SECTION Terminals \n";
-    std::vector<Graph::NodeId> vect_term = input_graph.get_vect_term();
+    std::vector<Graph::NodeId> vect_term = input_graph.get_terminals();
     std::cout << "Terminals " << vect_term.size() << "\n";
     for (unsigned int id : vect_term){
         std::cout << "T ";
@@ -58,7 +58,7 @@ void GraphAuxPrint::print_subgraph(const Subgraph& input_subgraph) {
     std::cout << "\n";
 
     std::cout<< "SECTION Terminals \n";
-    std::vector<Graph::NodeId> vect_term = this_graph.get_vect_term();
+    std::vector<Graph::NodeId> vect_term = this_graph.get_terminals();
     std::cout << "Terminals " << vect_term.size() << "\n";
     for (unsigned int id : vect_term){
         std::cout << "T ";
@@ -87,7 +87,7 @@ void GraphAuxPrint::print_graph_by_id(const Graph& input_graph){
     std::cout << "\n";
 
     std::cout<< "SECTION Terminals \n";
-    std::vector<Graph::NodeId> vect_term = input_graph.get_vect_term();
+    std::vector<Graph::NodeId> vect_term = input_graph.get_terminals();
     std::cout << "Terminals " << vect_term.size() << "\n";
     for (unsigned int id : vect_term){
         std::cout << "T ";
@@ -241,6 +241,16 @@ void GraphAuxPrint::print_edge_sequence(const Graph& input_graph, const EdgeSequ
     std::cout << " : \n";
     for(auto curr_edge: var_edges) {
         GraphAuxPrint::print_edge_as_pair(input_graph, curr_edge);
+        std::cout << "\n";
+    }
+}
+
+void GraphAuxPrint::print_edge_vect(const Graph &input_graph, const std::vector<Graph::EdgeId> &input_edges) {
+    std::cout << "Aufruf von (GraphAuxPrint::print_edge_vect): \n";
+    for(auto curr_edge: input_edges) {
+        GraphAuxPrint::print_edge_as_pair(input_graph, curr_edge);
+        std::cout << "  ";
+        GraphAuxPrint::print_edgeweight(input_graph.get_edge(curr_edge).weight());
         std::cout << "\n";
     }
 }

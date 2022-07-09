@@ -282,6 +282,7 @@ Subgraph GraphAux::copy_subgraph_wo_iso_nodes(const Subgraph &input_subgraph) {
     return output;
 }
 
+/*?
 Subgraph GraphAux::copy_subgraph_wo_steinerleafs_old(const Subgraph &input_subgraph) {
     const Graph& input_graph = input_subgraph.this_graph();
     const Graph& original_graph = input_subgraph.original_graph();
@@ -342,6 +343,7 @@ Subgraph GraphAux::copy_subgraph_wo_steinerleafs_old(const Subgraph &input_subgr
 
     return output;
 }
+*/
 
 Graph::PathLength GraphAux::length_of_all_edges(const Graph& input_graph) {
     Graph::PathLength output = 0;
@@ -401,7 +403,7 @@ bool GraphAux::check_if_connected(const Graph &input_graph) {
 }
 
 bool GraphAux::check_if_terminals_connected(const Graph &input_graph) {
-    std::vector<Graph::NodeId> terminals = input_graph.get_vect_term();
+    std::vector<Graph::NodeId> terminals = input_graph.get_terminals();
 
     // wenn höchstens ein Terminal existiert, liegen alle in einer ZHK
     if( terminals.size() < 2) {
@@ -500,7 +502,7 @@ std::vector<bool> GraphAux::compute_steiner_branches(const Graph &input_graph) {
     std::vector<bool> nodes_in_st_branch(input_graph.num_nodes(), false);
 
     std::vector<Graph::NodeId> steinernodes_in_postorder =
-            GraphAux::get_steinernodes_in_postorder(input_graph, input_graph.get_vect_term()[0]);
+            GraphAux::get_steinernodes_in_postorder(input_graph, input_graph.get_terminals()[0]);
 
     //berechne die Anzahl der Nachbarn für alle Steinerknoten
 

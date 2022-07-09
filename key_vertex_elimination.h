@@ -78,9 +78,8 @@ namespace KeyVertexElim{
                                     const std::vector<Graph::EdgeId>& horiz_bound_edges);
 
     // fügt die (alten) vertikalen boundary egdes zum Supergraphen hinzu
-    void find_and_add_vertical_bound_edges(const Subgraph& input_subgraph,
+    void find_and_add_vertical_bound_edges(Graph::NodeId start_node_id,
                                            const Voronoi_diagram& vor_diag,
-                                           Graph::NodeId start_node_id,
                                            Ext_Union_Find_Structure &subtrees_ufs,
                                            Edge_Heaps &vert_bound_edge_heaps,
                                            LocalSearchAux::MovesPerPass moves_per_pass,

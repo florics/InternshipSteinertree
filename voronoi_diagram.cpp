@@ -14,6 +14,7 @@
 #include "graph_aux_functions.h"
 #include "graph_printfunctions.h"
 
+/*
 Voronoi_diagram::Voronoi_diagram(Graph& input_graph):
     _original_graph(input_graph)
 {
@@ -30,6 +31,7 @@ Voronoi_diagram::Voronoi_diagram(Graph& input_graph):
 
     _dist_to_base.assign(num_nodes, Graph::infinite_length);
 }
+*/
 
 Voronoi_diagram::Voronoi_diagram(const std::vector<Graph::NodeId>& set_of_b, const Graph& input_graph):
     _original_graph(input_graph)
@@ -47,10 +49,10 @@ Voronoi_diagram::Voronoi_diagram(const std::vector<Graph::NodeId>& set_of_b, con
         }
     }
     //und für die Kantengewichte von dem Graphen g
-    if(not GraphAux::edgeweight_nonnegative(_original_graph)){
+    if(not GraphAux::check_if_graph_has_nonnegative_weights(_original_graph)){
         throw std::runtime_error("(constructor Voronoi_diagram) es gibt negative Kantengewichte im Eingabegraphen");
     }
-    if(not GraphAux::edgeweight_finite(_original_graph) ){
+    if(not GraphAux::check_if_graph_has_finite_weights(_original_graph) ){
         throw std::runtime_error("(constructor Voronoi_diagram) es gibt Kante im Eingabegraphen mit 'unendlichem' Gewicht");
     }
 
@@ -437,7 +439,7 @@ std::vector<Graph::NodeId> Voronoi_diagram::compute_set_of_bases() const {
     return set_of_bases;
 }
 
-std::vector<Voronoi_diagram::BaseId> Voronoi_diagram::compute_base_ids() const {
+const std::vector<Voronoi_diagram::BaseId> Voronoi_diagram::compute_base_ids() const {
     std::vector<Graph::NodeId> base_ids (_original_graph.num_nodes(), Graph::invalid_node_id);
 
     std::vector<Graph::NodeId> set_of_bases = compute_set_of_bases();
@@ -450,50 +452,8 @@ std::vector<Voronoi_diagram::BaseId> Voronoi_diagram::compute_base_ids() const {
     return base_ids;
 }
 
+
 std::vector<Graph::NodeId> Voronoi_diagram::compute_vor_region(Graph::NodeId input_base) {
-    if(not check_if_base(input_base)) {
-        throw std::runtime_error("(Voronoi_diagram::compute_vor_region) Eingabeknoten ist keine Basis.");
-    }
-
-    // Ausgabe
-    std::vector<Graph::NodeId> vor_region(1, input_base);
-
-    //es folgt eine Graphendurchmusterung
-
-    std::vector<Graph::NodeId> next_nodes(1, input_base);
-
-    //Markierung als 'betrachtet', siehe unten
-    _base[input_base] = Graph::invalid_node_id;
-
-    while(not next_nodes.empty()) {
-        Graph::NodeId curr_node_id = next_nodes.back();
-        next_nodes.pop_back();
-
-        for(auto curr_neighbor_id: original_graph().adjacency_vect(curr_node_id) ) {
-            if(_base[curr_neighbor_id] == input_base) {
-                next_nodes.push_back(curr_neighbor_id);
-
-                //markiere den Knoten als "betrachtet"
-                //das ist der Grund, weshalb diese Funktion (sowie alle, die sie benutzen) nicht const ist
-                // (ein Vektor mit Länge original_nodes.num_nodes() würde zu Laufzeit O(n) führen)
-                _base[curr_neighbor_id] = Graph::invalid_node_id;
-
-                vor_region.push_back(curr_neighbor_id);
-            }
-        }
-
-    }
-
-    //mache die Markierungen rückgängig
-    for(auto var_node_id : vor_region) {
-        _base[var_node_id] = input_base;
-    }
-
-    return vor_region;
-}
-
-//todo: die andere Fktn löschen, diese hier umbenennen
-std::vector<Graph::NodeId> Voronoi_diagram::compute_vor_region_fast(Graph::NodeId input_base) {
     if(not check_if_base(input_base)) {
         throw std::runtime_error("(Voronoi_diagram::compute_vor_region) Eingabeknoten ist keine Basis.");
     }
@@ -536,24 +496,6 @@ std::vector<Graph::NodeId> Voronoi_diagram::compute_vor_region_fast(Graph::NodeI
     return vor_region;
 }
 
-//löschen?
-void Voronoi_diagram::compute_vor_region_subroutine(Graph::NodeId input_base, Graph::NodeId curr_node_id,
-                                                    std::vector<Graph::NodeId>& vor_region) {
-    vor_region.push_back(curr_node_id);
-    //markiere den Knoten als "betrachtet", um die Rekursion nicht mehrfach für den gleichen Knoten aufzurufen
-    //das ist der Grund, weshalb diese Funktion (sowie alle, die sie benutzen) nicht const ist
-    // (ein Vektor mit Länge original_nodes.num_nodes() würde zu Laufzeit O(n) führen)
-    _base[curr_node_id] = Graph::invalid_node_id;
-
-    for( auto curr_neighbor_id: original_graph().adjacency_vect(curr_node_id) ){
-
-        if (_base[curr_neighbor_id] == input_base) {
-            compute_vor_region_subroutine(input_base, curr_neighbor_id, vor_region);
-        }
-
-    }
-
-}
 
 std::vector< Graph::NodeId > Voronoi_diagram::compute_some_vor_regions(const std::vector<Graph::NodeId>& subset_of_bases) {
     std::vector< Graph::NodeId > output;
@@ -561,7 +503,7 @@ std::vector< Graph::NodeId > Voronoi_diagram::compute_some_vor_regions(const std
 
     for( auto curr_base : subset_of_bases) {
         if(check_if_base(curr_base)) {
-            const std::vector<Graph::NodeId>& curr_vor_region = compute_vor_region_fast(curr_base);
+            const std::vector<Graph::NodeId>& curr_vor_region = compute_vor_region(curr_base);
             output.insert( output.end(), curr_vor_region.begin(), curr_vor_region.end() );
         } else {
             throw std::runtime_error("(Voronoi_diagram::compute_some_vor_regions) Eingabemenge keine Teilmenge der Basen.");

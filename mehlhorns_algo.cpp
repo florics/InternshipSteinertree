@@ -16,44 +16,72 @@
 
 //todo: glaub man kann hier noch so Subgraph-Dinge beschleunigen, wie in LocalSearchAux::perform_improving_changements
 
+namespace Mehlhorn {
+
+    //berechnet die boundary edges (1. Eintrag des pair), die auf kürz. Weg zwischen den entsprechenden Basen liegen,
+    // sowie die Länge dieses Weges (2. Eintrag des pair)
+    // (genauer: die Kanten (v,w), die _dist_to_base[v] + (v,w).weight() + _dist_to_base[w] minimieren)
+    //Eintrag (i,j) der ausgegebenen "Matrix" entspricht den Basen i+1 und j (wobei i>=j)
+    // (wenn man die Basen durchnummeriert (in der Reihenfolge ihrer NodeIds), wie in 'Voronoi_diagram::compute_base_ids')
+    std::vector< std::vector< std::pair< Graph::EdgeId, Graph::PathLength >>>
+    compute_min_bound_edges_of_vd(const Voronoi_diagram& input_vd);
+
+    //erstellt den Hilfsgraphen (auxiliary graph) für Mehlhorns ALgo. (in dem Paper als G'_1 notiert)
+    // die NodeIds der Knoten entsprechen der Durchnummerierung der Basen wie bei 'compute_min_bound_edges_of_vd'
+    Graph construct_aux_graph_of_vd(const Voronoi_diagram& input_vd,
+                                    const std::vector<
+                                            std::vector<
+                                                    std::pair<Graph::EdgeId, Graph::PathLength>>>& min_bound_edges);
+
+    //gibt den dem eingebenen Graphen (in Mehlhorns Algo. der MST des Hilfsgraphen(auxiliary graph)) entsprechenden
+    // Subgraphen des zugrundeliegenden Graphen aus
+    //Eingabe: min_bound_edges ist in dem Format wie die Ausgabe der Funktion compute_min_bound_edges_of_vd
+    // (so dass sich Eintrag (i,j) dieser 'Matrix' auf die Knoten des Hilfsgraphen mit NodeId i+1 und j bezieht)
+    Subgraph turn_into_subgraph_of_vds_original_graph(const Voronoi_diagram& input_vd,
+                                                      const Graph& graph_to_process,
+                                                      const std::vector<std::vector<std::pair<Graph::EdgeId,
+                                                      Graph::PathLength>>>& min_bound_edges);
+
+    //debug
+    //ruft min_bound_edges auf und gibt die ausgegebene Matrix auf Konsole aus (debug)
+    void print_min_bound_edges_of_vd(const Voronoi_diagram& input_vd);
+
+}
+
 //? Graph const machen!
-Subgraph mehlhorns_algo(Graph& input_graph) {
+Subgraph Mehlhorn::complete_algorithm(const Graph& input_graph) {
 
     Voronoi_diagram vor_diag(input_graph.get_terminals(), input_graph);
-    std::vector<std::vector<std::pair<Graph::EdgeId, Graph::PathLength>>> min_bound_edges = compute_min_bound_edges_of_vd(vor_diag);
 
-    Graph aux_graph = construct_aux_graph_of_vd(vor_diag, min_bound_edges);
+    std::vector<std::vector<std::pair<Graph::EdgeId, Graph::PathLength>>> min_bound_edges =
+            Mehlhorn::compute_min_bound_edges_of_vd(vor_diag);
 
-    //hier lassen oder ?
-    if( not GraphAux::check_if_connected(aux_graph) ) {
-        throw std::runtime_error("(mehlhorns_algo) Der auxiliary graph ist nicht zsmhängend, "
+    Graph aux_graph = Mehlhorn::construct_aux_graph_of_vd(vor_diag, min_bound_edges);
+
+    if( not GraphAux::check_if_graph_is_connected(aux_graph) ) {
+        throw std::runtime_error("(Mehlhorn::complete_algorithm) Der auxiliary graph ist nicht zsmhängend, "
                                  "d. h. es liegen nicht alle Terminale in einer Zusammnehangskomponente.");
     }
 
     Graph mst_of_aux_graph = GraphAlgorithms::mst_prim(aux_graph, 0);
 
-    Subgraph sub_of_mst_of_aux_graph = turn_into_subgraph_of_vds_original_graph(vor_diag, mst_of_aux_graph, min_bound_edges);
+    Subgraph sub_of_mst_of_aux_graph = Mehlhorn::turn_into_subgraph_of_vds_original_graph(vor_diag,
+                                                                                          mst_of_aux_graph,
+                                                                                          min_bound_edges);
 
     Subgraph output = GraphAlgorithms::mst_prim_for_subgraphs(sub_of_mst_of_aux_graph, 0);
 
     GraphAux::remove_steinerbranches(output);
 
-    /*
-    //debug
-    std::vector<Graph::NodeId> var_stleafs = GraphAux::get_steinerleafs(output.this_graph());
-    std::vector<Graph::NodeId> var_iso_nodes = GraphAux::get_isolated_nodes(output.this_graph());
-
-    if( (not var_stleafs.empty()) || (not var_iso_nodes.empty()) ) {
-        throw std::runtime_error("Fehler");
-        //debug
-    }*/
 
     return output;
 }
 
-std::vector<std::vector<std::pair<Graph::EdgeId, Graph::PathLength>>> compute_min_bound_edges_of_vd(const Voronoi_diagram& input_vd) {
+std::vector<std::vector<std::pair<Graph::EdgeId, Graph::PathLength>>>
+Mehlhorn::compute_min_bound_edges_of_vd(const Voronoi_diagram& input_vd) {
 
-    //Initialisierung der Ausgabe-Matrix: output[i][j] entspricht den Basen i+1, j (diese einfache Nummerierung der Basen wird hier mit base_ids gespeichert)
+    //Initialisierung der Ausgabe-Matrix: output[i][j] entspricht den Basen i+1, j
+    // (diese einfache Nummerierung der Basen wird hier mit base_ids gespeichert)
     std::vector<std::vector<std::pair<Graph::EdgeId, Graph::PathLength>>> output;
     output.reserve(input_vd.num_bases() -1);
     std::pair<Graph::EdgeId, Graph::PathLength> invalid_pair = {Graph::invalid_edge_id, Graph::infinite_length};
@@ -63,9 +91,9 @@ std::vector<std::vector<std::pair<Graph::EdgeId, Graph::PathLength>>> compute_mi
     }
 
     //Schleife über alle Kanten des Graphen, die boundary edges sind
-    std::vector<Graph::Edge> original_graph_edges = input_vd.original_graph().edges();
-    std::vector<Voronoi_diagram::BaseId> base_ids = input_vd.compute_base_ids();
-    for(auto curr_edge : original_graph_edges){
+    const std::vector<Graph::Edge>& original_graph_edges = input_vd.original_graph().edges();
+    const std::vector<Voronoi_diagram::BaseId> base_ids = input_vd.compute_base_ids();
+    for(const auto& curr_edge : original_graph_edges){
         if( input_vd.check_if_bound_edge(curr_edge) ){
 
             //prüfe, ob aktuelle Kante besser als gespeicherte Kante (update falls ja)
@@ -88,8 +116,9 @@ std::vector<std::vector<std::pair<Graph::EdgeId, Graph::PathLength>>> compute_mi
     return output;
 }
 
-Graph construct_aux_graph_of_vd(const Voronoi_diagram& input_vd,
-                                const std::vector<std::vector<std::pair<Graph::EdgeId, Graph::PathLength>>>& min_bound_edges) {
+Graph Mehlhorn::construct_aux_graph_of_vd(const Voronoi_diagram& input_vd,
+                                          const std::vector<std::vector<std::pair<Graph::EdgeId,
+                                          Graph::PathLength>>>& min_bound_edges) {
     Graph output(0);
 
     //Laufzeit? O(n)
@@ -109,14 +138,16 @@ Graph construct_aux_graph_of_vd(const Voronoi_diagram& input_vd,
         }
     }
 
-    //todo: checken, dass alle Terminale erreichbar, d. h. dass der Ausgabe-Graph zsmhängend ist
-
     return output;
 }
 
-Subgraph turn_into_subgraph_of_vds_original_graph(const Voronoi_diagram& input_vd,
-                                                  const Graph& input_graph,
-                                                  const std::vector<std::vector<std::pair<Graph::EdgeId, Graph::PathLength>>>& min_bound_edges) {
+Subgraph Mehlhorn::turn_into_subgraph_of_vds_original_graph(const Voronoi_diagram& input_vd,
+                                                            const Graph& graph_to_process,
+                                                            const std::vector<
+                                                                    std::vector<
+                                                                            std::pair<
+                                                                                    Graph::EdgeId, Graph::PathLength>>>&
+                                                                                        min_bound_edges) {
     const Graph& original_graph = input_vd.original_graph();
 
     //speichert zu jeder Kante des Ausgabegraphen die EdgeIds des zugrundeliegenden Graphen
@@ -125,21 +156,27 @@ Subgraph turn_into_subgraph_of_vds_original_graph(const Voronoi_diagram& input_v
     //speichert die schon hinzugefügten Kanten, sodass wir keine Kanten mehrfach hinzufügen
     std::vector<bool> added_edges(original_graph.num_edges(), false);
 
-    for( auto curr_input_edge : input_graph.edges() ) {
+    for( const auto& curr_input_edge : graph_to_process.edges() ) {
+
         //zugehörige boundary edge des ursprünglichen Graphen finden
         std::pair<Graph::NodeId, Graph::NodeId> curr_input_edge_nodes = curr_input_edge.get_nodes_orderedbyid();
-        Graph::EdgeId original_bound_edge_id = min_bound_edges[curr_input_edge_nodes.second - 1][curr_input_edge_nodes.first].first;
+        Graph::EdgeId original_bound_edge_id =
+                min_bound_edges[curr_input_edge_nodes.second - 1][curr_input_edge_nodes.first].first;
 
-        std::vector<Graph::EdgeId> edges_of_curr_path = VorDiagAux::compute_bound_path_as_vect(input_vd, original_bound_edge_id);
+        std::vector<Graph::EdgeId> edges_of_curr_path =
+                VorDiagAux::compute_bound_path_as_vect(input_vd, original_bound_edge_id);
 
         for(auto var_edge_to_add: edges_of_curr_path ) {
+
             if( not added_edges[var_edge_to_add]) {
+
                 output_original_edge_ids.push_back(var_edge_to_add);
                 added_edges[var_edge_to_add] = true;
             }
         }
     }
 
+    //todo hierfür Konstruktor implementieren
     Graph null_graph(0);
     Subgraph output(original_graph, null_graph, std::vector<Graph::NodeId>(), std::vector<Graph::NodeId>(), std::vector<Graph::EdgeId>());
     output.reset(output_original_edge_ids);
@@ -148,7 +185,7 @@ Subgraph turn_into_subgraph_of_vds_original_graph(const Voronoi_diagram& input_v
 }
 
 
-void print_min_bound_edges_of_vd(const Voronoi_diagram& input_vd) {
+void Mehlhorn::print_min_bound_edges_of_vd(const Voronoi_diagram& input_vd) {
     std::vector<std::vector<std::pair<Graph::EdgeId, Graph::PathLength>>> output = compute_min_bound_edges_of_vd(input_vd);
     const std::vector<Graph::NodeId>& set_of_bases = input_vd.compute_set_of_bases();
 

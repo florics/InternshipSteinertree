@@ -87,7 +87,8 @@ Graph::EdgeId Insertion_Tree_Data_Structure::get_original_edge_id_of_ingoing_edg
     return _original_edge_ids_of_ingoing_edges[input_node];
 }
 
-std::vector<Graph::EdgeId> Insertion_Tree_Data_Structure::get_all_edges_as_original_edge_ids() const {
+//gibt alle Einträge von _original_edge_ids_of_ingoing_edges aus, bis auf den ungültigen (der zu der Wurzel gehört)
+const std::vector<Graph::EdgeId> Insertion_Tree_Data_Structure::get_all_edges_as_original_edge_ids() const {
     std::vector<Graph::EdgeId> output = _original_edge_ids_of_ingoing_edges;
     //? wenn Wurzel bekannt, geht das schneller
     for(unsigned int i = 0; i < output.size(); i++) {

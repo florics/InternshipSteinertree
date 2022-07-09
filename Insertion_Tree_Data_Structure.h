@@ -10,7 +10,6 @@
 
 // Datenstruktur für Steiner-Vertex-Insertion
 
-//todo: einiges private machen
 
 class Insertion_Tree_Data_Structure {
 public:
@@ -29,12 +28,9 @@ public:
 
     Graph::EdgeId get_original_edge_id_of_ingoing_edge(Insertion_Tree_Data_Structure::NodeId input_node) const;
 
-    std::vector<Graph::EdgeId> get_all_edges_as_original_edge_ids() const;
+    const std::vector<Graph::EdgeId> get_all_edges_as_original_edge_ids() const;
 
     Insertion_Tree_Data_Structure::NodeId get_tree_nodeid_of_original_node(Graph::NodeId input_node) const;
-
-    // berechnet den Abstand des Eingabeknotens zur Wurzel
-    Depth compute_depth(Insertion_Tree_Data_Structure::NodeId input_node) const;
 
     // fügt Knoten mit entsprechenden Parametern zur Datenstruktur hinzu
     // seine NodeId innerhalb der Struktur ist dann die alte Anzahl an Knoten
@@ -53,9 +49,6 @@ public:
         Graph::EdgeWeight weight;
         Graph::EdgeId orig_edge_id;
     };
-
-    // gibt die eingehende Kante des Eingabeknoten aus
-    TreeEdge get_ingoing_tree_edge(Insertion_Tree_Data_Structure::NodeId input_node) const;
 
     //setzt die Eingabekanten ein (ohne dabei zu prüfen, ob Kreise entstehen oder der Zusammenhang zerstört wird)
     void reinsert_removed_edges(const std::vector<TreeEdge>&  removed_edges);
@@ -100,6 +93,13 @@ private:
     //speichert zu jedem Knoten aus dem zugrundeliegenden Graphen (nicht der Graph, den die Datenstruktur repräsentiert)
     // die NodeId in der Datenstruktur
     std::vector<Insertion_Tree_Data_Structure::NodeId> _tree_nodeids_of_original_nodes;
+
+
+    // gibt die eingehende Kante des Eingabeknoten aus
+    TreeEdge get_ingoing_tree_edge(Insertion_Tree_Data_Structure::NodeId input_node) const;
+
+    // berechnet den Abstand des Eingabeknotens zur Wurzel
+    Depth compute_depth(Insertion_Tree_Data_Structure::NodeId input_node) const;
 
 };
 

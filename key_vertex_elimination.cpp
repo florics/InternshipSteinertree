@@ -332,9 +332,8 @@ Voronoi_diagram::RestoreData KeyVertexElim::find_and_add_new_bound_edges(const S
     return vor_diag_restore_data;
 }
 
-void KeyVertexElim::find_and_add_vertical_bound_edges(const Subgraph& input_subgraph,
+void KeyVertexElim::find_and_add_vertical_bound_edges(Graph::NodeId start_node_id,
                                                       const Voronoi_diagram& vor_diag,
-                                                      Graph::NodeId start_node_id,
                                                       Ext_Union_Find_Structure &subtrees_ufs,
                                                       Edge_Heaps &vert_bound_edge_heaps,
                                                       LocalSearchAux::MovesPerPass moves_per_pass,
@@ -342,10 +341,6 @@ void KeyVertexElim::find_and_add_vertical_bound_edges(const Subgraph& input_subg
                                                       const std::vector<std::vector<Graph::NodeId>> &vect_internal_nodes,
                                                       const std::vector<Graph::NodeId>& crucial_children,
                                                       Supergraph_KVE &super_graph) {
-    //todo nach debug: 'const Subgraph& input_subgraph,' und 'const Voronoi_diagram& vor_diag,' entfernen
-
-    //debug
-    // std::cout << "Aufruf von KeyVertexElim::find_and_add_vertical_bound_edges: \n";
 
     //clean up vorbereiten:
     // markiere alle Knoten aus den Subbäumen, die zu crucial children von dem aktuellen Knoten gehören,
@@ -400,13 +395,13 @@ std::vector<Graph::EdgeId> KeyVertexElim::get_edges_to_insert(Supergraph_KVE::Bo
     std::vector<Graph::EdgeId> output;
 
     //Schleife über alle Kanten des MST (Subgraph des Supergraphen)
-    for(auto curr_edge: mst_of_supergraph.this_graph().edges()) {
+    for(const auto& curr_edge: mst_of_supergraph.this_graph().edges()) {
 
         //finde die edge id im supergraph
         const Graph::EdgeId curr_edge_id_in_supergraph = mst_of_supergraph.original_edgeids()[ curr_edge.edge_id() ];
 
         //prüfe, ob neue bzw. alte boundary edge
-        if( super_graph.get_superedges_corresponding_to_new_bound_edges()[curr_edge_id_in_supergraph] == bound_edge_type ) {
+        if(super_graph.superedges_corresponding_to_new_bound_edges()[curr_edge_id_in_supergraph] == bound_edge_type ) {
             //finde die edge id im zugrundeliegenden Graph (zugrundeliegend bzgl. der aktuellen Lösung)
             const Graph::EdgeId curr_original_edge_id = super_graph.original_edge_ids()[ curr_edge_id_in_supergraph ];
 
@@ -545,19 +540,20 @@ ImprovingChangement KeyVertexElim::process_node(const Subgraph& input_subgraph,
     KeyVertexElim::add_horizontal_bound_edges(input_subgraph, vor_diag, subtrees_ufs, moves_per_pass, forbidden,
                                               super_graph, horiz_bound_edges_lists.get_list(start_node_id) );
 
-    KeyVertexElim::find_and_add_vertical_bound_edges(input_subgraph, vor_diag, start_node_id, subtrees_ufs, vert_bound_edge_heaps, moves_per_pass,
-                                                     forbidden, vect_internal_nodes, crucial_children,super_graph);
+    KeyVertexElim::find_and_add_vertical_bound_edges(start_node_id, vor_diag, subtrees_ufs, vert_bound_edge_heaps,
+                                                     moves_per_pass, forbidden, vect_internal_nodes, crucial_children,
+                                                     super_graph);
 
     Voronoi_diagram::RestoreData vor_diag_restore_data =
-            KeyVertexElim::find_and_add_new_bound_edges(input_subgraph, start_node_id, vor_diag, subtrees_ufs, moves_per_pass,
-                                                        forbidden, vect_internal_nodes, super_graph);
+            KeyVertexElim::find_and_add_new_bound_edges(input_subgraph, start_node_id, vor_diag, subtrees_ufs,
+                                                        moves_per_pass, forbidden, vect_internal_nodes, super_graph);
 
     // reset der super_id's auf den default-Wert 0
     subtrees_ufs.reset_superids(crucial_children);
 
     //falls der Supergraph nicht zusammenhängend ist, können wir keine Nachbarschaftslösung finden
     // (also nur Aktualisieren der Strukturen)
-    if( not GraphAux::check_if_connected(super_graph.this_graph()) ){
+    if( not GraphAux::check_if_graph_is_connected(super_graph.this_graph()) ){
 
         vor_diag.restore(vor_diag_restore_data);
 

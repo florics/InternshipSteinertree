@@ -96,7 +96,7 @@ std::vector< Graph::EdgeId > VorDiagAux::get_bound_edges_inc_to_nodeset(const Vo
 std::vector<Graph::EdgeId> VorDiagAux::get_all_bound_edges(const Voronoi_diagram& input_vd) {
     std::vector<Graph::EdgeId> output;
 
-    for(auto curr_edge : input_vd.original_graph().edges()) {
+    for(const auto& curr_edge : input_vd.original_graph().edges()) {
         if( input_vd.check_if_bound_edge(curr_edge) ) {
             output.push_back(curr_edge.edge_id());
         }

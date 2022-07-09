@@ -47,9 +47,9 @@ public:
 
 private:
 
-    //setzt alle Attribute des Subgraphen auf die der Eingabe (bis auf original_graph)
-    void assign(Graph& new_this_graph, std::vector<Graph::NodeId>& new_subgraph_nodeids_of_nodes_in_originalgraph,
-                std::vector<Graph::NodeId>& new_original_nodeids,  std::vector<Graph::EdgeId>& new_original_edgeids);
+    //setzt alle Attribute des Subgraphen auf die der Eingabe (bis auf original_graph) ?
+    //void assign(Graph& new_this_graph, std::vector<Graph::NodeId>& new_subgraph_nodeids_of_nodes_in_originalgraph,
+      //          std::vector<Graph::NodeId>& new_original_nodeids,  std::vector<Graph::EdgeId>& new_original_edgeids);
 
     //zugrundeliegender Graph, Objekt repräsentiert einen Sugraphen bzgl. dieses Graphen
     const Graph& _original_graph;

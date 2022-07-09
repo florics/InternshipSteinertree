@@ -197,7 +197,7 @@ Graph GraphAlgorithms::compute_spann_forest(const Graph &input_graph) {
     Graph output_graph(input_graph.num_nodes());
     Union_Find_Structure ufs(input_graph.num_nodes());
 
-    for (auto curr_edge: input_graph.edges()) {
+    for( const auto& curr_edge: input_graph.edges()) {
         Graph::NodeId curr_node_a = curr_edge.node_a();
         Graph::NodeId curr_node_b = curr_edge.node_b();
 

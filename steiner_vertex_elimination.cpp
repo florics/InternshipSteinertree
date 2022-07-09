@@ -234,7 +234,7 @@ ImprovingChangement SteinerVertexElim::process_node(const Subgraph& input_subgra
 
     //falls der Supergraph nicht zusammenhängend ist, können wir für den aktuellen Knoten keine Nachbarschaftslösung finden,
     // wir aktualisieren also nun nur noch die Strukturen, die Ausgabe ist dementsprechend leer
-    if( not GraphAux::check_if_connected(super_graph.this_graph()) ) {
+    if( not GraphAux::check_if_graph_is_connected(super_graph.this_graph()) ) {
         update_ufs_and_edge_heaps(input_subgraph, start_node_id, children, subtrees_ufs, vert_edge_heaps);
 
         return ImprovingChangement(std::vector<Graph::EdgeId>(), std::vector<Graph::EdgeId>(), 0);
@@ -337,7 +337,7 @@ std::vector<Graph::NodeId> SteinerVertexElim::get_steiner_nodes(const Graph& inp
     std::vector<Graph::NodeId> steiner_nodes;
     steiner_nodes.reserve(input_graph.num_nodes());
 
-    for(auto curr_node: input_graph.nodes()) {
+    for( const auto& curr_node: input_graph.nodes()) {
         if( not curr_node.check_if_terminal() ) {
             steiner_nodes.push_back(curr_node.node_id());
         }
@@ -364,7 +364,7 @@ Horizontal_Edges_Lists SteinerVertexElim::compute_horizontal_edges(const Subgrap
 
     NCA_Tree_Data_Structure tree_structure(solution_graph, root);
 
-    for( auto curr_edge: original_graph.edges()) {
+    for( const auto& curr_edge: original_graph.edges()) {
 
         Graph::EdgeId curr_edge_id = curr_edge.edge_id();
 
@@ -547,7 +547,7 @@ std::vector<Graph::EdgeId> SteinerVertexElim::get_edges_to_insert(const Subgraph
     std::vector<bool> added_edges(instance_original_graph.num_edges(), false);
 
     //Schleife über alle Kanten des MST (Subgraph des Supergraphen)
-    for(auto curr_edge: mst_of_supergraph.this_graph().edges()) {
+    for(const auto& curr_edge: mst_of_supergraph.this_graph().edges()) {
 
         //finde die edge id im supergraph
         Graph::EdgeId curr_edge_id_in_supergraph = mst_of_supergraph.original_edgeids()[ curr_edge.edge_id() ];

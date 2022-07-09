@@ -16,7 +16,7 @@ void GraphAuxPrint::print_graph(const Graph& input_graph) {
     std::cout << "SECTION Graph \n";
     std::cout << "Nodes " << input_graph.num_nodes() << "\n";
     std::cout << "Edges " << input_graph.num_edges() << "\n";
-    for(auto var_edge : input_graph.edges()){
+    for(const auto& var_edge : input_graph.edges()){
         std::cout << "E ";
         GraphAuxPrint::print_nodename(var_edge.node_a());
         std::cout << " ";
@@ -46,7 +46,7 @@ void GraphAuxPrint::print_subgraph(const Subgraph& input_subgraph) {
     std::cout << "SECTION Graph \n";
     std::cout << "Nodes " << this_graph.num_nodes() << "\n";
     std::cout << "Edges " << this_graph.num_edges() << "\n";
-    for(auto var_edge : this_graph.edges()){
+    for(const auto& var_edge : this_graph.edges()){
         std::cout << "E ";
         GraphAuxPrint::print_nodename(var_edge.node_a(), input_subgraph);
         std::cout << " ";
@@ -75,7 +75,7 @@ void GraphAuxPrint::print_graph_by_id(const Graph& input_graph){
     std::cout << "SECTION Graph \n";
     std::cout << "Nodes " << input_graph.num_nodes() << "\n";
     std::cout << "Edges " << input_graph.num_edges() << "\n";
-    for (auto var_edge : input_graph.edges()){
+    for(const auto& var_edge : input_graph.edges()){
         std::cout << "E ";
         GraphAuxPrint::print_nodeid( var_edge.node_a() );
         std::cout << " ";

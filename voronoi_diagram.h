@@ -17,7 +17,7 @@ public:
     //erstellt ein Diagramm zur leeren Basis in einem Graphen mit num_n Knoten, checkt aber nicht, ob Kantengewichten negativ/unendlich sind
     //? diese fehlenden Checks könnten Problem sein für repair
     // ?löschen
-    Voronoi_diagram(Graph& input_graph);
+    //Voronoi_diagram(Graph& input_graph);
     //soll das Voronoi-Diagramm des Graphen g berechnen, mit den Knoten in set_of_b als Basen
     //Eingabe: set_of_b ist nichtleere Teilmenge der Knoten von g, g hat nichtnegative "endliche" Kantengewichte
     Voronoi_diagram(const std::vector<Graph::NodeId>& set_of_b,
@@ -55,14 +55,14 @@ public:
 
     //gibt Menge der Basen aus (muss aber erst berechnet werden)
     std::vector<Graph::NodeId> compute_set_of_bases() const;
-    //gibt Vektor mit Eintrag für jeden Knoten des zugrundeliegenden Graphen aus, in dem die Basen nummeriert werden, andere Knoten erhalten invalid_node_id
-    std::vector<Voronoi_diagram::BaseId> compute_base_ids() const;
+    //gibt Vektor mit Eintrag für jeden Knoten des zugrundeliegenden Graphen aus, in dem die Basen nummeriert werden,
+    // andere Knoten erhalten invalid_node_id
+    const std::vector<Voronoi_diagram::BaseId> compute_base_ids() const;
 
-    //gibt Voronoi-Region des eingegebenen Knoten (muss Basis sein) aus
-    std::vector<Graph::NodeId> compute_vor_region(Graph::NodeId input_base);
     //ist das schneller?
-    std::vector<Graph::NodeId> compute_vor_region_fast(Graph::NodeId input_base);
-    //gibt Voronoi-Regionen der eingegebenen Knoten (müssen alle Basen sein) aus (Ausgabe als eine Menge, ohne Differenzierung nach Basis/Region)
+    std::vector<Graph::NodeId> compute_vor_region(Graph::NodeId input_base);
+    //gibt Voronoi-Regionen der eingegebenen Knoten (müssen alle Basen sein) aus
+    // (Ausgabe als eine Menge, ohne Differenzierung nach Basis/Region)
     std::vector< Graph::NodeId > compute_some_vor_regions(const std::vector<Graph::NodeId>& subset_of_bases);
 
     //Datenstruktur zum Speichern der alten Werte der Knoten, die bei repair aktualisiert werden
@@ -78,8 +78,11 @@ public:
     //Eingabe: Teilmenge der aktuellen Basis
     //Methode berechnet Voronoi-Diagramm mit einer neuen Basis, die aus der alten durch Entfernen der Eingabemenge entsteht
     Voronoi_diagram::RestoreData repair(const std::vector<Graph::NodeId>& bases_to_delete);
+
     // berechnet die restore-data für jeden Eingabeknoten (d. h. Eingabe entspricht V-Regionen und nicht Basen)
-    RestoreData get_restoredata_of_nodeset (const std::vector<Graph::NodeId>& input_nodeids, unsigned int num_bases_deleted);
+    RestoreData get_restoredata_of_nodeset (const std::vector<Graph::NodeId>& input_nodeids,
+                                            unsigned int num_bases_deleted);
+
     // stellt das alte Diagramm wieder her (wie vor repair), wenn die Ausgabe von repair eingegeben wird
     // setzt die Informationen aus der RestoreData-Eingabe in das Diagramm ein
     void restore(const RestoreData& input_restore_data);
@@ -98,18 +101,9 @@ private:
     //(an der Stelle, die der NodeId des Knotens entspricht)
     std::vector<Graph::PathLength> _dist_to_base;
 
-    // brauche ich _predecessor, _dist_to_base, ... für alle Berechnungen?
-
     //der zugrundeliegende Graph
-    // möchte ich const machen aber Problem?
     const Graph& _original_graph;
 
-    //Subroutine für die Funktion compute_vor_region
-    //geht die Nachbarn des aktuellen Knoten durch und prüft, ob diese in der V-Region der eingegebenen Basis liegen
-    // falls ja, so wird der Nachbar zu vor_region hinzugefügt und für diesen die Funktion rekursiv aufgerufen
-    void compute_vor_region_subroutine(unsigned int input_base,
-                                       unsigned int curr_node_id,
-                                       std::vector<Graph::NodeId> &vor_region);
 };
 
 #endif //PRAKTIKUMSTEINERBAUM_VORONOI_DIAGRAM_H

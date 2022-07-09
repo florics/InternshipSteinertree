@@ -43,19 +43,19 @@ public:
         void direct_edge(NodeId head, NodeId tail);
 
         //gibt die Knoten der Kanten in aufsteigender (entsprechend NodeId) Reihenfolge aus
-        std::pair<NodeId, NodeId> get_nodes_orderedbyid();
+        std::pair<NodeId, NodeId> get_nodes_orderedbyid() const;
 
     private:
         //Stelle, an der die Kante in _edges steht
         //? const machen
-        EdgeId _edge_id;
+        const EdgeId _edge_id;
 
         //die Knoten, mit denen die Kante inzident ist; die Werte sind hier die Stellen, an denen die Knoten in _nodes stehen
         NodeId _node_a;
         NodeId _node_b;
 
         //Kantengewicht
-        EdgeWeight _weight;
+        const EdgeWeight _weight;
     };
 
     class Node{
@@ -65,9 +65,6 @@ public:
         NodeId node_id() const;
         const std::vector<EdgeId>& incident_edge_ids() const;
         TerminalState terminal_state() const;
-
-        //setzt _node_id auf einen neuen Wert (!prüft aber nicht, ob dadurch _node_id der Stelle des Knotens in _nodes entspricht)
-        //void set_node_id(NodeId new_id); ?
 
         //fügt Kante zum Inzidenz-Vektor des Knotens hinzu
         void add_neighbor_edge(EdgeId e);
@@ -86,7 +83,7 @@ public:
         //Stelle, an dem Knoten in _nodes gespeichert ist
         // const NodeId _node_id; ?? das hat irgendwie ganz große Probleme gemacht,
         // als ich Voronoi_diagram.cpp und graph_algorithms.cpp einbinden wollte (in CMake, add_executable)
-        NodeId _node_id;
+        const NodeId _node_id;
 
         //Inzidenz-Vektor: enthält die EdgeId's der mit dem Knoten inzidenten Kanten
         std::vector<EdgeId> _incident_edge_ids;
@@ -125,23 +122,28 @@ public:
 
     //macht den Knoten v zu einem Terminal oder zu einem Nicht-Terminal
     void set_terminal(NodeId v, TerminalState t);
+
     //gibt Vektor mit allen Terminalen aus, in dem Vektor stehen jeweils die Stellen, an denen die Terminale in _nodes gespeichert sind, also die NodeId's
     std::vector<NodeId> get_terminals() const;
+
     //gibt 1 aus, wenn Knoten Terminal ist
     bool check_if_terminal(NodeId input_node) const;
 
 
-    std::vector<Node> nodes() const;
+    const std::vector<Node>& nodes() const;
+
     //gibt Referenz auf Knoten mit NodeId v aus
     const Node& get_node(NodeId v) const;
 
-    std::vector<Edge> edges() const;
+
+    const std::vector<Edge>& edges() const;
+
     //gibt Referenz auf Kante mit EdgeId e aus
     const Edge& get_edge(EdgeId e) const;
 
+
     const std::vector<EdgeId>& incident_edge_ids(NodeId input_node) const;
-    //gibt alle zum Eingabeknoten inzidenten Kanten aus ??
-    //std::vector<const EdgeId&> incident_edges(NodeId input_node) const;
+
     //gibt Nachbarknoten des Eingabeknotens aus
     std::vector<NodeId> adjacency_vect(NodeId input_node_id) const;
 
@@ -155,21 +157,26 @@ public:
     std::vector<NodeId> get_outgoing_neighbors(NodeId input_node_id) const;
     //? beachte, dass Laufzeit von ingoing_neighbors, outgoing_neighbors jeweils O( grad(input_node) ) ist
 
-    // nach Edge verschieben? Problem: Edge weiß nicht, ob Graph gerichtet
     //gibt node_a der Eingabekante aus, Graph muss gerichtet sein
     NodeId get_tail(EdgeId input_edge_id) const;
     //gibt node_b der Eingabekante aus, Graph muss gerichtet sein
     NodeId get_head(EdgeId input_edge_id) const;
 
     DirType dir_type() const;
+
     //macht den Graph zu einer gerichteten Arboreszenz mit Wurzel entsprechend der Eingabe,
     // in dem Sinne, dass die Knoten in den Kanten so gespeichert werden, dass node_a dem tail und node_b dem head entspricht
     //Eingabe: Graph muss Baum sein
-    //? Ausgabe: Knoten des Graphen in einer 'post-order' bzgl der Arboreszenz (neben der Modifizierung des Graphen)
     void make_rooted_arborescence(NodeId root_id);
+
 
     //löscht alle Kanten aus dem Graph
     void clear_edges();
+
+    //löscht alle Knoten und Kanten des Graphen, so dass der leere Graph ensteht
+    // (Graph wird ungerichtet gesetzt, die Instanz-Werte werden nicht verändert)
+    void clear_graph();
+
 
     static const EdgeWeight infinite_weight;
     static const PathLength infinite_length;
@@ -190,7 +197,8 @@ private:
     //gibt an, ob Graph gerichtet ist (default ist ungerichtet)
     DirType _dir_type;
 
-    std::string instance_name, instance_creator, instance_remark, instance_problem; //sind nur für die Instanz, kommen aus dem SteinLib-Format
+    //sind nur für die Instanz, kommen aus dem SteinLib-Format
+    std::string instance_name, instance_creator, instance_remark, instance_problem;
 };
 
 

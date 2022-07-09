@@ -18,16 +18,16 @@ public:
     // erstellt Graphen mit num_supernodes-vielen Knoten, erstellt Matrix für _weight_of_superedges mit unendlichen Gewichten
     Supergraph(unsigned int num_supernodes);
 
-    //todo: checken, was ich hier const machen kann, löschen kann
-    Graph& this_graph(); //löschen?
     const Graph& this_graph() const;
-    std::vector<Graph::EdgeId>& original_edge_ids();//löschen?
-    const std::vector<Graph::EdgeId>& original_edge_ids() const;
-    std::vector< std::vector<Graph::EdgeWeight> >& weight_of_superedges();
+
+    const std::vector<Graph::EdgeId>& original_edge_ids() const; //? get element funktion?
+
 
     //? Laufzeit: //bemerke, dass wir hier beim Hinzufügen der vertikalen Kanten nicht prüfen müssen,
-    // ob im Supergraph bereits eine Kante mit den gleichen Endpunkten existiert,
-    // da hier die ersten vertikalen boundary edges betrachtet werden (und für jedes crucial child nur eine boundary edge)
+    //? ob im Supergraph bereits eine Kante mit den gleichen Endpunkten existiert,
+    //? da hier die ersten vertikalen boundary edges betrachtet werden (und für jedes crucial child nur eine boundary edge)
+
+    // fügt Kante hinzu, außer es gibt schon eine Kante zwischen node_a und node_b, die günstiger ist
     void add_edge(Graph::NodeId node_a, Graph::NodeId node_b, Graph::EdgeWeight weight, Graph::EdgeId original_id);
 
 private:
@@ -41,9 +41,9 @@ private:
     //KVE: speichert zu jeder Kante des Supergraphen die EdgeId der zugehörigen boundary edge
     std::vector<Graph::EdgeId> _original_edge_ids;
 
-    // 'Matrix', die zu jedem Knotenpaar das Gewicht der Kante speichert, die zwischen diesen Knoten verläuft (bzgl des Supergraphen)
+    //'Matrix', die zu jedem Knotenpaar das Gewicht der Kante speichert, die zwischen diesen Knoten verläuft (bzgl des Supergraphen)
     // falls keine Kante existiert, dann wird unendliches Gewicht gespeichert
-    //? Eintrag [i][j] entspricht Knotenpaar i+1, j (wobei i >= j)
+    // Eintrag [i][j] entspricht Knotenpaar i+1, j (wobei i >= j)
     std::vector< std::vector<Graph::EdgeWeight> > _weight_of_superedges;
 
 };
@@ -56,14 +56,14 @@ public:
 
     Supergraph_KVE(unsigned int num_supernodes);
 
-    std::vector<Supergraph_KVE::BoundEdgeType>& superedges_corresponding_to_new_bound_edges();
-    const std::vector<Supergraph_KVE::BoundEdgeType>& get_superedges_corresponding_to_new_bound_edges() const; //löschen?
+    const std::vector<Supergraph_KVE::BoundEdgeType>& superedges_corresponding_to_new_bound_edges() const;  //? get element funktion?
 
     void add_edge(Graph::NodeId node_a, Graph::NodeId node_b, Graph::EdgeWeight weight, Graph::EdgeId original_id, BoundEdgeType b_e_type);
 
 private:
 
-    // speichert 1, gdw. die entsprechende Kante des Supergraphen eine neue boundary edge ist (also eine nach repair gefundene)
+    //speichert, ob die entsprechende Kante des Supergraphen eine neue (also eine nach repair gefundene)
+    // oder eine alte boundary edge ist
     std::vector<BoundEdgeType> _superedges_corresponding_to_new_bound_edges;
 
 };

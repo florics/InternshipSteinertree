@@ -13,21 +13,19 @@
 #include "general_aux_functions.h"
 
 
-//todo Funktionennamen aktualisieren?
-
 // ? nicht sicher ob das funzt: die Instanzen der Uni sind alle isomorph laut dieser Methode
 bool GraphAux::check_if_isomorph(const Graph& graph1, const Graph& graph2){
     //Eingabe prüfen
-    if(not GraphAux::edgeweight_finite(graph1)){
+    if(not GraphAux::check_if_graph_has_finite_weights(graph1)){
         throw std::runtime_error("(GraphAux::check_if_isomorph) eingegebener Graph graph1 hat unendliche Kantengewichte");
     }
-    if(not GraphAux::edgeweight_finite(graph2)){
+    if(not GraphAux::check_if_graph_has_finite_weights(graph2)){
         throw std::runtime_error("(GraphAux::check_if_isomorph) eingegebener Graph graph2 hat unendliche Kantengewichte");
     }
-    if(not GraphAux::check_if_simple(graph1) ){
+    if(not GraphAux::check_if_graph_is_simple(graph1) ){
         throw std::runtime_error("(GraphAux::check_if_isomorph) eingegebener Graph graph1 ist nicht einfach");
     }
-    if(not GraphAux::check_if_simple(graph2) ){
+    if(not GraphAux::check_if_graph_is_simple(graph2) ){
         throw std::runtime_error("(GraphAux::check_if_isomorph) eingegebener Graph graph2 ist nicht einfach");
     }
 
@@ -57,7 +55,7 @@ bool GraphAux::check_if_isomorph(const Graph& graph1, const Graph& graph2){
 
 
     //ausfüllen entsprechend der Kanten des ersten Graphen
-    for(auto curr_edge : graph1.edges() ){
+    for(const auto& curr_edge : graph1.edges() ){
         std::pair<Graph::NodeId, Graph::NodeId> curr_edge_nodes = curr_edge.get_nodes_orderedbyid();
 
         edge_weight_matrice[ curr_edge_nodes.second-1 ][ curr_edge_nodes.first ] = curr_edge.weight();
@@ -66,7 +64,7 @@ bool GraphAux::check_if_isomorph(const Graph& graph1, const Graph& graph2){
     }
 
     //Gleichheit der Kanten des zweiten Graphen prüfen
-    for(auto curr_edge : graph2.edges() ){
+    for(const auto& curr_edge : graph2.edges() ){
         std::pair<Graph::NodeId, Graph::NodeId> curr_edge_nodes = curr_edge.get_nodes_orderedbyid();
 
         if( not adjacency_matrice[ curr_edge_nodes.second-1 ][ curr_edge_nodes.first ] ){
@@ -98,7 +96,7 @@ bool GraphAux::check_if_isomorph(const Graph& graph1, const Graph& graph2){
     return true;
 }
 
-bool GraphAux::edgeweight_nonnegative(const Graph& input_graph) {
+bool GraphAux::check_if_graph_has_nonnegative_weights(const Graph& input_graph) {
     /* ??
     if( std::any_of(_edges, weight() < 0){
         return false
@@ -106,7 +104,7 @@ bool GraphAux::edgeweight_nonnegative(const Graph& input_graph) {
         return true
     }
      */
-    for(auto var_edge : input_graph.edges()){
+    for(const auto& var_edge : input_graph.edges()){
         if(var_edge.weight() < 0){
             return false;
         }
@@ -114,8 +112,8 @@ bool GraphAux::edgeweight_nonnegative(const Graph& input_graph) {
     return true;
 }
 
-bool GraphAux::edgeweight_finite(const Graph& input_graph) {
-    for(auto var_edge : input_graph.edges()){
+bool GraphAux::check_if_graph_has_finite_weights(const Graph& input_graph) {
+    for(const auto& var_edge : input_graph.edges()){
         if( var_edge.weight() == Graph::infinite_weight
             || var_edge.weight() == -Graph::infinite_weight ){
             return false;
@@ -124,7 +122,7 @@ bool GraphAux::edgeweight_finite(const Graph& input_graph) {
     return true;
 }
 
-bool GraphAux::check_if_simple(const Graph& input_graph) {
+bool GraphAux::check_if_graph_is_simple(const Graph& input_graph) {
     // adjacency_matrice[i][j] entspricht Knotenpaar i+1, j (wobei i >= j)
     std::vector< std::vector<bool> > adjacency_matrice;
 
@@ -135,10 +133,10 @@ bool GraphAux::check_if_simple(const Graph& input_graph) {
     }
 
     //ausfüllen entsprechend der Kanten des Graphen und prüfen, ob Kante (bzw. Knotenpaar) doppelt
-    for(auto curr_edge : input_graph.edges() ){
+    for(const auto& curr_edge : input_graph.edges() ){
         std::pair<Graph::NodeId, Graph::NodeId> curr_edge_nodes = curr_edge.get_nodes_orderedbyid();
         if( adjacency_matrice[ curr_edge_nodes.second-1 ][ curr_edge_nodes.first ] ){
-            std::cout << "(GraphAux::check_if_simple) Kante (bzw. Knotenpaar) ";
+            std::cout << "(GraphAux::check_if_graph_is_simple) Kante (bzw. Knotenpaar) ";
             GraphAuxPrint::print_edge_as_pair(input_graph, curr_edge.edge_id() );
             std::cout << " ist doppelt. \n";
             return false;
@@ -177,7 +175,7 @@ Graph GraphAux::copygraph_wo_iso_nodes(const Graph& input_graph){
     }
 
     //Kanten hinzufügen
-    for (auto var_edge : input_graph.edges() ){
+    for (const auto& var_edge : input_graph.edges() ){
         //"konstruiere" neue Kante
         Graph::NodeId new_node_a =  new_node_ids[var_edge.node_a()];
         Graph::NodeId new_node_b =  new_node_ids[var_edge.node_b()];
@@ -347,7 +345,7 @@ Subgraph GraphAux::copy_subgraph_wo_steinerleafs_old(const Subgraph &input_subgr
 
 Graph::PathLength GraphAux::length_of_all_edges(const Graph& input_graph) {
     Graph::PathLength output = 0;
-    for(auto curr_edge : input_graph.edges() ) {
+    for(const auto& curr_edge : input_graph.edges() ) {
         output += curr_edge.weight();
     }
     return output;
@@ -356,7 +354,7 @@ Graph::PathLength GraphAux::length_of_all_edges(const Graph& input_graph) {
 std::vector<Graph::NodeId> GraphAux::get_isolated_nodes(const Graph& input_graph) {
     std::vector<Graph::NodeId> output;
 
-    for( auto curr_node: input_graph.nodes()) {
+    for( const auto& curr_node: input_graph.nodes()) {
         if( curr_node.num_neighbors() == 0) {
             output.push_back(curr_node.node_id());
         }
@@ -365,7 +363,7 @@ std::vector<Graph::NodeId> GraphAux::get_isolated_nodes(const Graph& input_graph
     return output;
 }
 
-bool GraphAux::check_if_connected(const Graph &input_graph) {
+bool GraphAux::check_if_graph_is_connected(const Graph &input_graph) {
 
     // wir sagen, dass der leere Graph zusammenhängend ist
     if( input_graph.num_nodes() == 0) {

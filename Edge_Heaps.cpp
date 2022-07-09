@@ -33,7 +33,7 @@ Edge_Heaps::Edge_Heaps(const std::vector<Graph::NodeId> &solution_node_ids, unsi
 
 void Edge_Heaps::initialise_with_bound_edges(const Voronoi_diagram& original_vd) {
     //Schleife über alle boundary edges
-    for( auto curr_edge : original_vd.original_graph().edges() ) {
+    for(const auto& curr_edge : original_vd.original_graph().edges() ) {
         if( original_vd.check_if_bound_edge(curr_edge) ) {
 
             Graph::EdgeId curr_edge_id = curr_edge.edge_id();

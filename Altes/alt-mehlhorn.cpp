@@ -17,7 +17,7 @@ std::vector<Graph::EdgeId> output_original_edge_ids;
 //speichert die schon hinzugefügten Kanten, sodass wir keine Kanten mehrfach hinzufügen
 std::vector<bool> added_edges(original_graph.num_edges(), false);
 
-for( auto curr_edge : input_graph.edges() ) {
+for(const auto& curr_edge : input_graph.edges() ) {
 //zugehörige boundary edge des ursprünglichen Graphen finden
 // ? wenn ich Graph gerichtet machen kann, könnte ich das hier ggf. benutzen (anstatt von der nächsten Zeile)
 std::pair<Graph::NodeId, Graph::NodeId> curr_edge_nodes = curr_edge.get_nodes_orderedbyid();

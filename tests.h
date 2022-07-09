@@ -29,6 +29,7 @@ namespace DebugTests{
 
     std::vector<Graph> get_standard_test_instances();
 
+    //liest Datei mit Pfaden aus und erstellt für jeden Pfad aus der entsprechenden Datei einen Graphen
     std::vector<Graph> get_test_instances_from_file(char const* filename);
 
 }

@@ -50,7 +50,7 @@ Graph::EdgeId Graph::Edge::edge_id() const {
     return _edge_id;
 }
 
-std::vector<Graph::Edge> Graph::edges() const{
+const std::vector<Graph::Edge>& Graph::edges() const{
     return _edges;
 }
 
@@ -112,7 +112,7 @@ void Graph::Edge::direct_edge(Graph::NodeId tail, Graph::NodeId head) {
     }
 }
 
-std::pair<Graph::NodeId, Graph::NodeId> Graph::Edge::get_nodes_orderedbyid() {
+std::pair<Graph::NodeId, Graph::NodeId> Graph::Edge::get_nodes_orderedbyid() const {
     if(_node_a < _node_b){
         return {_node_a, _node_b};
     }else if(_node_a > _node_b){
@@ -236,7 +236,7 @@ Graph::Node& Graph::get_node(Graph::NodeId v) const{
 }
  */
 
-std::vector<Graph::Node> Graph::nodes() const {
+const std::vector<Graph::Node>& Graph::nodes() const {
     return _nodes;
 }
 
@@ -553,10 +553,22 @@ void Graph::make_rooted_arborescence(Graph::NodeId root_id) {
 
 
 void Graph::clear_edges() {
+
     _edges.clear();
+
+    //lösche Kanten aus Inzidenzlisten der Knoten
     for(auto& curr_node: _nodes) {
         curr_node.clear_incident_edges();
     }
+}
+
+
+void Graph::clear_graph() {
+
+    _edges.clear();
+    _nodes.clear();
+
+    _dir_type = Graph::DirType::undirected;
 }
 
 void Graph::instance_comment() const{
@@ -786,19 +798,17 @@ Graph::Graph(char const* filename){
 
     //debug
     //prüfen, ob angegebene Kanten-/Terminalanzahl mit aufgelisteten Kanten/Terminalen übereinstimmt
-    if( num_edges() < claimed_num_edges) {
+    if( num_edges() != claimed_num_edges) {
         //debug
-        std::cout << "angegebene Kantenanzahl: " << claimed_num_edges << "\n";
-        std::cout << "Anzahl aufgelisteter Kanten " << num_edges() << "\n";
+        std::cout << "Warnung: ";
+        std::cout << " angegebene Kantenanzahl (" << claimed_num_edges << ") ";
+        std::cout << " ungleich Anzahl aufgelisteter Kanten (" << num_edges() << ")\n";
 
         //throw std::runtime_error("(Einlesen) angegebene Kantenanzahl ungleich Anzahl aufgelisteter Kanten");
     }
     if( num_edges() > claimed_num_edges) {
-        //debug
-        std::cout << "angegebene Kantenanzahl: " << claimed_num_edges << "\n";
-        std::cout << "Anzahl aufgelisteter Kanten " << num_edges() << "\n";
-
-        throw std::runtime_error("(Einlesen) angegebene Kantenanzahl ungleich Anzahl aufgelisteter Kanten");
+        //passt das so?
+        throw std::runtime_error("(Einlesen) angegebene Kantenanzahl kleiner als Anzahl aufgelisteter Kanten");
     }
     if(get_terminals().size() != claimed_num_terminals){
         //debug
@@ -808,6 +818,7 @@ Graph::Graph(char const* filename){
     }
 
 }
+
 
 
 

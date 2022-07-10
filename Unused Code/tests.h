@@ -7,17 +7,17 @@
 
 #include <iostream>
 
-#include "graph.h"
-#include "graph_aux_functions.h"
-#include "graph_algorithms.h"
-#include "voronoi_diagram.h"
-#include "vor_diag_aux_functions.h"
-#include "mehlhorns_algo.h"
-#include "local_search_aux.h"
-#include "key_path_exchange.h"
-#include "EdgeSequence.h"
-#include "Edge_Heaps.h"
-#include "key_vertex_elimination.h"
+#include "../graph.h"
+#include "../graph_aux_functions.h"
+#include "../graph_algorithms.h"
+#include "../voronoi_diagram.h"
+#include "../vor_diag_aux_functions.h"
+#include "../mehlhorns_algo.h"
+#include "../local_search_aux.h"
+#include "../key_path_exchange.h"
+#include "../EdgeSequence.h"
+#include "../Edge_Heaps.h"
+#include "../key_vertex_elimination.h"
 
 namespace DebugTests{
 

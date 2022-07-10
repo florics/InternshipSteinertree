@@ -23,16 +23,6 @@ public:
 
     Horizontal_Edges_Lists(const std::vector<ListId>& list_ids, const std::vector< std::vector<Graph::EdgeId> >& vect_of_lists);
 
-
-    //Konstruktor für Steiner-Vertex-Elimination
-    // nodes_to_process sind die Knoten, für die eine Liste angelegt werden soll??
-    //Horizontal_Edges_Lists(const Subgraph& input_subgraph, Graph::NodeId root, const std::vector<Graph::NodeId>& nodes_to_process);
-
-    //Konstruktor für Key-Vertex-Elimination
-    // nodes_to_process sind die Knoten, für die eine Liste angelegt werden soll??
-    //Horizontal_Edges_Lists(const Subgraph& input_subgraph, Graph::NodeId root,
-      //                     const std::vector<Graph::NodeId>& nodes_to_process, const Voronoi_diagram& vor_diag);
-
     // gibt die dem Eingabeknoten entsprechende Liste aus
     const std::vector<Graph::EdgeId>& get_list(Graph::NodeId input_node) const;
 

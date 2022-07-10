@@ -4,7 +4,7 @@
 
 #include "Supergraph.h"
 
-#include "iostream" //später löschen?
+#include "iostream"
 #include "algorithm"
 
 Supergraph::Supergraph(unsigned int num_supernodes):
@@ -61,7 +61,6 @@ void Supergraph_KVE::add_edge(Graph::NodeId node_a, Graph::NodeId node_b, Graph:
 
     //prüfe, ob wir die Kante tatsächlich hinzugefügt haben
     if( original_edge_ids().back() == original_id ){
-    //?if(original_edge_ids().size() == _superedges_corresponding_to_new_bound_edges.size() + 1 ){
         _superedges_corresponding_to_new_bound_edges.push_back(b_e_type);
     }
 }

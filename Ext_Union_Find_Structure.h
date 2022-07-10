@@ -32,14 +32,12 @@ public:
     // gibt den _allowed-Wert der Wurzel des Eingabeelements aus
     bool allowed(Union_Find_Structure::ElementId input_elt);
 
-    //debug
-    //void print_sets();
 
 private:
 
     // weist den Wurzeln und damit den Mengen der UFS eine NodeId zu
     // (die dann die NodeId des entsprechenden Superknoten im Supergraphen der Methode sein wird)
-    //? default-Wert ist 0
+    // default-Wert ist 0
     std::vector<Graph::NodeId> _super_ids;
 
     // Hilfsstruktur, um schneller zu prüfen, ob ein Knoten in einer von mehreren Mengen liegt

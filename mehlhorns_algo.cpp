@@ -97,9 +97,6 @@ Mehlhorn::compute_min_bound_edges_of_vordiag(const Voronoi_diagram& input_vd) {
                                                              base_ids[ input_vd.base()[curr_edge.node_b()] ] };
             std::sort(curr_bases_sorted.begin(), curr_bases_sorted.end());
 
-            /*?Graph::PathLength curr_dist = curr_edge.weight()
-                                            + input_vd.dist_to_base()[ curr_edge.node_a() ]
-                                            + input_vd.dist_to_base()[ curr_edge.node_b() ];*/
 
             const Graph::PathLength curr_dist = VorDiagAux::compute_length_of_boundpath(input_vd, curr_edge.edge_id());
 

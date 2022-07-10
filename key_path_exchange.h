@@ -23,7 +23,7 @@ namespace KeyPathExch{
     // gibt an, ob wir die Strukturen bereits für den eingehenden KeyPath des aktuellen Knotens aktualisiert haben
     enum Need_for_Updates_of_Heaps_and_UFS {need, no_need};
 
-    void complete_algorithm(Subgraph& input_subgraph);
+    void find_local_minimum(Subgraph& input_subgraph);
 
     // gibt beste gefundene Nachbarschaftlösung aus (wenn keine echte Verbesserung gefunden wurde, wird die "leere"
     // Verbesserung ausgegeben)

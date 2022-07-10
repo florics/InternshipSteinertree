@@ -8,7 +8,6 @@
 #include "vector"
 #include "utility"
 #include "queue"
-//? #include "functional"
 
 #include "graph.h"
 #include "voronoi_diagram.h"
@@ -33,7 +32,6 @@ namespace LocalSearchAux{
     //Ausgabe: die crucial vertices des Eingabegraphens in einer post-order bzgl einer Graphendurchmusterungs-Arboreszenz
     // mit dem Eingabeknoten als Wurzel (so dass children immer vor ihrem parent stehen), aber ohne den Eingabeknoten selbst (!)
     // Eingabeknoten muss Terminal sein
-    //? Laufzeit: könnte man auch gleich in Graph::make_rooted_arborescence ausgeben
     std::vector<Graph::NodeId> get_crucialnodes_in_postorder(const Graph& input_graph, Graph::NodeId root_id);
 
     //findet den Key-Path, der in start_node endet
@@ -56,9 +54,6 @@ namespace LocalSearchAux{
                                                    bool& one_internal_node_is_pinned);
 
 
-    // findet alle Kanten, die nach Entfernen der bases_to_delete boundary edges werden
-    //? std::vector<EdgeSequence> get_new_bound_paths(Voronoi_diagram input_vd, const std::vector<Graph::NodeId>& bases_to_delete);
-
     // führt die eingegebenen Verbesserungen auf dem Eingabe-Subgraph aus
     void perform_improving_changements(Subgraph &input_subgraph, std::vector<ImprovingChangement> changements);
 
@@ -70,10 +65,11 @@ namespace LocalSearchAux{
     // markiert alle Nachfolger des Eingabeknotens als forbidden (nicht aber den Eingabeknoten selbst)
     void update_forbidden(const Graph& solution_graph, std::vector<bool>& forbidden, Graph::NodeId node_to_mark);
 
-    // gibt Vektor der Länge ? aus, in dem die nodes_to_process durchnummeriert werden
+    // gibt Vektor aus, in dem die nodes_to_process durchnummeriert werden
     // alle anderen Knoten erhalten 'no_list_available'
-    std::vector<Horizontal_Edges_Lists::ListId> compute_list_ids_for_horizon_edges_lists(unsigned int num_nodes,
-                                                                                         const std::vector<Graph::NodeId>& nodes_to_process);
+    std::vector<Horizontal_Edges_Lists::ListId>
+            compute_list_ids_for_horizon_edges_lists(unsigned int num_nodes,
+                                                     const std::vector<Graph::NodeId>& nodes_to_process);
 
 }
 

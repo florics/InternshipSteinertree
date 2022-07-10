@@ -35,11 +35,9 @@ public:
         //gibt Knoten aus, der zur Kante inzident ist, aber nicht curr_node ist
         NodeId get_other_node(NodeId curr_node) const;
         //kehrt die Reihenfolge um, in der die zur Kante inzidenten Knoten gespeichert sind (also _node_a, _node_b)
-        //? private machen
         void reverse_node_order();
 
         //richtet die Kante entsprechend den Eingabeknoten
-        //? private machen
         void direct_edge(NodeId head, NodeId tail);
 
         //gibt die Knoten der Kanten in aufsteigender (entsprechend NodeId) Reihenfolge aus
@@ -47,7 +45,6 @@ public:
 
     private:
         //Stelle, an der die Kante in _edges steht
-        //? const machen
         const EdgeId _edge_id;
 
         //die Knoten, mit denen die Kante inzident ist; die Werte sind hier die Stellen, an denen die Knoten in _nodes stehen
@@ -80,9 +77,8 @@ public:
         void clear_incident_edges();
 
     private:
+
         //Stelle, an dem Knoten in _nodes gespeichert ist
-        // const NodeId _node_id; ?? das hat irgendwie ganz große Probleme gemacht,
-        // als ich Voronoi_diagram.cpp und graph_algorithms.cpp einbinden wollte (in CMake, add_executable)
         const NodeId _node_id;
 
         //Inzidenz-Vektor: enthält die EdgeId's der mit dem Knoten inzidenten Kanten
@@ -103,21 +99,12 @@ public:
 
     //fügt einen Knoten zum Graphen hinzu
     void add_one_node(TerminalState t);
-    //fügt existierenden Knoten zum Graphen hinzu
-    //(NodeId von v wird nicht verändert und muss deshalb der Anzahl der Knoten des Graphen (vor Aufruf der Funktion) entsprechen)
-    //void add_one_existing_node(const Node new_node);?
-    //entspricht add_one_existing_node, hier wird aber die NodeId des Eingabeknotens einfach angepasst
-    //? diese Fktn ggf. an ein paar Stellen eher verwenden als die anderen
-    //void add_one_existing_node_w_newid(const Node new_node);?
+
     //fügt n Knoten hinzu (Knoten sind keine Terminale)
     void add_nodes(int num_new_nodes);
 
     //erstellt Kante entsprechend der Eingabe und fügt sie zum Graphen hinzu
     void add_edge(NodeId a, NodeId b, EdgeWeight w);
-    //fügt existierende Kante zu Graph hinzu (EdgeId von new_edge wird nicht verändert und muss deshalb der Anzahl der Kanten des Graphen (vor Aufruf der Fktn) entsprechen)
-    //? void add_existing_edge(const Edge& new_edge);
-    //fügt existierende Kante zu Graph hinzu, wobei die EdgeId angepasst wird //? eher unnötig: ggf. löschen!
-    //? void add_existing_edge_w_newid(Edge new_edge);
 
 
     //macht den Knoten v zu einem Terminal oder zu einem Nicht-Terminal
@@ -155,7 +142,6 @@ public:
     std::vector<NodeId> get_ingoing_neighbors(NodeId input_node_id) const;
     //gibt Vektor mit allen Nachbarn aus, die zu eingehenden Kanten gehören
     std::vector<NodeId> get_outgoing_neighbors(NodeId input_node_id) const;
-    //? beachte, dass Laufzeit von ingoing_neighbors, outgoing_neighbors jeweils O( grad(input_node) ) ist
 
     //gibt node_a der Eingabekante aus, Graph muss gerichtet sein
     NodeId get_tail(EdgeId input_edge_id) const;

@@ -10,7 +10,6 @@
 #include "vor_diag_aux_functions.h"
 #include "EdgeSequence.h"
 #include "graph_aux_functions.h"
-#include "graph_printfunctions.h"
 #include "general_aux_functions.h"
 
 
@@ -135,7 +134,6 @@ ImprovingChangement KeyPathExch::process_node(Graph::NodeId input_node_id,
 
 
     // finde die beste boundary edge von den beiden gefundenen, konstruiere Ausgabe
-    //todo: schöner machen, Code-Dopplung vermeiden
 
     std::pair<Graph::PathLength, Graph::EdgeId> bound_edge_to_insert = best_original_bound_edge;
     std::vector<Graph::EdgeId> edges_to_insert;
@@ -197,7 +195,6 @@ KeyPathExch::compute_best_new_boundedge(const Voronoi_diagram& vor_diag,
     const std::vector<Graph::EdgeId> new_bound_edge_ids = VorDiagAux::get_bound_edges_inc_to_nodeset(vor_diag, nodes_updated_in_repair);
 
     // der Schlüssel des subtree des aktuellen Knoten in der Union-Find (im Paper: S_v)
-    //? Fehleranfälligkeit: der könnte sich ggf. verändern
     const Union_Find_Structure::ElementId input_node_ufsroot = subtrees_ufs.find(input_node_id);
 
     //finde den besten neuen boundary path, der zwischen den subtrees von curr_node und crucial_parent verläuft
@@ -220,10 +217,6 @@ KeyPathExch::compute_best_new_boundedge(const Voronoi_diagram& vor_diag,
         const Union_Find_Structure::ElementId var_base_a_ufsroot = subtrees_ufs.find(var_base_a);
         const Union_Find_Structure::ElementId var_base_b_ufsroot = subtrees_ufs.find(var_base_b);
 
-        /*//debug
-        if( var_base_a_ufsroot == input_node_ufsroot && var_base_b_ufsroot == input_node_ufsroot ){
-            std::cout << "(KeyPathExch::compute_best_new_boundedge) Der Fall kann eintreten \n";
-        }*/
 
         //prüfe, ob der bound path zwischen dem subtree des Eingabeknotens und dem des Vorgängers des Eingabeknotens verläuft
         // (bemerke, dass er keinen Endknoten haben kann, der zu den internen Knoten des keypath gehört,
@@ -284,35 +277,20 @@ ImprovingChangement KeyPathExch::best_neighbor_solution(Subgraph &input_subgraph
     }
 }
 
-void KeyPathExch::complete_algorithm(Subgraph &input_subgraph) {
-
-    int debug_while_loop_counter = 0;
+void KeyPathExch::find_local_minimum(Subgraph &input_subgraph) {
 
     while(true) {
-        debug_while_loop_counter++;
 
-        //debug
-        //GraphAuxPrint::print_graph(input_subgraph.this_graph());
+        const std::vector<ImprovingChangement> improvements =
+                KeyPathExch::evaluate_neighborhood(input_subgraph,LocalSearchAux::several_moves);
 
-        const std::vector<ImprovingChangement> improvements = KeyPathExch::evaluate_neighborhood(input_subgraph, LocalSearchAux::several_moves);
+
         if(improvements.empty()) {
             // lokales Optimum erreicht
             break;
         }
 
-
-        //debug
-        /*std::cout << "Schleife " << debug_while_loop_counter << "\n";
-        for(auto var_im_ch: improvements) {
-            var_im_ch.print(input_subgraph);
-        }
-        fflush(stdout);*/
-
         LocalSearchAux::perform_improving_changements(input_subgraph, improvements);
 
-        //debug
-        if( GraphAux::check_for_steinerleafs(input_subgraph.this_graph()) ) {
-            std::cout << "KeyPathExch: Es entstehen Steinerblätter. \n";
-        }
     }
 }

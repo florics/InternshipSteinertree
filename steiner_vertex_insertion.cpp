@@ -13,9 +13,7 @@
 bool SteinerVertexInsertion::run_one_pass_and_perform_changements_on_graph(Subgraph& input_subgraph) {
 
     //wähle pseudo-zufällig einen Knoten als Wurzel
-    //Graph::NodeId root_of_tree_data_structure =  rand() % input_subgraph.this_graph().num_nodes();
-    //todo
-    Graph::NodeId root_of_tree_data_structure = 0;
+    Graph::NodeId root_of_tree_data_structure =  rand() % input_subgraph.this_graph().num_nodes();
 
     Insertion_Tree_Data_Structure tree_data_structure(input_subgraph, root_of_tree_data_structure);
 
@@ -49,9 +47,7 @@ void SteinerVertexInsertion::find_local_minimum(Subgraph& input_subgraph) {
     std::vector<Graph::NodeId> added_nodes;
 
     //Schleife bricht ab, wenn lokales Minimum erreicht
-    int debug_counter = 0;
     while(true) {
-        debug_counter++;
 
         Graph::PathLength curr_improve_value = evaluate_neighborhood(input_subgraph, tree_data_structure, added_nodes);
 
@@ -72,9 +68,6 @@ Graph::PathLength SteinerVertexInsertion::evaluate_neighborhood(const Subgraph& 
                                                                 std::vector<Graph::NodeId>& added_nodes) {
 
     const Graph& original_graph = input_subgraph.original_graph();
-    //? const Graph& solution_graph = input_subgraph.this_graph();
-    //? const std::vector<Graph::NodeId>& solution_nodeids_of_original_nodes = input_subgraph.subgraph_nodeids_of_nodes_in_originalgraph();
-    //? const std::vector<Graph::NodeId>& original_nodeids = input_subgraph.original_nodeids();
 
     Graph::PathLength improve_value = 0;
 
@@ -82,16 +75,6 @@ Graph::PathLength SteinerVertexInsertion::evaluate_neighborhood(const Subgraph& 
 
         //prüfe, ob Knoten in der Datenstruktur
         if(  tree_data_structure.get_tree_nodeid_of_original_node(id) == Graph::invalid_node_id ) {
-
-            //debug
-            std::cout << "node to process " << id <<"\n";
-            fflush(stdout);
-
-            if( id == 34) {
-
-                int debug = 0;
-            }
-
 
             Graph::PathLength curr_improve_value = SteinerVertexInsertion::process_node(id, original_graph, tree_data_structure);
 
@@ -140,15 +123,6 @@ Graph::PathLength SteinerVertexInsertion::process_node(Graph::NodeId node_to_ins
         //prüfe, ob Knoten in der Datenstruktur
         if(tree_data_structure.get_tree_nodeid_of_original_node(curr_neighbor) != Graph::invalid_node_id ) {
 
-            //debug
-            std::cout << "curr_neighbor: " << curr_neighbor << "\n";
-            fflush(stdout);
-            if(curr_neighbor == 44) {
-
-                int debug_var = 0;
-            }
-
-
             if( not node_added) {
                 //falls der Knoten noch nicht hinzugefügt wurde, wollen wir ihn mit der aktuellen Kante hinzufügen
                 tree_data_structure.add_node(node_to_insert, curr_neighbor, curr_inc_edge.weight(), curr_inc_edge_id);
@@ -169,11 +143,6 @@ Graph::PathLength SteinerVertexInsertion::process_node(Graph::NodeId node_to_ins
     if( improve_value <= 0 && node_added) {
 
         //in dem Fall machen wir diese Modifikationen rückgängig
-
-        //debug
-        if( reversed_paths.size() != removed_edges.size() ) {
-            throw std::runtime_error("(SteinerVertexInsertion::process_node) Vektoren haben verschieden Größen.");
-        }
 
         // dies erfolgt Schritt für Schritt für die Kanten und Pfade, um keine Konflikte zu erzeugen
         for(int i = (signed) reversed_paths.size()-1; i > -1; i--) {

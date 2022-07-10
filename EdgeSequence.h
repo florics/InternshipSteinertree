@@ -8,8 +8,6 @@
 #include "graph.h"
 #include "voronoi_diagram.h"
 
-//? würde eig gerne prüfen, ob das wirklich ein Pfad ist etc
-//alles const machen? struct machen? interne Knoten hinzufügen?
 
 class EdgeSequence {
 

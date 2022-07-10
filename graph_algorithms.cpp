@@ -35,7 +35,7 @@ void GraphAlgorithms::compute_mst_for_graphs(Graph& input_graph, Graph::NodeId s
     std::vector<Graph::Edge> mst_edges;
     mst_edges.reserve(input_graph.num_nodes() - 1);
 
-    //erste Schleife über die Nachbarn des Startknoten //? irgendwie in die Hauptschleife packen?
+    //erste Schleife über die Nachbarn des Startknoten
     for (auto curr_edge_id: input_graph.get_node(start_node).incident_edge_ids()) {
 
         Graph::Edge curr_edge = input_graph.get_edge(curr_edge_id);
@@ -58,13 +58,6 @@ void GraphAlgorithms::compute_mst_for_graphs(Graph& input_graph, Graph::NodeId s
         Graph::EdgeWeight next_cand_weight = candidates.top().first;
         candidates.pop();
 
-        //debug: der Fall kann eig nicht eintreten
-        if (best_edges[next_cand] == Graph::invalid_edge_id) {
-            throw std::runtime_error(
-                    "(GraphAlgorithms::compute_mst_for_graphs) best_edges[next_cand] == Graph::invalid_edge_id.");
-        }
-
-        //was ist, wenn next_cand_weight unendlich ?? denke das ist ok so
 
         //falls die Bedingung der if-Abfrage eintritt, haben wir tatsächlich den besten nächsten Kandidaten gefunden
         //bemerke, dass get_edge( best_edges[next_cand] ) "wohldefiniert" ist,
@@ -149,7 +142,7 @@ void GraphAlgorithms::compute_mst_for_subgraphs(Subgraph& input_subgraph, Graph:
             std::greater<std::pair<Graph::EdgeWeight, Graph::NodeId> >
     > candidates;
 
-    //erste Schleife über die Nachbarn des Startknoten //? irgendwie in die Hauptschleife packen?
+    //erste Schleife über die Nachbarn des Startknoten
     for (auto curr_edge_id: input_this_graph.get_node(start_node).incident_edge_ids()) {
 
         const Graph::Edge& curr_edge = input_this_graph.get_edge(curr_edge_id);

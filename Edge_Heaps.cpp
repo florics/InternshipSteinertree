@@ -64,29 +64,6 @@ Edge_Heaps::get_heap(Graph::NodeId input_node) {
     return _heap_vect[input_node];
 }
 
-/*
-std::vector<std::pair<Graph::PathLength, Graph::EdgeId>>
-Edge_Heaps::cleanup_multiple_heaps(const std::vector<Graph::NodeId>& nodes_to_cleanup,
-                                       Union_Find_Structure &ufs,
-                                       const std::vector<Union_Find_Structure::ElementId>& endpoints_to_discard) {
-
-    std::vector<std::pair<Graph::PathLength, Graph::EdgeId>> output;
-
-    //betrachte alle Heaps, die zu Nachfolgern des zu bearbeitenden Knotes gehören
-    for( auto curr_node_to_cleanup: nodes_to_cleanup) {
-
-        std::pair<Graph::PathLength, Graph::EdgeId> curr_best_heap_elt = cleanup_one_heap_kpe(curr_node_to_cleanup, ufs, endpoints_to_discard);
-
-        //falls wir ein gültiges Element im Heap gefunden haben, fügen wir es zu dem Ausgabevektor hinzu
-        if(curr_best_heap_elt.second != Graph::invalid_edge_id) {
-            output.push_back(curr_best_heap_elt);
-        }
-    }
-
-    return output;
-}
-*/
-
 std::pair<Graph::PathLength, Graph::EdgeId>
 Edge_Heaps::cleanup_one_heap_kpe(Graph::NodeId node_to_cleanup,
                                  const Voronoi_diagram& original_vd,
@@ -205,11 +182,6 @@ Edge_Heaps::cleanup_one_heap_kve(const Graph::NodeId node_to_cleanup,
                 heap_to_cleanup.pop();
                 continue;
             }
-        }
-
-        //debug
-        if( ufs.allowed(endbase_a) && ufs.allowed(endbase_b) ) {
-            throw std::runtime_error("(Edge_Heaps::cleanup_one_heap_kve) Kante verläuft innerhalb des Subbaums des Vorgängers.");
         }
 
         if( not ufs.allowed(endbase_a) && not ufs.allowed(endbase_b) ) {

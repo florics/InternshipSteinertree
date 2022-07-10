@@ -15,7 +15,7 @@ class Insertion_Tree_Data_Structure {
 public:
 
     using NodeId = unsigned int;
-    using Depth = unsigned int; //?
+    using Depth = unsigned int;
 
     static const Insertion_Tree_Data_Structure::NodeId invalid_node_id;
 
@@ -50,9 +50,6 @@ public:
         Graph::EdgeId orig_edge_id;
     };
 
-    //setzt die Eingabekanten ein (ohne dabei zu prüfen, ob Kreise entstehen oder der Zusammenhang zerstört wird)
-    void reinsert_removed_edges(const std::vector<TreeEdge>&  removed_edges);
-
     //setzt die Eingabekante in die Datenstruktur ein (überprüft dabei nicht, ob Kreise entstehen oder der Zusammenhang zerstört wird)
     void set_edge(const TreeEdge& edge_to_set);
 
@@ -67,8 +64,6 @@ public:
     //dabei wird die ehemals eingehende Kante des (alten) Startknotens (implizit) gelöscht
     void reverse_path(Insertion_Tree_Data_Structure::TreePath path_to_reverse);
 
-    //kehrt die Richtung aller Kanten auf den eingegebenen Pfaden um (siehe reverse_path)
-    void reverse_paths(const std::vector<Insertion_Tree_Data_Structure::TreePath>& path_to_reverse);
 
     // fügt die Eingabekante hinzu und entfernt die teuerste Kante auf dem Fundamentalkreis der Eingabekante,
     // falls dies eine echte Verbesserung darstellt

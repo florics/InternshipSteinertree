@@ -4,11 +4,10 @@
 
 #include "Ext_Union_Find_Structure.h"
 
-#include "iostream"
 
 Ext_Union_Find_Structure::Ext_Union_Find_Structure(unsigned int num_elts) :
     Union_Find_Structure(num_elts),
-    _super_ids(num_elts, 0),    //? hier setze ich 0 als default
+    _super_ids(num_elts, 0),
     _allowed(num_elts, true)
     {}
 

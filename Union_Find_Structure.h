@@ -7,7 +7,6 @@
 
 #include "vector"
 
-//? es gibt auch andere Möglichkeiten für union (union_by_size) und find (path splitting, path halving)
 
 class Union_Find_Structure {
 public:
@@ -42,7 +41,6 @@ public:
     // gibt 1 aus gdw. Eingabeelemente in der gleichen Menge liegen (falls beide in keiner Menge liegen, wird 0 ausgegeben)
     bool check_if_in_same_set(ElementId elt_x, ElementId elt_y);
     // gibt 1 aus gdw. das Eingabeelement in der gleichen Menge liegt wie eines der Elemente aus dem Eingabevektor
-    //? löschen
     bool check_if_elt_belongs_to_other_elts(Union_Find_Structure::ElementId input_elt, const std::vector<ElementId>& other_elts);
 
     unsigned int num_elements();

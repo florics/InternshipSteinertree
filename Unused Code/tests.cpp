@@ -8,8 +8,8 @@
 #include <fstream>
 #include <sstream>
 
-#include "key_vertex_elimination.h"
-#include "graph_printfunctions.h"
+#include "../key_vertex_elimination.h"
+#include "../graph_printfunctions.h"
 
 /*
 void DebugTests::kpe_evaluate_neighborhood(){

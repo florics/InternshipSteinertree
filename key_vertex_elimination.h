@@ -42,7 +42,6 @@ namespace KeyVertexElim{
     //Ausgabe: die key vertices des Eingabegraphens in einer post-order bzgl einer Graphendurchmusterungs-Arboreszenz
     // mit dem Eingabeknoten als Wurzel (so dass children immer vor ihrem parent stehen)
     // aber ohne den Eingabeknoten selbst (!)
-    //? Laufzeit: könnte man auch gleich in Graph::make_rooted_arborescence ausgeben
     std::vector<Graph::NodeId> get_keynodes_in_postorder(const Graph& input_graph, Graph::NodeId root_id);
 
     //findet die Key-Paths, die in start_node beginnen
@@ -82,8 +81,7 @@ namespace KeyVertexElim{
                                     const std::vector<Graph::EdgeId>& horiz_bound_edges);
 
     // fügt die (alten) vertikalen boundary egdes zum Supergraphen hinzu
-    void find_and_add_vertical_bound_edges(const Subgraph& input_subgraph,      //debug
-                                           Graph::NodeId start_node_id,
+    void find_and_add_vertical_bound_edges(Graph::NodeId start_node_id,
                                            const Voronoi_diagram& vor_diag,
                                            Ext_Union_Find_Structure &subtrees_ufs,
                                            Edge_Heaps &vert_bound_edge_heaps,

@@ -27,10 +27,8 @@ public:
     Graph& this_graph();
 
     const std::vector<Graph::NodeId>& subgraph_nodeids_of_nodes_in_originalgraph() const;
-    //? std::vector<Graph::NodeId> &subgraph_nodeids_of_nodes_in_originalgraph();
 
     const std::vector<Graph::NodeId>& original_nodeids() const;
-    //? std::vector<Graph::NodeId> &original_nodeids();
 
     const std::vector<Graph::EdgeId>& original_edgeids() const;
     std::vector<Graph::EdgeId>& original_edgeids();
@@ -50,10 +48,6 @@ public:
     void add_edges(const std::vector<Graph::EdgeId>& edges_to_add);
 
 private:
-
-    //setzt alle Attribute des Subgraphen auf die der Eingabe (bis auf original_graph) ?
-    //void assign(Graph& new_this_graph, std::vector<Graph::NodeId>& new_subgraph_nodeids_of_nodes_in_originalgraph,
-      //          std::vector<Graph::NodeId>& new_original_nodeids,  std::vector<Graph::EdgeId>& new_original_edgeids);
 
     //zugrundeliegender Graph, Objekt repräsentiert einen Sugraphen bzgl. dieses Graphen
     const Graph& _original_graph;

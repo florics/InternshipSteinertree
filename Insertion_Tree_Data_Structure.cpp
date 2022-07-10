@@ -18,9 +18,6 @@ Insertion_Tree_Data_Structure::Insertion_Tree_Data_Structure(const Subgraph &inp
     _tree_nodeids_of_original_nodes(input_subgraph.subgraph_nodeids_of_nodes_in_originalgraph())
 {
 
-    //zugrundeliegender Graph
-    //? const Graph& original_graph = input_subgraph.original_graph();
-
     // Graph, den die Datenstruktur repräsentieren soll, sowie seine Knotenanzahl
     const Graph& graph_to_represent = input_subgraph.this_graph();
     unsigned int num_nodes = graph_to_represent.num_nodes();
@@ -85,7 +82,7 @@ Graph::EdgeId Insertion_Tree_Data_Structure::get_original_edge_id_of_ingoing_edg
 //gibt alle Einträge von _original_edge_ids_of_ingoing_edges aus, bis auf den ungültigen (der zu der Wurzel gehört)
 const std::vector<Graph::EdgeId> Insertion_Tree_Data_Structure::get_all_edges_as_original_edge_ids() const {
     std::vector<Graph::EdgeId> output = _original_edge_ids_of_ingoing_edges;
-    //? wenn Wurzel bekannt, geht das schneller
+
     for(unsigned int i = 0; i < output.size(); i++) {
         if(output[i] == Graph::invalid_edge_id) {
             output.erase(output.begin()+i);
@@ -171,7 +168,6 @@ Insertion_Tree_Data_Structure::try_to_insert_edge(const Graph::Edge& edge_to_ins
     Insertion_Tree_Data_Structure::Depth depth_b = compute_depth(input_node_b_tree_id);
 
     // Variablen für die teuerste Kante auf dem Weg vom Eingabeknoten zum NCA
-    // ? verändern zu Insertion_Tree_Data_Structure::NodeId (schöner)
     std::pair<Graph::EdgeWeight, Insertion_Tree_Data_Structure::NodeId> candidate_a = {0, Insertion_Tree_Data_Structure::invalid_node_id};
     std::pair<Graph::EdgeWeight, Insertion_Tree_Data_Structure::NodeId> candidate_b = {0, Insertion_Tree_Data_Structure::invalid_node_id};
 
@@ -257,15 +253,6 @@ Insertion_Tree_Data_Structure::try_to_insert_edge(const Graph::Edge& edge_to_ins
     return most_costly_edge.weight - input_weight;
 }
 
-void Insertion_Tree_Data_Structure::reinsert_removed_edges(const std::vector<TreeEdge> &removed_edges) {
-    for(const auto& curr_edge: removed_edges) {
-        //prüfe, ob Kante mit entferntem Knoten inzident
-        // ? besser weglassen (könnte Probleme machen)
-        if( curr_edge.child != _parents.size() && curr_edge.parent != _parents.size() ) {
-            Insertion_Tree_Data_Structure::set_edge(curr_edge);
-        }
-    }
-}
 
 void Insertion_Tree_Data_Structure::set_edge(const Insertion_Tree_Data_Structure::TreeEdge& edge_to_set) {
 
@@ -300,12 +287,4 @@ void Insertion_Tree_Data_Structure::reverse_path(Insertion_Tree_Data_Structure::
         curr_edge = parent_edge;
     }
 
-}
-
-void Insertion_Tree_Data_Structure::reverse_paths(
-        const std::vector<Insertion_Tree_Data_Structure::TreePath>& paths_to_reverse) {
-
-    for(auto curr_path: paths_to_reverse) {
-        reverse_path(curr_path);
-    }
 }

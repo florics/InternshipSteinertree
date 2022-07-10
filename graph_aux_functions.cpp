@@ -108,7 +108,6 @@ GraphAux::get_steinernodes_in_postorder(const Graph &input_graph, Graph::NodeId 
 
     std::vector<Graph::NodeId> next_nodes (1, terminal_root);
     //speichert die bereits erreichten Knoten (die, die bereits zu next_nodes hinzugfügt wurden)
-    //Laufzeit O(num_nodes()) Problem?
     std::vector<bool> reached_nodes (input_graph.num_nodes(), false);
     reached_nodes[terminal_root] = true;
 
@@ -147,7 +146,6 @@ std::vector<bool> GraphAux::compute_steiner_branches(const Graph &input_graph) {
     //berechne die Anzahl der Nachbarn für alle Steinerknoten
 
     using NumNeighbors = unsigned int;
-    //? static const NumNeighbors invalid_num = std::numeric_limits<double>::max();
 
     std::vector<NumNeighbors> num_neighbors(input_graph.num_nodes(), 0);
 

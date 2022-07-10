@@ -24,15 +24,8 @@ void LocalSearchCombi::find_local_minimum_with_svi_and_kvekpe_in_sequence_each_p
     bool kvekpe_local_min_of_reached = false;
     bool svi_local_min_of_reached = false;
 
-    int debug_counter = 0;
-
     //Schleife bricht ab, wenn wir ein lokales Optimum erreicht haben
     while( true ) {
-
-        debug_counter++;
-        std::cout << "Schleife " << debug_counter << "\n";
-        //fflush(stdout);
-
 
         svi_local_min_of_reached =
                 not SteinerVertexInsertion::run_one_pass_and_perform_changements_on_graph(input_subgraph);
@@ -53,11 +46,6 @@ void LocalSearchCombi::find_local_minimum_with_svi_and_kvekpe_in_sequence_each_p
 
         if( kvekpe_local_min_of_reached && svi_local_min_of_reached ) {
             break;
-        }
-
-        //debug
-        if( GraphAux::check_for_steinerleafs(input_subgraph.this_graph()) ) {
-            std::cout << "LocalSearchCombi: Es entstehen Steinerblätter. \n";
         }
 
     }
@@ -88,18 +76,12 @@ LocalSearchCombi::evaluate_neighborhood_with_kve_kpe_in_sequence_for_each_node(S
     // berechne Reihenfolge der Knoten für die Prozessierung
 
     const std::vector<Graph::NodeId>& terminals = solution_graph.get_terminals();
-    //todo
-    //const Graph::NodeId root_id = terminals[ rand() % terminals.size()];
-    const Graph::NodeId root_id = terminals[0];
+    const Graph::NodeId root_id = terminals[ rand() % terminals.size()];
 
     solution_graph.make_rooted_arborescence(root_id);
 
     const std::vector<Graph::NodeId> crucialnodes_in_postorder = LocalSearchAux::get_crucialnodes_in_postorder(solution_graph, root_id);
 
-
-    //debug
-    //GraphAuxPrint::print_subgraph(input_subgraph);
-    //fflush(stdout);
 
     const Horizontal_Edges_Lists horiz_bound_edges_lists =
             KeyVertexElim::compute_horizontal_bound_edges(input_subgraph, root_id, vor_diag);

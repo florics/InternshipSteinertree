@@ -57,31 +57,10 @@ Graph &Subgraph::this_graph() {
     return _this_graph;
 }
 
-/*?
-std::vector<Graph::NodeId> &Subgraph::subgraph_nodeids_of_nodes_in_originalgraph() {
-    return _subgraph_nodeids_of_nodes_in_originalgraph;
-}*/
-
-/*?
-std::vector<Graph::NodeId> &Subgraph::original_nodeids() {
-    return _original_nodeids;
-}*/
-
 std::vector<Graph::EdgeId> &Subgraph::original_edgeids() {
     return _original_edgeids;
 }
 
-/*?
-void Subgraph::assign(Graph& new_this_graph, std::vector<Graph::NodeId>& new_subgraph_nodeids_of_nodes_in_originalgraph,
-                      std::vector<Graph::NodeId>& new_original_nodeids,  std::vector<Graph::EdgeId>& new_original_edgeids) {
-
-    //? hier Problem, wenn Dinge im Graph const
-    _this_graph = new_this_graph;
-    _subgraph_nodeids_of_nodes_in_originalgraph = new_subgraph_nodeids_of_nodes_in_originalgraph;
-    _original_nodeids = new_original_nodeids;
-    _original_edgeids = new_original_edgeids;
-}
-*/
 
 void Subgraph::reset(const std::vector<Graph::EdgeId>& new_original_edgeids) {
 
@@ -189,7 +168,6 @@ void Subgraph::reset_edges(const std::vector<Graph::EdgeId> &new_original_edgeid
 
     _this_graph.clear_edges();
 
-    //Laufzeit? reserve für _edges?
     for( auto curr_orig_edge_id: new_original_edgeids) {
         const Graph::Edge& curr_edge = _original_graph.get_edge(curr_orig_edge_id);
 

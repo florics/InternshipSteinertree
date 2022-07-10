@@ -68,10 +68,6 @@ Union_Find_Structure::ElementId Union_Find_Structure::find(Union_Find_Structure:
     //finde die zur Eingabe gehörende Wurzel
     while( _parents[root] != root ) {
         root = _parents[root];
-        //debug? kann eig nicht eintreten oder? Laufzeit hier Problem?
-        if(root == Union_Find_Structure::invalid_elt_id) {
-            throw std::runtime_error("(Union_Find_Structure::find) ein Pfad führt zu Wurzel mit ungueltigem parent");
-        }
     }
 
     //path compression

@@ -15,7 +15,6 @@
 
 
 std::vector<Graph::NodeId> LocalSearchAux::get_crucialnodes_in_postorder(const Graph& input_graph, Graph::NodeId root_id) {
-    // Checks weglassen ?
     if( root_id == Graph::invalid_node_id) {
         throw std::runtime_error("(LocalSearchAux::get_crucialnodes_in_postorder) Eingabeknoten ungueltig");
     }
@@ -30,13 +29,11 @@ std::vector<Graph::NodeId> LocalSearchAux::get_crucialnodes_in_postorder(const G
     //speichert die crucial nodes in Reihenfolge der Graphendurchmusterung
     std::vector<Graph::NodeId> output;
     output.reserve(input_graph.num_nodes());
-    //? output.push_back(root_id);
 
     // es folgt eine Graphendurchmusterung
 
     std::vector<Graph::NodeId> next_nodes (1, root_id);
     //speichert die bereits erreichten Knoten (die, die bereits zu next_nodes hinzugfügt wurden)
-    //Laufzeit O(num_nodes()) Problem?
     std::vector<bool> reached_nodes (input_graph.num_nodes(), false);
     reached_nodes[root_id] = true;
 
@@ -142,27 +139,6 @@ bool LocalSearchAux::check_if_crucial (const Graph::Node& input_node) {
     }
 }
 
-/*
- * löschen?
-std::vector<EdgeSequence> LocalSearchAux::get_new_bound_paths(Voronoi_diagram input_vd, const std::vector<Graph::NodeId>& bases_to_delete) {
-    std::vector<EdgeSequence> new_bound_paths;
-
-    if( bases_to_delete.empty() ) {
-        return new_bound_paths;
-    }
-
-    //enthält alle Knoten, die vor repair zu einer Vor-Region einer Basis gehören, die danach entfernt wird
-    std::vector<Graph::NodeId> vor_regions_of_keypath = input_vd.compute_some_vor_regions(bases_to_delete);
-
-    input_vd.repair(bases_to_delete);
-
-    //berechne die neuen boundary edges
-    new_bound_paths = VorDiagAux::get_bound_paths_inc_to_nodeset(input_vd, vor_regions_of_keypath);
-
-    return new_bound_paths;
-}
-*/
-
 void LocalSearchAux::perform_improving_changements(Subgraph &input_subgraph, std::vector<ImprovingChangement> changements) {
 
     std::vector<Graph::EdgeId>& original_edge_ids = input_subgraph.original_edgeids();
@@ -189,7 +165,6 @@ void LocalSearchAux::perform_improving_changements(Subgraph &input_subgraph, std
     //füge alle hinzuzufügende Kanten zu original_edge_ids hinzu
 
     //speichert die bereits hinzugefügten Kanten, um Dopplungen zu vermeiden
-    //? alternativ kann man jedes Mal checken, ob die entsprechenden Knoten schon inzident sind (Laufzeit)
     std::vector<bool> added_edges(original_graph.num_edges(), false);
     for(auto curr_or_edge_id: original_edge_ids) {
         added_edges[curr_or_edge_id] = true;
@@ -254,14 +229,6 @@ EdgeSequence LocalSearchAux::find_and_process_ingoing_keypath(const Graph& input
 
     // finde den keypath der im Eingabeknoten endet
     const EdgeSequence key_path = LocalSearchAux::find_ingoing_keypath(input_graph, start_node, internal_node_ids);
-
-    //debug
-    if( start_node == key_path.endnode_a() ) {
-        throw std::runtime_error("LocalSearchAux::find_and_process_ingoing_keypath");
-    }
-    if( start_node != key_path.endnode_b() ) {
-        throw std::runtime_error("LocalSearchAux::find_and_process_ingoing_keypath");
-    }
 
     //füge die internen Knoten des keypath zu einer Menge in der Union Find zusammen
     subtrees_ufs.union_multiple_sets(internal_node_ids);

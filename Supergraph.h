@@ -20,12 +20,7 @@ public:
 
     const Graph& this_graph() const;
 
-    const std::vector<Graph::EdgeId>& original_edge_ids() const; //? get element funktion?
-
-
-    //? Laufzeit: //bemerke, dass wir hier beim Hinzufügen der vertikalen Kanten nicht prüfen müssen,
-    //? ob im Supergraph bereits eine Kante mit den gleichen Endpunkten existiert,
-    //? da hier die ersten vertikalen boundary edges betrachtet werden (und für jedes crucial child nur eine boundary edge)
+    const std::vector<Graph::EdgeId>& original_edge_ids() const;
 
     // fügt Kante hinzu, außer es gibt schon eine Kante zwischen node_a und node_b, die günstiger ist
     void add_edge(Graph::NodeId node_a, Graph::NodeId node_b, Graph::EdgeWeight weight, Graph::EdgeId original_id);
@@ -56,7 +51,7 @@ public:
 
     Supergraph_KVE(unsigned int num_supernodes);
 
-    const std::vector<Supergraph_KVE::BoundEdgeType>& superedges_corresponding_to_new_bound_edges() const;  //? get element funktion?
+    const std::vector<Supergraph_KVE::BoundEdgeType>& superedges_corresponding_to_new_bound_edges() const;
 
     void add_edge(Graph::NodeId node_a, Graph::NodeId node_b, Graph::EdgeWeight weight, Graph::EdgeId original_id, BoundEdgeType b_e_type);
 

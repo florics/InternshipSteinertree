@@ -142,7 +142,6 @@ bool GraphAux::check_if_terminals_connected(const Graph &input_graph) {
         Graph::NodeId curr_node = next_nodes.back();
         next_nodes.pop_back();
 
-        //? const std::vector<Graph::NodeId> &var_vect = input_graph.adjacency_vect(curr_node);
         for(auto curr_neighbor: input_graph.adjacency_vect(curr_node)) {
             if( not reached[curr_neighbor]) {
                 next_nodes.push_back(curr_neighbor);
@@ -169,7 +168,6 @@ Graph GraphAux::copygraph_wo_edges(const Graph& input_graph){
     for( const auto& curr_node : input_graph.nodes()){
         output.add_one_node( curr_node.terminal_state() );
     }
-    //? Laufzeit: beschleunigen durch add_nodes und danach Terminale markieren
     return output;
 }
 
@@ -180,7 +178,7 @@ Graph GraphAux::copygraph_wo_iso_nodes(const Graph& input_graph){
 
     //Knoten hinzufügen
     unsigned int output_graph_numnodes = 0;
-    //? Laufzeit: Speicher in _nodes reserven
+
     for(Graph::NodeId i=0; i<input_graph.num_nodes(); i++){
         Graph::Node curr_node = input_graph.get_node(i);
         if( curr_node.num_neighbors() != 0 ){
@@ -222,7 +220,6 @@ Subgraph GraphAux::copy_subgraph_wo_iso_nodes(const Subgraph &input_subgraph) {
     unsigned int output_graph_numnodes = 0;
     const std::vector<Graph::NodeId>& input_subgraph_nodeids_of_nodes_in_or_graph = input_subgraph.subgraph_nodeids_of_nodes_in_originalgraph();
 
-    //? Laufezeit: Speicher in _nodes reserven
     for(Graph::NodeId i=0; i<original_graph.num_nodes(); i++){
         if(input_subgraph_nodeids_of_nodes_in_or_graph[i] != Graph::invalid_node_id){
             const Graph::Node& curr_node = input_graph.get_node( input_subgraph_nodeids_of_nodes_in_or_graph[i] );

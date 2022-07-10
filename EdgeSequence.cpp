@@ -4,7 +4,6 @@
 
 #include "EdgeSequence.h"
 
-#include "iostream"
 #include "algorithm"
 
 EdgeSequence::EdgeSequence(const std::vector<Graph::EdgeId> edge_ids, Graph::NodeId endnode_a, Graph::NodeId endnode_b, Graph::PathLength length) :

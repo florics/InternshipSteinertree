@@ -18,8 +18,7 @@ void Mehlhorn_with_LocalSearch::complete_algorithm(const Graph &input_graph) {
 
     SteinerVertexElim::find_local_minimum(solution_subgraph);
 
-    //todo auskommentieren rückgängig
-    //GraphAuxPrint::print_subgraph(solution_subgraph);
+    GraphAuxPrint::print_subgraph(solution_subgraph);
     GraphAuxPrint::print_length_of_all_edges(solution_subgraph.this_graph());
 
 }

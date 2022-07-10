@@ -5,9 +5,6 @@
 #include <utility>
 #include <iostream>
 #include <queue>
-#include <tuple>
-//? #include <functional>
-//? #include <algorithm>
 
 #include "voronoi_diagram.h"
 
@@ -189,7 +186,7 @@ Voronoi_diagram::RestoreData Voronoi_diagram::repair(const std::vector<Graph::No
 
             //füge zur Basis des Vorgängers hinzu
             //bemerke, dass _predecessor[next_node] 'wohldefiniert' ist, da next_node niemals Basis sein kann,
-            // da nur Knoten aus node_to_update zu candidates hinzugefügt werden (bemerkung löschen?)
+            // da nur Knoten aus node_to_update zu candidates hinzugefügt werden
             _base[next_node] = _base[_predecessor[next_node].first];
 
             //Schleife über die zu next_node inzidenten Kanten

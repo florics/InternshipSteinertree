@@ -45,11 +45,11 @@ public:
                                                                                const std::vector<bool>& forbidden);
 
     // Ausgabe: die beste vertikale Kante zwischen dem Subbaum des Eingabeknotens und dem Subbaum des Vorgängers (des aktuellen Knotens)
-    std::pair<Graph::PathLength, Graph::EdgeId> cleanup_one_heap_sve(const Graph::NodeId node_to_cleanup,
+    std::pair<Graph::PathLength, Graph::EdgeId> cleanup_one_heap_sve(Graph::NodeId node_to_cleanup,
                                                                      const Graph& original_graph,
-                                                                               Ext_Union_Find_Structure &ufs,
-                                                                               LocalSearchAux::MovesPerPass moves_per_pass,
-                                                                               const std::vector<bool>& forbidden);
+                                                                     Ext_Union_Find_Structure &ufs,
+                                                                     LocalSearchAux::MovesPerPass moves_per_pass,
+                                                                     const std::vector<bool>& forbidden);
 
     // Ausgabe: in dem i-ten Eintrag steht die beste vertikale boundary edge, die zwischen dem Subbaum, der zum i-ten crucial child gehört,
     // und dem Subbaum des crucial parent verläuft (i=1,...) (falls keine solche Kante gefunden wurde, gibt es einen 'ungueltigen' Eintrag)
@@ -63,16 +63,10 @@ public:
     // Ausgabe: die beste vertikale boundary edge zwischen dem Subbaum des Eingabeknotens und dem Subbaum des crucial parent
     std::pair<Graph::PathLength, Graph::EdgeId> cleanup_one_heap_kve(const Graph::NodeId node_to_cleanup,
                                                                      const Voronoi_diagram& original_vd,
-                                                                               Ext_Union_Find_Structure &ufs,
-                                                                               LocalSearchAux::MovesPerPass moves_per_pass,
-                                                                               const std::vector<bool>& forbidden);
+                                                                     Ext_Union_Find_Structure &ufs,
+                                                                     LocalSearchAux::MovesPerPass moves_per_pass,
+                                                                     const std::vector<bool>& forbidden);
 
-    /*//cleanup für Key-Vertex-Elimination
-    //? näher beschreiben?
-    std::vector<std::pair<Graph::PathLength, Graph::EdgeId>> cleanup_multiple_heaps(const std::vector<Graph::NodeId>& nodes_to_cleanup,
-                                                                                    Union_Find_Structure &ufs,
-                                                                                    const std::vector<Union_Find_Structure::ElementId>& endpoints_to_discard);
-    */
 
     //cleanup für Key-EdgeSequence-Exchange
     std::pair<Graph::PathLength, Graph::EdgeId> cleanup_one_heap_kpe(Graph::NodeId node_to_cleanup,

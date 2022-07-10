@@ -3,20 +3,16 @@
 //
 
 #include "queue"
-#include "iostream" //nur für einmal runtime_error (?)
+#include "iostream"
 
 #include "graph_algorithms.h"
 
-#include "graph_aux_functions.h"
-#include "graph_printfunctions.h"
-#include "Union_Find_Structure.h"
-#include "general_aux_functions.h"
 
 void GraphAlgorithms::compute_mst_for_graphs(Graph& input_graph, Graph::NodeId start_node) {
-    if( start_node == Graph::invalid_node_id){
+    if (start_node == Graph::invalid_node_id) {
         throw std::runtime_error("(GraphAlgorithms::compute_mst_for_graphs) Eingabeknoten ungültig");
     }
-    if( start_node >= input_graph.num_nodes()) {
+    if (start_node >= input_graph.num_nodes()) {
         throw std::runtime_error("(GraphAlgorithms::compute_mst_for_graphs) Eingabeknoten liegt nicht im Graphen");
     }
 
@@ -37,16 +33,21 @@ void GraphAlgorithms::compute_mst_for_graphs(Graph& input_graph, Graph::NodeId s
 
     //speichert die hinzugefügten Kanten
     std::vector<Graph::Edge> mst_edges;
-    mst_edges.reserve(input_graph.num_nodes() -1);
+    mst_edges.reserve(input_graph.num_nodes() - 1);
 
     //erste Schleife über die Nachbarn des Startknoten //? irgendwie in die Hauptschleife packen?
     for (auto curr_edge_id: input_graph.get_node(start_node).incident_edge_ids()) {
+
         Graph::Edge curr_edge = input_graph.get_edge(curr_edge_id);
         Graph::NodeId curr_neighbor = curr_edge.get_other_node(start_node);
+
         if (best_edges[curr_neighbor] == Graph::invalid_edge_id) {
+
             candidates.push({curr_edge.weight(), curr_neighbor});
             best_edges[curr_neighbor] = curr_edge_id;
+
         } else if (curr_edge.weight() < input_graph.get_edge(best_edges[curr_neighbor]).weight()) {
+
             candidates.push({curr_edge.weight(), curr_neighbor});
             best_edges[curr_neighbor] = curr_edge_id;
         }
@@ -59,7 +60,8 @@ void GraphAlgorithms::compute_mst_for_graphs(Graph& input_graph, Graph::NodeId s
 
         //debug: der Fall kann eig nicht eintreten
         if (best_edges[next_cand] == Graph::invalid_edge_id) {
-            throw std::runtime_error("(GraphAlgorithms::compute_mst_for_graphs) best_edges[next_cand] == Graph::invalid_edge_id.");
+            throw std::runtime_error(
+                    "(GraphAlgorithms::compute_mst_for_graphs) best_edges[next_cand] == Graph::invalid_edge_id.");
         }
 
         //was ist, wenn next_cand_weight unendlich ?? denke das ist ok so
@@ -78,14 +80,19 @@ void GraphAlgorithms::compute_mst_for_graphs(Graph& input_graph, Graph::NodeId s
 
             //Finde neue Kandidaten
             for (auto curr_edge_id: input_graph.get_node(next_cand).incident_edge_ids()) {
+
                 Graph::Edge curr_edge = input_graph.get_edge(curr_edge_id);
                 Graph::NodeId curr_neighbor = curr_edge.get_other_node(next_cand);
+
                 if (not reached[curr_neighbor]) {
 
                     if (best_edges[curr_neighbor] == Graph::invalid_edge_id) {
+
                         candidates.push({curr_edge.weight(), curr_neighbor});
                         best_edges[curr_neighbor] = curr_edge_id;
+
                     } else if (curr_edge.weight() < input_graph.get_edge(best_edges[curr_neighbor]).weight()) {
+
                         candidates.push({curr_edge.weight(), curr_neighbor});
                         best_edges[curr_neighbor] = curr_edge_id;
                     }
@@ -97,24 +104,20 @@ void GraphAlgorithms::compute_mst_for_graphs(Graph& input_graph, Graph::NodeId s
 
     }
 
+    for (auto reached_node: reached) {
+        if (not reached_node) {
+            throw std::runtime_error(
+                    "(GraphAlgorithms::compute_mst_for_subgraphs) Es wurden nicht alle Knoten erreicht.");
+        }
+    }
+
     //setze die Kantenmenge des Graphen auf die des berechneten MST
 
     input_graph.clear_edges();
 
-    for( const auto& curr_edge: mst_edges) {
+    for (const auto &curr_edge: mst_edges) {
         input_graph.add_edge(curr_edge.node_a(), curr_edge.node_b(), curr_edge.weight());
     }
-
-
-    if( not GraphAux::get_isolated_nodes(input_graph).empty()) {
-        throw std::runtime_error("(GraphAlgorithms::compute_mst_for_graphs) Es wurden nicht alle Knoten erreicht.");
-    }
-
-    //debug
-    if(input_graph.num_edges() != input_graph.num_nodes()-1) {
-        throw std::runtime_error("(GraphAlgorithms::compute_mst_for_graphs) Der berechnete Graph hat nicht n-1 Kanten.");
-    }
-
 }
 
 void GraphAlgorithms::compute_mst_for_subgraphs(Subgraph& input_subgraph, Graph::NodeId start_node) {
@@ -170,13 +173,6 @@ void GraphAlgorithms::compute_mst_for_subgraphs(Subgraph& input_subgraph, Graph:
         Graph::EdgeWeight next_cand_weight = candidates.top().first;
         candidates.pop();
 
-        //debug: der Fall kann eig nicht eintreten
-        if (best_edges[next_cand] == Graph::invalid_edge_id) {
-            throw std::runtime_error("GraphAlgorithms::compute_mst_for_subgraphs: best_edges[next_cand] == Graph::invalid_edge_id.");
-        }
-
-        //was ist, wenn next_cand_weight unendlich ?? denke das ist ok so
-
         //falls die Bedingung der if-Abfrage eintritt, haben wir tatsächlich den besten nächsten Kandidaten gefunden
         //bemerke, dass get_edge( best_edges[next_cand] ) "wohldefiniert" ist,
         // da jeder Knoten, der mind. einmal zu candidates hinzugefügt wird, eine valide Kante in best_edges erhält
@@ -189,16 +185,18 @@ void GraphAlgorithms::compute_mst_for_subgraphs(Subgraph& input_subgraph, Graph:
             //Finde neue Kandidaten
             for (auto curr_edge_id: input_this_graph.get_node(next_cand).incident_edge_ids()) {
 
-                Graph::Edge curr_edge = input_this_graph.get_edge(curr_edge_id);
+                const Graph::Edge& curr_edge = input_this_graph.get_edge(curr_edge_id);
                 Graph::NodeId curr_neighbor = curr_edge.get_other_node(next_cand);
 
                 if (not reached[curr_neighbor]) {
 
                     if (best_edges[curr_neighbor] == Graph::invalid_edge_id) {
+
                         candidates.push({curr_edge.weight(), curr_neighbor});
                         best_edges[curr_neighbor] = curr_edge_id;
 
                     } else if (curr_edge.weight() < input_this_graph.get_edge(best_edges[curr_neighbor]).weight()) {
+
                         candidates.push({curr_edge.weight(), curr_neighbor});
                         best_edges[curr_neighbor] = curr_edge_id;
                     }
@@ -208,42 +206,13 @@ void GraphAlgorithms::compute_mst_for_subgraphs(Subgraph& input_subgraph, Graph:
         }
     }
 
+    for(auto reached_node: reached) {
+        if(not reached_node) {
+            throw std::runtime_error("(GraphAlgorithms::compute_mst_for_subgraphs) Es wurden nicht alle Knoten erreicht.");
+        }
+    }
+
     //die Kanten des MST als EdgeIds des zugrundeliegenden Graphen haben wir mit new_original_edge_ids gefunden
     input_subgraph.reset_edges(new_original_edge_ids);
 
-
-    //besser mit reached?
-    if( not GraphAux::get_isolated_nodes(input_this_graph).empty()) {
-        throw std::runtime_error("(GraphAlgorithms::compute_mst_for_subgraphs) Es wurden nicht alle Knoten erreicht.");
-    }
-
-}
-
-Graph GraphAlgorithms::compute_spann_forest(const Graph& input_graph) {
-    Graph output_graph(input_graph.num_nodes());
-    Union_Find_Structure ufs(input_graph.num_nodes());
-
-    for( const auto& curr_edge: input_graph.edges()) {
-        Graph::NodeId curr_node_a = curr_edge.node_a();
-        Graph::NodeId curr_node_b = curr_edge.node_b();
-
-        if (not ufs.check_if_in_existing_set(curr_node_a)) {
-            ufs.make_set(curr_node_a);
-        }
-        if (not ufs.check_if_in_existing_set(curr_node_b)) {
-            ufs.make_set(curr_node_b);
-        }
-
-        if (ufs.find(curr_node_a) != ufs.find(curr_node_b)) {
-            output_graph.add_edge(curr_node_a, curr_node_b, curr_edge.weight());
-            ufs.union_by_rank(curr_node_a, curr_node_b);
-        }
-    }
-
-
-    std::cout << "Der von 'GraphAlgorithms::compute_spann_forest' berechnete Spannwald ist: \n";
-    GraphAuxPrint::print_graph(output_graph);
-    std::cout << "\n";
-
-    return output_graph;
 }

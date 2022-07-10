@@ -22,9 +22,6 @@ public:
     const std::vector<Graph::EdgeId> &getEdgesToInsert() const;
     const Graph::PathLength getImprovementValue() const;
 
-    //debug
-    void print(const Subgraph& original_subgraph);
-
 private:
 
     //path anstelle von std::vector<Graph::EdgeId> verwenden ?

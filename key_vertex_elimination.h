@@ -18,7 +18,7 @@
 
 namespace KeyVertexElim{
 
-    void complete_algorithm(Subgraph &input_subgraph);
+    void find_local_minimum(Subgraph &input_subgraph);
 
     // berechnet die Nachbarschaft der Eingabelösung, falls ein move per pass eingegeben wird
     // falls mehrere moves per pass eingegeben wird, so wird eine Menge von Verbesserungen ausgegeben, die simultan ausgeführt werden können
@@ -33,7 +33,11 @@ namespace KeyVertexElim{
                                      Edge_Heaps& vert_bound_edge_heaps,
                                      LocalSearchAux::MovesPerPass moves_per_pass,
                                      std::vector<bool>& forbidden,
-                                     std::vector<bool>& pinned);
+                                     std::vector<bool>& pinned,
+                                     LocalSearchAux::IngoingKeyPathProcessState in_kpath_process_state,
+                                     EdgeSequence& ingoing_keypath,
+                                     std::vector<Graph::NodeId>& ingoing_internal_nodes,
+                                     bool one_ingoing_intern_node_is_pinned);
 
     //Ausgabe: die key vertices des Eingabegraphens in einer post-order bzgl einer Graphendurchmusterungs-Arboreszenz
     // mit dem Eingabeknoten als Wurzel (so dass children immer vor ihrem parent stehen)
@@ -78,7 +82,8 @@ namespace KeyVertexElim{
                                     const std::vector<Graph::EdgeId>& horiz_bound_edges);
 
     // fügt die (alten) vertikalen boundary egdes zum Supergraphen hinzu
-    void find_and_add_vertical_bound_edges(Graph::NodeId start_node_id,
+    void find_and_add_vertical_bound_edges(const Subgraph& input_subgraph,      //debug
+                                           Graph::NodeId start_node_id,
                                            const Voronoi_diagram& vor_diag,
                                            Ext_Union_Find_Structure &subtrees_ufs,
                                            Edge_Heaps &vert_bound_edge_heaps,

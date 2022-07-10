@@ -16,10 +16,19 @@
 #include "Subgraph.h"
 #include "ImprovingChangement.h"
 #include "Horizontal_Edges_Lists.h"
+#include "Union_Find_Structure.h"
 
 namespace LocalSearchAux{
 
+    //gibt an, ob wir eine oder mehrere Verbesserungen in einem pass ausführen möchten
+    // (entsprechend arbeiten wir mit pinned und forbidden oder nicht)
     enum MovesPerPass {one_move, several_moves};
+
+    //gibt an, ob für den aktuellen Knoten bereits die Funktion find_and_process_ingoing_keypath aufgerufen wurde
+    enum IngoingKeyPathProcessState {already_processed, not_processed};
+
+    //gibt 1 aus gdw. Eingabeknoten ein crucial node im Eingabegraphen ist
+    bool check_if_crucial (const Graph::Node& input_node);
 
     //Ausgabe: die crucial vertices des Eingabegraphens in einer post-order bzgl einer Graphendurchmusterungs-Arboreszenz
     // mit dem Eingabeknoten als Wurzel (so dass children immer vor ihrem parent stehen), aber ohne den Eingabeknoten selbst (!)
@@ -29,15 +38,23 @@ namespace LocalSearchAux{
 
     //findet den Key-Path, der in start_node endet
     // Ausgabe: Key-Path als EdgeSequence (endnode_a ist der crucial parent des Startknoten)
-    // Eingabe: Graph muss Arboreszenz mit einem Terminal als Wurzel sein
-    // start_node muss crucial node sein
+    // Eingabe: Graph muss Arboreszenz mit einem Terminal als Wurzel sein, start_node muss crucial node sein
     // internal_node_ids wird überschrieben mit den inneren Knoten des Key-Path (internal_node_ids speichert in post-order)
     EdgeSequence find_ingoing_keypath (const Graph& input_graph,
                                        Graph::NodeId start_node,
                                        std::vector<Graph::NodeId>& internal_node_ids);
 
-    //gibt 1 aus gdw. Eingabeknoten ein crucial node im Eingabegraphen ist
-    bool check_if_crucial (const Graph::Node& input_node);
+
+    //findet den Key-Path, der in start_node endet, vereinigt die internen Knoten zu einer Menge in der Union-Find,
+    // prüft, ob ein interner Knoten pinned ist (Ausgabe über one_internal_node_is_pinned)
+    // Eingabe, Ausgabe: siehe find_ingoing_keypath
+    EdgeSequence find_and_process_ingoing_keypath (const Graph& input_graph,
+                                                   Graph::NodeId start_node,
+                                                   std::vector<Graph::NodeId>& internal_node_ids,
+                                                   Union_Find_Structure& subtrees_ufs,
+                                                   const std::vector<bool>& pinned,
+                                                   bool& one_internal_node_is_pinned);
+
 
     // findet alle Kanten, die nach Entfernen der bases_to_delete boundary edges werden
     //? std::vector<EdgeSequence> get_new_bound_paths(Voronoi_diagram input_vd, const std::vector<Graph::NodeId>& bases_to_delete);

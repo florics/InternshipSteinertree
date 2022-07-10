@@ -192,14 +192,12 @@ Edge_Heaps::cleanup_one_heap_kve(const Graph::NodeId node_to_cleanup,
     while(not heap_to_cleanup.empty()) {
         std::pair<Graph::PathLength, Graph::EdgeId> top_heap_entry = heap_to_cleanup.top();
 
-        //debug
-        //GraphAuxPrint::print_edge_sequence(original_vd.original_graph(), VorDiagAux::compute_bound_path(original_vd, top_heap_entry.second) );
-        //fflush(stdout);
 
         //finde die Endpunkte bzw. Basen der aktuellen boundary edge (als NodeIds in der aktuellen Lösung)
         std::pair<Graph::NodeId, Graph::NodeId> bases_of_top_entry = VorDiagAux::get_bases_of_edge( original_vd, top_heap_entry.second);
         Graph::NodeId endbase_a = _solution_node_ids[bases_of_top_entry.first];
         Graph::NodeId endbase_b = _solution_node_ids[bases_of_top_entry.second];
+
 
         if( moves_per_pass == LocalSearchAux::several_moves ) {
             if (forbidden[endbase_a] || forbidden[endbase_b]) {
@@ -287,10 +285,6 @@ Edge_Heaps::cleanup_one_heap_sve(const Graph::NodeId node_to_cleanup,
             }
         }
 
-        //debug
-        if( ufs.allowed(sol_node_id_a) && ufs.allowed(sol_node_id_b) ) {
-            throw std::runtime_error("(Edge_Heaps::cleanup_one_heap_sve) Kante verläuft innerhalb des Subbaums des Vorgängers.");
-        }
 
         if( not ufs.allowed(sol_node_id_a) && not ufs.allowed(sol_node_id_b) ) {
             // falls die Endpunkte in einer der Mengen der UFS liegen, die wir verboten haben, suchen wir weiter

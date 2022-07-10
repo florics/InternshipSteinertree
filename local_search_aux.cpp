@@ -244,3 +244,36 @@ LocalSearchAux::compute_list_ids_for_horizon_edges_lists(unsigned int num_nodes,
 
     return output;
 }
+
+EdgeSequence LocalSearchAux::find_and_process_ingoing_keypath(const Graph& input_graph,
+                                                              Graph::NodeId start_node,
+                                                              std::vector<Graph::NodeId>& internal_node_ids,
+                                                              Union_Find_Structure& subtrees_ufs,
+                                                              const std::vector<bool>& pinned,
+                                                              bool &one_internal_node_is_pinned) {
+
+    // finde den keypath der im Eingabeknoten endet
+    const EdgeSequence key_path = LocalSearchAux::find_ingoing_keypath(input_graph, start_node, internal_node_ids);
+
+    //debug
+    if( start_node == key_path.endnode_a() ) {
+        throw std::runtime_error("LocalSearchAux::find_and_process_ingoing_keypath");
+    }
+    if( start_node != key_path.endnode_b() ) {
+        throw std::runtime_error("LocalSearchAux::find_and_process_ingoing_keypath");
+    }
+
+    //füge die internen Knoten des keypath zu einer Menge in der Union Find zusammen
+    subtrees_ufs.union_multiple_sets(internal_node_ids);
+
+    one_internal_node_is_pinned = false;
+
+    // prüfe, ob die internen Knoten pinned sind
+    for(auto intern_node_id: internal_node_ids) {
+        if( pinned[intern_node_id]) {
+           one_internal_node_is_pinned = true;
+        }
+    }
+
+    return key_path;
+}

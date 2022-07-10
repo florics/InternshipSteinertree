@@ -79,7 +79,7 @@ void DebugTests::kve_1_evaluate_neighborhood() {
 
     Subgraph instance(original_graph, this_graph, subgraph_nodeids_of_nodes_in_originalgraph, original_nodeids, original_edgeids);
 
-    KeyVertexElim::complete_algorithm(instance);
+    KeyVertexElim::find_local_minimum(instance);
 
     GraphAuxPrint::print_graph(instance.this_graph());
 
@@ -95,7 +95,7 @@ void DebugTests::kve_2_evaluate_neighborhood() {
 
     Subgraph instance(original_graph, this_graph, subgraph_nodeids_of_nodes_in_originalgraph, original_nodeids, original_edgeids);
 
-    KeyVertexElim::complete_algorithm(instance);
+    KeyVertexElim::find_local_minimum(instance);
 
     GraphAuxPrint::print_graph(instance.this_graph());
 
@@ -111,7 +111,7 @@ void DebugTests::kve_3_evaluate_neighborhood() {
 
     Subgraph instance(original_graph, this_graph, subgraph_nodeids_of_nodes_in_originalgraph, original_nodeids, original_edgeids);
 
-    KeyVertexElim::complete_algorithm(instance);
+    KeyVertexElim::find_local_minimum(instance);
 
     GraphAuxPrint::print_graph(instance.this_graph());
 
@@ -153,3 +153,32 @@ std::vector<Graph> DebugTests::get_test_instances_from_file(const char *filename
 }
 
 //  C:\Users\Lukas\Documents\Uni\Mathestudium\Programmierpraktikum\Praxis\Instanzen\10\rect_instance_1.stp
+
+/*
+
+ //std::cout << i << "\n";
+        fflush(stdout);
+
+        Subgraph sol_sg = Mehlhorn::complete_algorithm(my_graphs[i]);
+
+        //GraphAuxPrint::print_subgraph(sol_sg);
+
+        //Graph::PathLength value_before = GraphAux::length_of_all_edges(sol_sg.this_graph());
+        //GraphAuxPrint::print_length_of_all_edges(sol_sg.this_graph());
+
+        //LocalSearchCombi::find_local_minimum_with_svi_and_kvekpe_in_sequence_each_pass(sol_sg);
+
+
+        SteinerVertexElim::find_local_minimum(sol_sg);
+        SteinerVertexInsertion::find_local_minimum(sol_sg);
+        KeyPathExch::complete_algorithm(sol_sg);
+        KeyVertexElim::find_local_minimum(sol_sg);
+
+        //Graph::PathLength value_after = GraphAux::length_of_all_edges(sol_sg.this_graph());
+        //GraphAuxPrint::print_length_of_all_edges(sol_sg.this_graph());
+
+        //if( value_after < value_before) {
+            //improve_counter ++;
+        //}
+
+ */

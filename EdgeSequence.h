@@ -9,12 +9,16 @@
 #include "voronoi_diagram.h"
 
 //? würde eig gerne prüfen, ob das wirklich ein Pfad ist etc
+//alles const machen? struct machen? interne Knoten hinzufügen?
 
 class EdgeSequence {
 
 public:
 
     EdgeSequence(const std::vector<Graph::EdgeId> edges, Graph::NodeId endnode_a, Graph::NodeId endnode_b, Graph::PathLength length);
+
+    //erstellt leeres Objekt
+    EdgeSequence();
 
     const std::vector<Graph::EdgeId>& edge_ids() const;
 

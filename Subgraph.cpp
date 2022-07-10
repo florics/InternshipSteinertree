@@ -137,9 +137,15 @@ void Subgraph::reset(const std::vector<Graph::EdgeId>& new_original_edgeids) {
 }
 
 void Subgraph::add_nodes(const std::vector<Graph::NodeId>& nodes_to_add) {
+
     //prüfe, ob Eingabeknoten tatsächlich im zugrundeliegenden Graphen liegen
     for(auto curr_node: nodes_to_add) {
-        GraphAux::check_node_id(curr_node, _original_graph.num_nodes(), "Subgraph::add_nodes");
+        if( curr_node == Graph::invalid_node_id) {
+            throw std::runtime_error("(Subgraph::add_nodes) Eingabeknoten ungueltig.");
+        }
+        if( curr_node >= _original_graph.num_nodes()) {
+            throw std::runtime_error("(Subgraph::add_nodes) Eingabeknoten nicht im zugrundeliegenden Graphen.");
+        }
     }
 
     // jeder neu hinzugefügte Knoten erhält einfach die NodeId, die der Anzahl an Knoten entspricht,
@@ -158,7 +164,12 @@ void Subgraph::add_nodes(const std::vector<Graph::NodeId>& nodes_to_add) {
 void Subgraph::add_edges(const std::vector<Graph::NodeId>& edges_to_add) {
     //prüfe, ob Eingabekanten tatsächlich im zugrundeliegenden Graphen liegen
     for(auto curr_edge_id: edges_to_add) {
-        GraphAux::check_edge_id(curr_edge_id, _original_graph.num_nodes(), "Subgraph::add_edges");
+        if( curr_edge_id == Graph::invalid_edge_id) {
+            throw std::runtime_error("(Subgraph::add_edges) Eingabekante ungueltig.");
+        }
+        if( curr_edge_id >= _original_graph.num_edges()) {
+            throw std::runtime_error("(Subgraph::add_edges) Eingabekante nicht im Graphen.");
+        }
     }
 
     for(auto curr_edge_id: edges_to_add) {

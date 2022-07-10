@@ -17,6 +17,8 @@
 #include "steiner_vertex_elimination.h"
 #include "Insertion_Tree_Data_Structure.h"
 #include "steiner_vertex_insertion.h"
+#include "local_search_combinations.h"
+#include "mehlhorn_with_local_search.h"
 
 
 int main(int argc, char *argv[]) {
@@ -38,7 +40,7 @@ int main(int argc, char *argv[]) {
 
 
     //Verbesserung durch lokale Suchen (Reihenfolge nicht klar)
-    SteinerVertexElim::complete_algorithm(sol_sg);
+    SteinerVertexElim::find_local_minimum(sol_sg);
     SteinerVertexInsertion::find_local_minimum(sol_sg);
     KeyVertexElim::complete_algorithm(sol_sg);
     KeyPathExch::complete_algorithm(sol_sg);
@@ -52,7 +54,7 @@ int main(int argc, char *argv[]) {
     //für mehrere Instanzen auf einmal:
 
     std::vector<Graph> my_graphs =
-          DebugTests::get_test_instances_from_file("C:\\Users\\Lukas\\CLionProjects\\PraktikumSteinerbaum\\Pfade_von_TestInstanzen\\I080");
+          DebugTests::get_test_instances_from_file("C:\\Users\\Lukas\\CLionProjects\\PraktikumSteinerbaum\\Pfade_von_TestInstanzen\\Mix1");
     //std::vector<Graph> my_graphs = DebugTests::get_standard_test_instances();
 
 
@@ -62,26 +64,7 @@ int main(int argc, char *argv[]) {
         std::cout << i << "\n";
         fflush(stdout);
 
-        Subgraph sol_sg = Mehlhorn::complete_algorithm(my_graphs[i]);
-
-        //GraphAuxPrint::print_subgraph(sol_sg);
-
-        //Graph::PathLength value_before = GraphAux::length_of_all_edges(sol_sg.this_graph());
-        //GraphAuxPrint::print_length_of_all_edges(sol_sg.this_graph());
-
-
-        //SteinerVertexElim::complete_algorithm(sol_sg);
-        //SteinerVertexInsertion::find_local_minimum(sol_sg);
-        KeyVertexElim::complete_algorithm(sol_sg);
-        KeyPathExch::complete_algorithm(sol_sg);;
-
-
-        //Graph::PathLength value_after = GraphAux::length_of_all_edges(sol_sg.this_graph());
-        //GraphAuxPrint::print_length_of_all_edges(sol_sg.this_graph());
-
-        //if( value_after < value_before) {
-            //improve_counter ++;
-        //}
+        Mehlhorn_with_LocalSearch::complete_algorithm(my_graphs[i]);
 
     }
 

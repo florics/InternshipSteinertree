@@ -21,9 +21,9 @@ public:
     //erstellt ein-elementige Menge
     //Eingabe: darf nicht bereits in einer Menge liegen
     void make_set(ElementId input_elt);
-    //todo: union by size ist besser oder?
     //vereinigt die Mengen, in denen die eingegebenen Elemente liegen
     //Eingabe: beide Elemente müssen bereits in Mengen liegen, die sich insbesondere unterscheiden
+    // wird das ungültige Element eingegeben, so passiert nichts
     void union_by_rank(ElementId elt_x, ElementId elt_y);
     //gibt das Element aus, was als Label für die Menge, in der input_elt liegt, gilt (also die Wurzel)
     //setzt mit 'Path-Compression' die Eltern der Elemente, die auf dem Weg von input_elt zur Wurzel liegen, jeweils auf die Wurzel

@@ -21,7 +21,14 @@ Horizontal_Edges_Lists::Horizontal_Edges_Lists(const std::vector<ListId> &list_i
                                                {}
 
 const std::vector<Graph::EdgeId>& Horizontal_Edges_Lists::get_list(Graph::NodeId input_node) const {
-    GraphAux::check_node_id(input_node, _list_ids.size(), "Horizontal_Edges_Lists::get_list");
+
+    if( input_node == Graph::invalid_node_id) {
+        throw std::runtime_error("(Horizontal_Edges_Lists::get_list) Eingabeknoten ungueltig.");
+    }
+    if( input_node >= _list_ids.size()) {
+        throw std::runtime_error("(Horizontal_Edges_Lists::get_list) Eingabeknoten nicht im Graphen.");
+    }
+
 
     Horizontal_Edges_Lists::ListId input_list_id = _list_ids[input_node];
 

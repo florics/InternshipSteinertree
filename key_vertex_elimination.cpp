@@ -168,11 +168,12 @@ bool KeyVertexElim::check_if_keyvertex(const Graph &input_graph, Graph::NodeId i
 }
 
 Horizontal_Edges_Lists KeyVertexElim::compute_horizontal_bound_edges(const Subgraph &input_subgraph, Graph::NodeId root,
-                                              const Voronoi_diagram &vor_diag) {
+                                                                     const Voronoi_diagram &vor_diag) {
 
     const Graph& original_graph = input_subgraph.original_graph();
     const Graph& solution_graph = input_subgraph.this_graph();
-    const std::vector<Graph::NodeId>& solution_nodeids_of_original_nodes = input_subgraph.subgraph_nodeids_of_nodes_in_originalgraph();
+    const std::vector<Graph::NodeId>& solution_nodeids_of_original_nodes =
+            input_subgraph.subgraph_nodeids_of_nodes_in_originalgraph();
 
     const std::vector<Graph::NodeId> key_nodes = KeyVertexElim::get_key_nodes(solution_graph);
 
@@ -223,7 +224,7 @@ void KeyVertexElim::add_horizontal_bound_edges(const Subgraph& input_subgraph,
                                                const std::vector<Graph::EdgeId>& horiz_bound_edges) {
 
     //? const Graph& solution_graph = input_subgraph.this_graph();
-    //? const Graph& original_graph = input_subgraph.original_graph();
+    const Graph& original_graph = input_subgraph.original_graph();  //nach debug löschen
     const std::vector<Graph::NodeId>& solution_nodeids_of_original_nodes = input_subgraph.subgraph_nodeids_of_nodes_in_originalgraph();
 
     for( auto curr_edge_id: horiz_bound_edges) {
@@ -282,6 +283,8 @@ Voronoi_diagram::RestoreData KeyVertexElim::find_and_add_new_bound_edges(const S
     //debug
     // std::cout << "Aufruf von KeyVertexElim::find_and_add_new_bound_edges: \n";
 
+    const Graph& original_graph = input_subgraph.original_graph();  //debug
+
     const std::vector<Graph::NodeId>& original_nodeids = input_subgraph.original_nodeids();
     const std::vector<Graph::NodeId>& solution_nodeids_of_original_nodes = input_subgraph.subgraph_nodeids_of_nodes_in_originalgraph();
     
@@ -299,6 +302,10 @@ Voronoi_diagram::RestoreData KeyVertexElim::find_and_add_new_bound_edges(const S
     const std::vector<Graph::EdgeId> new_bound_edge_ids = VorDiagAux::get_bound_edges_inc_to_nodeset(vor_diag, vor_diag_restore_data.node_ids);
 
     for( auto curr_bound_edge_id: new_bound_edge_ids) {
+
+        //debug
+        //std::cout << "Kandidat ist ";
+        //GraphAuxPrint::print_edge_sequence(original_graph, VorDiagAux::compute_bound_path(vor_diag, curr_bound_edge_id));
 
         //finde die Endpunkte der boundary edge als NodeIds im solution-Graph
         const std::pair<Graph::NodeId, Graph::NodeId> curr_bases = VorDiagAux::get_bases_of_edge(vor_diag, curr_bound_edge_id);
@@ -332,7 +339,8 @@ Voronoi_diagram::RestoreData KeyVertexElim::find_and_add_new_bound_edges(const S
     return vor_diag_restore_data;
 }
 
-void KeyVertexElim::find_and_add_vertical_bound_edges(Graph::NodeId start_node_id,
+void KeyVertexElim::find_and_add_vertical_bound_edges(const Subgraph& input_subgraph,   //debug
+                                                      Graph::NodeId start_node_id,
                                                       const Voronoi_diagram& vor_diag,
                                                       Ext_Union_Find_Structure &subtrees_ufs,
                                                       Edge_Heaps &vert_bound_edge_heaps,
@@ -356,8 +364,10 @@ void KeyVertexElim::find_and_add_vertical_bound_edges(Graph::NodeId start_node_i
         subtrees_ufs.set_allowed(curr_crucial_child, false);
     }
 
+
     std::vector<std::pair<Graph::PathLength, Graph::EdgeId>> vertical_bound_edges =
             vert_bound_edge_heaps.cleanup_heaps_kve(crucial_children, vor_diag, subtrees_ufs, moves_per_pass, forbidden);
+
 
     //Wiederherstellen der default-Werte von _allowed
     subtrees_ufs.set_allowed(start_node_id, true);
@@ -374,6 +384,7 @@ void KeyVertexElim::find_and_add_vertical_bound_edges(Graph::NodeId start_node_i
 
         //prüfe, ob wir für das i+1-ten crucial child eine vertikale boundary edge gefunden haben
         if( curr_bound_edge.first < Graph::infinite_length) {
+
             //debug
             //GraphAuxPrint::print_edge_sequence(input_subgraph.original_graph(), VorDiagAux::compute_bound_path(vor_diag, curr_bound_edge.second));
 
@@ -406,7 +417,7 @@ std::vector<Graph::EdgeId> KeyVertexElim::get_edges_to_insert(Supergraph_KVE::Bo
             const Graph::EdgeId curr_original_edge_id = super_graph.original_edge_ids()[ curr_edge_id_in_supergraph ];
 
             //finde die Kanten des zugehörigen boundary paths
-            const std::vector<Graph::EdgeId> curr_edges_to_add = VorDiagAux::compute_bound_path_as_vect(vor_diag, curr_original_edge_id);
+            const std::vector<Graph::EdgeId> curr_edges_to_add = VorDiagAux::compute_bound_path(vor_diag, curr_original_edge_id);
 
             output.reserve(output.size() + curr_edges_to_add.size());
             for( auto var_edge_to_add: curr_edges_to_add) {
@@ -437,17 +448,26 @@ ImprovingChangement KeyVertexElim::process_node(const Subgraph& input_subgraph,
                                                 Edge_Heaps& vert_bound_edge_heaps,
                                                 LocalSearchAux::MovesPerPass moves_per_pass,
                                                 std::vector<bool>& forbidden,
-                                                std::vector<bool>& pinned){
+                                                std::vector<bool>& pinned,
+                                                LocalSearchAux::IngoingKeyPathProcessState in_kpath_process_state,
+                                                EdgeSequence& ingoing_keypath,
+                                                std::vector<Graph::NodeId>& ingoing_internal_nodes,
+                                                bool one_ingoing_intern_node_is_pinned){
 
+    //debug
+    //std::cout <<" (kve:process_node) aktueller Knoten ist " << start_node_id+1 << "\n";
 
     const Graph& original_graph = input_subgraph.original_graph();
     const Graph& solution_graph = input_subgraph.this_graph();
     const std::vector<Graph::NodeId>& solution_nodeids_of_original_nodes = input_subgraph.subgraph_nodeids_of_nodes_in_originalgraph();
-    //? const std::vector<Graph::NodeId>& original_nodeids = input_subgraph.original_nodeids();
 
-    //debug
-    //std::cout << "Startknoten: " << original_nodeids[start_node_id]+1 << "\n";
+    if( in_kpath_process_state == LocalSearchAux::IngoingKeyPathProcessState::not_processed) {
 
+        ingoing_keypath = LocalSearchAux::find_and_process_ingoing_keypath(solution_graph, start_node_id,
+                                                                           ingoing_internal_nodes,
+                                                                           subtrees_ufs, pinned,
+                                                                           one_ingoing_intern_node_is_pinned);
+    }
 
     // finde die KeyPaths die im Eingabeknoten starten
     std::vector<std::vector<Graph::NodeId>> vect_out_internal_nodes;
@@ -462,31 +482,26 @@ ImprovingChangement KeyVertexElim::process_node(const Subgraph& input_subgraph,
 
     //Vorbereiten der Aktualisierungen von Edge_Heaps, Union-Find
 
+    //alle Knoten des ausgehenden KeyPaths (inkl. Endknoten, ohne aktuellen Knoten)
     std::vector<Graph::NodeId> heaps_to_merge = crucial_children;
     for( auto curr_intern_nodes: vect_out_internal_nodes) {
         heaps_to_merge.insert(heaps_to_merge.end(), curr_intern_nodes.begin(), curr_intern_nodes.end());
     }
 
+    //die Union-Find-Elemente der crucial children, der internen Knoten des ausgehenden KeyPaths,
+    // sowie des aktuellen Knotens
     std::vector<Union_Find_Structure::ElementId> elements_to_union = crucial_children;
+    elements_to_union.reserve(vect_out_internal_nodes.size() +1);
     for( auto curr_intern_nodes: vect_out_internal_nodes) {
         if( not curr_intern_nodes.empty()) {
+            //hier reicht es, einen internen Knoten hinzuzufügen, da sie bereits in einer Union-Find-Menge liegen
             elements_to_union.push_back(curr_intern_nodes.front());
         }
     }
     elements_to_union.push_back(start_node_id);
-
-
-    // finde den KeyPath der im Eingabeknoten endet
-    std::vector<Graph::NodeId> in_internal_nodes;
-    const EdgeSequence ingoing_keypath = LocalSearchAux::find_ingoing_keypath(solution_graph, start_node_id, in_internal_nodes);
-
-    // füge die internen Knoten des eingehenden KeyPaths zu einer Menge der Union-Find zusammen
-    // (denn die anderen sollten bereits in einer ufs-Menge liegen, wenn ich ich am Anfang einmal für alle Blätter
-    // jeweils die internen Knoten von eingehenden KeyPaths durchgehe)
-    subtrees_ufs.union_multiple_sets(in_internal_nodes);
+    elements_to_union.shrink_to_fit();
 
     //falls der aktuelle Knoten ein Terminal ist, wollen wir lediglich die Strukturen aktualisieren
-    //falls der aktuelle Knoten pinned ist, wollen wir lediglich die Strukturen aktualisieren
     if( solution_graph.check_if_terminal(start_node_id)
         || ( moves_per_pass == LocalSearchAux::MovesPerPass::several_moves && pinned[start_node_id] ) ) {
 
@@ -502,17 +517,20 @@ ImprovingChangement KeyVertexElim::process_node(const Subgraph& input_subgraph,
         throw std::runtime_error("(KeyVertexElim::process_node) Der Eingabegraph enthält ein Steinerblatt.");
     }
 
-    // füge inzidente KeyPaths (bzw. interne Knoten) zu einem Vektor zusammen, in dem der Eintrag 0 dem eingehenden KeyPath entspricht
-    std::vector<std::vector<Graph::NodeId>> vect_internal_nodes (1, in_internal_nodes);
-    vect_internal_nodes.insert(vect_internal_nodes.end(), vect_out_internal_nodes.begin(), vect_out_internal_nodes.end());
-    std::vector<EdgeSequence> incident_keypaths(1, ingoing_keypath);
-    incident_keypaths.insert(incident_keypaths.end(), outgoing_keypaths.begin(), outgoing_keypaths.end());
-
-
-    //prüfe, ob einer der internen Knoten der inzidenten KeyPaths pinned ist
-    //? das hier anders prüfen (eher so lassen)
+    //falls der aktuelle Knoten oder einer der internen Knoten pinned ist,
+    // wollen wir lediglich die Strukturen aktualisieren
     if( moves_per_pass == LocalSearchAux::MovesPerPass::several_moves) {
-        for (const auto& curr_vect: vect_internal_nodes) {
+
+        if(one_ingoing_intern_node_is_pinned) {
+
+            vert_bound_edge_heaps.merge(start_node_id, heaps_to_merge);
+
+            subtrees_ufs.union_multiple_sets(elements_to_union);
+
+            return ImprovingChangement(std::vector<Graph::EdgeId>(), std::vector<Graph::EdgeId>(), 0);
+        }
+
+        for (const auto& curr_vect: vect_out_internal_nodes) {
             for (auto curr_intern_node: curr_vect) {
                 if (pinned[curr_intern_node]) {
 
@@ -526,6 +544,16 @@ ImprovingChangement KeyVertexElim::process_node(const Subgraph& input_subgraph,
         }
     }
 
+    // füge inzidente KeyPaths (bzw. interne Knoten) zu einem Vektor zusammen,
+    // in dem der Eintrag 0 dem eingehenden KeyPath entspricht
+
+    std::vector<std::vector<Graph::NodeId>> vect_internal_nodes (1, ingoing_internal_nodes);
+    vect_internal_nodes.insert(vect_internal_nodes.end(), vect_out_internal_nodes.begin(), vect_out_internal_nodes.end());
+
+    std::vector<EdgeSequence> incident_keypaths(1, ingoing_keypath);
+    incident_keypaths.insert(incident_keypaths.end(), outgoing_keypaths.begin(), outgoing_keypaths.end());
+
+
     // setze die super_id-Werte der Union-Find so, dass die Mengen, die den crucial children entsprechen, durchnummeriert werden (beginnend bei 1)
     Graph::NodeId new_id = 1;
     for( auto curr_crucial_child: crucial_children) {
@@ -537,12 +565,20 @@ ImprovingChangement KeyVertexElim::process_node(const Subgraph& input_subgraph,
     unsigned int num_supernodes = incident_keypaths.size();
     Supergraph_KVE super_graph(num_supernodes);
 
+    //debug
+    //std::cout << "horizontale \n";
+
     KeyVertexElim::add_horizontal_bound_edges(input_subgraph, vor_diag, subtrees_ufs, moves_per_pass, forbidden,
                                               super_graph, horiz_bound_edges_lists.get_list(start_node_id) );
 
-    KeyVertexElim::find_and_add_vertical_bound_edges(start_node_id, vor_diag, subtrees_ufs, vert_bound_edge_heaps,
+    //debug
+    //std::cout << "vertikale: \n";
+
+    KeyVertexElim::find_and_add_vertical_bound_edges(input_subgraph, start_node_id, vor_diag, subtrees_ufs, vert_bound_edge_heaps,
                                                      moves_per_pass, forbidden, vect_internal_nodes, crucial_children,
                                                      super_graph);
+    //debug
+    //std::cout << "neue: \n";
 
     Voronoi_diagram::RestoreData vor_diag_restore_data =
             KeyVertexElim::find_and_add_new_bound_edges(input_subgraph, start_node_id, vor_diag, subtrees_ufs,
@@ -622,7 +658,7 @@ ImprovingChangement KeyVertexElim::process_node(const Subgraph& input_subgraph,
         }
     }
 
-    // es folgen die Aktualisierungen der Hilfstrukturen
+    // es folgen die Aktualisierungen der Hilfsstrukturen
 
     vert_bound_edge_heaps.merge(start_node_id, heaps_to_merge);
 
@@ -655,30 +691,42 @@ KeyVertexElim::evaluate_neighborhood(Subgraph &input_subgraph, LocalSearchAux::M
 
     Edge_Heaps vert_bound_edge_heaps(vor_diag, solution_nodeids_of_original_nodes);
 
-    //richte den Graph mit beliebiger (?) Wurzel, berechne Reihenfolge der Knoten für die Prozessierung
-    //? hier kann man root_id frei wählen
-    const Graph::NodeId root_id = solution_graph.get_terminals()[0];
-    solution_graph.make_rooted_arborescence(root_id);
-    std::vector<Graph::NodeId> crucialnodes_in_postorder = LocalSearchAux::get_crucialnodes_in_postorder(solution_graph, root_id);
+    //richte den Graph mit pseudo-zufällig gewähltem Terminal als Wurzel,
+    // berechne Reihenfolge der Knoten für die Prozessierung
 
-    //debug
-    //std::cout << "Wurzel: " << original_nodeids[root_id]+1 << "\n";
+    const std::vector<Graph::NodeId>& terminals = solution_graph.get_terminals();
+    const Graph::NodeId root_id = terminals[ rand() % terminals.size()];
+
+    solution_graph.make_rooted_arborescence(root_id);
+
+    const std::vector<Graph::NodeId> crucialnodes_in_postorder = LocalSearchAux::get_crucialnodes_in_postorder(solution_graph, root_id);
+
 
     const Horizontal_Edges_Lists horiz_bound_edges_lists =
             KeyVertexElim::compute_horizontal_bound_edges(input_subgraph, root_id, vor_diag);
 
-    // Hilfsstrukturen, um mehrere Verbesserung in einem pass durchführen zu können
+    // Hilfsstrukturen, um mehrere Verbesserungen in einem pass durchführen zu können
     // Knoten, die als forbidden markiert sind, dürfen nicht mehr verwendet werden, um die Subbäume wieder zu verbinden
     std::vector<bool> forbidden(solution_graph.num_nodes(), false);
     // Knoten, die als pinned markiert sind, dürfen nicht mehr entfernt werden
     std::vector<bool> pinned(solution_graph.num_nodes(), false);
 
-    //main loop der Methode
+    // leere Variablen, um process_node die passenden Parameter zu übergeben
+    EdgeSequence empty_edge_sequence;
+    std::vector<Graph::NodeId> empty_vect;
+
+    //Ausgabe
     std::vector<ImprovingChangement> evaluated_neighborhood;
+
+    //main loop der Methode
     for(auto curr_node_id: crucialnodes_in_postorder) {
+
         const ImprovingChangement curr_changement =
-                KeyVertexElim::process_node(input_subgraph, curr_node_id, vor_diag, subtrees_ufs, horiz_bound_edges_lists,
-                                            vert_bound_edge_heaps, moves_per_pass, forbidden, pinned);
+                KeyVertexElim::process_node(input_subgraph, curr_node_id, vor_diag, subtrees_ufs,
+                                            horiz_bound_edges_lists, vert_bound_edge_heaps,
+                                            moves_per_pass, forbidden, pinned,
+                                            LocalSearchAux::IngoingKeyPathProcessState::not_processed,
+                                            empty_edge_sequence, empty_vect, false);
 
         if( curr_changement.getImprovementValue() > 0){
             evaluated_neighborhood.push_back(curr_changement);
@@ -688,7 +736,7 @@ KeyVertexElim::evaluate_neighborhood(Subgraph &input_subgraph, LocalSearchAux::M
     return evaluated_neighborhood;
 }
 
-void KeyVertexElim::complete_algorithm(Subgraph &input_subgraph) {
+void KeyVertexElim::find_local_minimum(Subgraph &input_subgraph) {
 
     int debug_while_loop_counter = 0;
 
@@ -696,7 +744,8 @@ void KeyVertexElim::complete_algorithm(Subgraph &input_subgraph) {
         debug_while_loop_counter++;
 
         //debug
-        //GraphAuxPrint::print_graph(input_subgraph.this_graph());
+        //GraphAuxPrint::print_subgraph(input_subgraph);
+        //fflush(stdout);
 
         std::vector<ImprovingChangement> improvements = KeyVertexElim::evaluate_neighborhood(input_subgraph, LocalSearchAux::several_moves);
 
@@ -716,7 +765,7 @@ void KeyVertexElim::complete_algorithm(Subgraph &input_subgraph) {
         LocalSearchAux::perform_improving_changements(input_subgraph, improvements);
 
         //debug
-        if( not GraphAux::get_steinerleafs(input_subgraph.this_graph()).empty() ) {
+        if( GraphAux::check_for_steinerleafs(input_subgraph.this_graph()) ) {
             std::cout << "KeyVertexElim: Es entstehen Steinerblätter. \n";
         }
     }

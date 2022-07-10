@@ -15,40 +15,11 @@
 
 
 std::vector<ImprovingChangement> KeyPathExch::evaluate_neighborhood(Subgraph& input_subgraph, LocalSearchAux::MovesPerPass moves_per_pass) {
-    /*
-    //ist das debug?
-    if( original_graph.num_nodes() != subgraph_vectors.first.size() ) {
-        throw std::runtime_error("(KeyPathExch::key_path_exchange) Anzahl Knoten in original_graph ungleich Anzahl Einträge in subgraph_vectors.");
-    }
-    if( original_graph.num_edges() != subgraph_vectors.second.size() ) {
-        throw std::runtime_error("(KeyPathExch::key_path_exchange) Anzahl Kanten in original_graph ungleich Anzahl Einträge in subgraph_vectors.");
-    }
-     */
 
     const Graph& original_graph = input_subgraph.original_graph();
     Graph& solution_graph = input_subgraph.this_graph();
     const std::vector<Graph::NodeId>& solution_nodeids_of_original_nodes = input_subgraph.subgraph_nodeids_of_nodes_in_originalgraph();
     const std::vector<Graph::NodeId>& original_nodeids = input_subgraph.original_nodeids();
-
-    /*
-    // die Knotenmenge der aktuellen Lösung als NodeIds des zugrundeliegenden Graphen (ist aber keine Übersetzung der NodeIds)
-     //? sollte ich nicht mehr brauchen wegen original_nodeids
-    std::vector<Graph::NodeId> solution_nodes_as_original_nodeids;
-    for(unsigned  int i = 0; i<original_graph.num_nodes(); i++) {
-        if( solution_nodeids_of_original_nodes[i] != Graph::invalid_node_id ) {
-            solution_nodes_as_original_nodeids.push_back(i);
-        }
-    }
-     */
-
-    /*
-    //ist das debug?
-    if( solution_graph.num_nodes() != solution_nodes_as_original_nodeids.size() ) {
-        throw std::runtime_error("(KeyPathExch::key_path_exchange) Anzahl Knoten im Subgraph ungleich Anzahl Einträge in subgraph_vectors.");
-    }
-     */
-
-    //hier beginnt die eigentliche Präprozessierung
 
     //Initialisieren der Union Find, erstelle Menge für alle Knoten in der aktuellen Lösung
     const unsigned int num_nodes_of_solution = solution_graph.num_nodes();
@@ -61,23 +32,36 @@ std::vector<ImprovingChangement> KeyPathExch::evaluate_neighborhood(Subgraph& in
 
     Edge_Heaps bound_edge_heaps(vor_diag, solution_nodeids_of_original_nodes);
 
-    //richte den Graph mit beliebiger (?) Wurzel, berechne Reihenfolge der Knoten für die Prozessierung
-    //? hier kann man root_id frei wählen
-    const Graph::NodeId root_id = solution_graph.get_terminals()[0];
-    solution_graph.make_rooted_arborescence(root_id);
-    std::vector<Graph::NodeId> crucialnodes_in_postorder = LocalSearchAux::get_crucialnodes_in_postorder(solution_graph, root_id);
+    //richte den Graph mit pseudo-zufällig gewähltem Terminal als Wurzel,
+    // berechne Reihenfolge der Knoten für die Prozessierung
 
-    // Hilfsstrukturen, um mehrere Verbesserung in einem pass durchführen zu können
+    const std::vector<Graph::NodeId>& terminals = solution_graph.get_terminals();
+    const Graph::NodeId root_id = terminals[ rand() % terminals.size()];
+
+    solution_graph.make_rooted_arborescence(root_id);
+
+    const std::vector<Graph::NodeId> crucialnodes_in_postorder = LocalSearchAux::get_crucialnodes_in_postorder(solution_graph, root_id);
+
+    // Hilfsstrukturen, um mehrere Verbesserungen in einem pass durchführen zu können
     // Knoten, die als forbidden markiert sind, dürfen nicht mehr verwendet werden, um die Subbäume wieder zu verbinden
     std::vector<bool> forbidden(solution_graph.num_nodes(), false);
     // Knoten, die als pinned markiert sind, dürfen nicht mehr entfernt werden
     std::vector<bool> pinned(solution_graph.num_nodes(), false);
 
+    // leere Variablen, um process_node die passenden Parameter zu übergeben
+    EdgeSequence empty_edge_sequence;
+    std::vector<Graph::NodeId> empty_vect;
+
     //main loop der Methode
     std::vector<ImprovingChangement> evaluated_neighborhood;
     for(auto curr_node_id: crucialnodes_in_postorder) {
         const ImprovingChangement curr_changement =
-                KeyPathExch::process_node(curr_node_id, input_subgraph, vor_diag, subtrees_ufs, bound_edge_heaps, moves_per_pass, forbidden, pinned);
+                KeyPathExch::process_node(curr_node_id, input_subgraph, vor_diag, subtrees_ufs, bound_edge_heaps,
+                                          moves_per_pass, forbidden, pinned,
+                                          LocalSearchAux::IngoingKeyPathProcessState::not_processed,
+                                          empty_edge_sequence, empty_vect, false,
+                                          KeyPathExch::Need_for_Updates_of_Heaps_and_UFS::need);
+
         if( curr_changement.getImprovementValue() > 0){
             evaluated_neighborhood.push_back(curr_changement);
         }
@@ -93,45 +77,40 @@ ImprovingChangement KeyPathExch::process_node(Graph::NodeId input_node_id,
                                               Edge_Heaps& bound_edge_heaps,
                                               LocalSearchAux::MovesPerPass moves_per_pass,
                                               std::vector<bool>& forbidden,
-                                              std::vector<bool>& pinned) {
+                                              std::vector<bool>& pinned,
+                                              LocalSearchAux::IngoingKeyPathProcessState key_path_process_state,
+                                              EdgeSequence& key_path,
+                                              std::vector<Graph::NodeId>& internal_node_ids,
+                                              bool one_internal_node_is_pinned,
+                                              KeyPathExch::Need_for_Updates_of_Heaps_and_UFS need_for_heaps_ufs_update) {
 
     //const Graph& original_graph = input_subgraph.original_graph();
     const Graph& solution_graph = input_subgraph.this_graph();
     const std::vector<Graph::NodeId>& solution_nodeids_of_original_nodes = input_subgraph.subgraph_nodeids_of_nodes_in_originalgraph();
     const std::vector<Graph::NodeId>& original_nodeids = input_subgraph.original_nodeids();
 
-    // finde den keypath der im Eingabeknoten endet, sowie dessen Anfangsknoten & Länge
-    std::vector<Graph::NodeId> internal_node_ids;
-    const EdgeSequence key_path = LocalSearchAux::find_ingoing_keypath(solution_graph, input_node_id, internal_node_ids);
+
+    if( key_path_process_state == LocalSearchAux::IngoingKeyPathProcessState::not_processed) {
+
+        key_path = LocalSearchAux::find_and_process_ingoing_keypath(solution_graph, input_node_id,
+                                                                    internal_node_ids, subtrees_ufs,
+                                                                    pinned, one_internal_node_is_pinned);
+    }
     const Graph::NodeId crucial_parent_id = key_path.endnode_a();
 
-    //debug
-    if( input_node_id == crucial_parent_id ) {
-        throw std::runtime_error("key path exchange main loop");
-    }
-    if( input_node_id != key_path.endnode_b() ) {
-        throw std::runtime_error("key path exchange main loop");
-    }
-
-    //füge die internen Knoten des keypath zu einer Menge in der Union Find zusammen
-    subtrees_ufs.union_multiple_sets(internal_node_ids);
     // der Schlüssel des subtree der internen Knoten in der Union-Find
-    //? Fehleranfälligkeit: der könnte sich ggf. verändern
     Union_Find_Structure::ElementId internal_nodes_ufsroot = Union_Find_Structure::invalid_elt_id;
     if(not internal_node_ids.empty()) {
         internal_nodes_ufsroot = subtrees_ufs.find(internal_node_ids.front());
     }
 
-    // prüfe, ob die internen Knoten pinned sind
-    // todo: trotzdem weiter machen und später prüfen... (ist das sinnvoll? Laufzeit...)
+    // falls einer der internen Knoten pinned ist, wollen wir lediglich die Strukturen aktualisieren
     if( moves_per_pass == LocalSearchAux::several_moves) {
-        for(auto intern_node_id: internal_node_ids) {
-            if( pinned[intern_node_id]) {
-                KeyPathExch::update_heaps_and_ufs(bound_edge_heaps, subtrees_ufs, input_node_id, crucial_parent_id,
-                                                  internal_node_ids, internal_nodes_ufsroot);
+        if( one_internal_node_is_pinned ) {
+            KeyPathExch::update_heaps_and_ufs(bound_edge_heaps, subtrees_ufs, input_node_id, crucial_parent_id,
+                                              internal_node_ids, internal_nodes_ufsroot, need_for_heaps_ufs_update);
 
-                return ImprovingChangement(std::vector<Graph::EdgeId>(), std::vector<Graph::EdgeId>(), 0);
-            }
+            return ImprovingChangement(std::vector<Graph::EdgeId>(), std::vector<Graph::EdgeId>(), 0);
         }
     }
 
@@ -164,7 +143,7 @@ ImprovingChangement KeyPathExch::process_node(Graph::NodeId input_node_id,
 
     if( best_new_bound_edge.first < best_original_bound_edge.first ) {
         bound_edge_to_insert = best_new_bound_edge;
-        edges_to_insert = VorDiagAux::compute_bound_path_as_vect(vor_diag, bound_edge_to_insert.second);
+        edges_to_insert = VorDiagAux::compute_bound_path(vor_diag, bound_edge_to_insert.second);
         improve_value = key_path.length() - bound_edge_to_insert.first;
 
         //aktualisieren von pinned und forbidden
@@ -181,7 +160,7 @@ ImprovingChangement KeyPathExch::process_node(Graph::NodeId input_node_id,
         // in dem Fall wollen wir das Diagramm VOR den Berechnungen restoren
         vor_diag.restore(vor_diag_restore_data);
 
-        edges_to_insert = VorDiagAux::compute_bound_path_as_vect(vor_diag, bound_edge_to_insert.second);
+        edges_to_insert = VorDiagAux::compute_bound_path(vor_diag, bound_edge_to_insert.second);
 
         //aktualisieren von pinned und forbidden
         if( moves_per_pass == LocalSearchAux::several_moves) {
@@ -194,7 +173,8 @@ ImprovingChangement KeyPathExch::process_node(Graph::NodeId input_node_id,
 
 
     //Updates damit die Invarianten des Algo. erhalten bleiben
-    KeyPathExch::update_heaps_and_ufs(bound_edge_heaps, subtrees_ufs, input_node_id, crucial_parent_id, internal_node_ids, internal_nodes_ufsroot);
+    KeyPathExch::update_heaps_and_ufs(bound_edge_heaps, subtrees_ufs, input_node_id, crucial_parent_id,
+                                      internal_node_ids, internal_nodes_ufsroot, need_for_heaps_ufs_update);
 
     //beachte, dass die edgesToRemove Kanten im solution-Graph sind und die edgesToInsert Kanten im or-Graph
     // (entsprechend beziehen sich die EdgeIds auf verschiedene Graphen)
@@ -268,7 +248,13 @@ void KeyPathExch::update_heaps_and_ufs(Edge_Heaps& bound_edge_heaps,
                                        Graph::NodeId input_node_id,
                                        Graph::NodeId crucial_parent_id,
                                        const std::vector<Graph::NodeId>& internal_node_ids,
-                                       Union_Find_Structure::ElementId internal_nodes_ufsroot) {
+                                       Union_Find_Structure::ElementId internal_nodes_ufsroot,
+                                       KeyPathExch::Need_for_Updates_of_Heaps_and_UFS need_for_heaps_ufs_update) {
+
+    if( need_for_heaps_ufs_update == KeyPathExch::Need_for_Updates_of_Heaps_and_UFS::no_need) {
+        return;
+    }
+
     //aktualisieren der Heaps:
     // füge die Elemente der Heaps aller Knoten des KeyPath zum Heap des crucial parent des aktuellen Knoten hinzu
     std::vector<Graph::NodeId> nodes_to_merge = internal_node_ids;
@@ -325,7 +311,7 @@ void KeyPathExch::complete_algorithm(Subgraph &input_subgraph) {
         LocalSearchAux::perform_improving_changements(input_subgraph, improvements);
 
         //debug
-        if( not GraphAux::get_steinerleafs(input_subgraph.this_graph()).empty() ) {
+        if( GraphAux::check_for_steinerleafs(input_subgraph.this_graph()) ) {
             std::cout << "KeyPathExch: Es entstehen Steinerblätter. \n";
         }
     }

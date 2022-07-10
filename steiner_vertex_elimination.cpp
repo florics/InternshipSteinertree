@@ -18,7 +18,6 @@
 #include "ImprovingChangement.h"
 #include "graph_algorithms.h"
 #include "graph_aux_functions.h"
-#include "graph_printfunctions.h"
 #include "general_aux_functions.h"
 
 namespace SteinerVertexElim {
@@ -98,53 +97,36 @@ namespace SteinerVertexElim {
     //markiert die Endknoten aller Eingabe-Kanten (edges_to_insert) als pinned
     void mark_endpoints_pinned(const Subgraph& input_subgraph,
                                std::vector<bool>& pinned,
-                               std::vector<Graph::EdgeId> edges_to_insert);
+                               const std::vector<Graph::EdgeId>& edges_to_insert);
 }
 
 
-void SteinerVertexElim::complete_algorithm(Subgraph &input_subgraph) {
-    int debug_while_loop_counter = 0;
+void SteinerVertexElim::find_local_minimum(Subgraph &input_subgraph) {
 
+    //Schleife bricht ab, wenn lokales Opt. erreicht
     while(true) {
-        debug_while_loop_counter++;
 
-        //debug
-        //GraphAuxPrint::print_subgraph(input_subgraph);
-        //fflush(stdout);
-
-        std::vector<ImprovingChangement> improvements = SteinerVertexElim::evaluate_neighborhood(input_subgraph, LocalSearchAux::several_moves);
+        std::vector<ImprovingChangement> improvements =
+                SteinerVertexElim::evaluate_neighborhood(input_subgraph, LocalSearchAux::several_moves);
 
         if(improvements.empty()) {
             // lokales Optimum erreicht
             break;
         }
 
-
-        /*//debug
-        std::cout << "Schleife " << debug_while_loop_counter << "\n";
-        for(auto var_im_ch: improvements) {
-            var_im_ch.print(input_subgraph);
-        }
-        fflush(stdout);*/
-
         LocalSearchAux::perform_improving_changements(input_subgraph, improvements);
 
         GraphAux::remove_steinerbranches(input_subgraph);
 
-        //debug
-        if( not GraphAux::get_isolated_nodes(input_subgraph.this_graph()).empty() ) {
-            throw std::runtime_error("Fehler SVE");
-        }
     }
 }
 
 std::vector<ImprovingChangement>
 SteinerVertexElim::evaluate_neighborhood(Subgraph &input_subgraph, LocalSearchAux::MovesPerPass moves_per_pass) {
 
-    //? const Graph& original_graph = input_subgraph.original_graph();
     Graph& solution_graph = input_subgraph.this_graph();
-    const std::vector<Graph::NodeId>& solution_nodeids_of_original_nodes = input_subgraph.subgraph_nodeids_of_nodes_in_originalgraph();
-    //? const std::vector<Graph::NodeId>& original_nodeids = input_subgraph.original_nodeids();
+    const std::vector<Graph::NodeId>& solution_nodeids_of_original_nodes =
+            input_subgraph.subgraph_nodeids_of_nodes_in_originalgraph();
 
     //Initialisieren der Union Find, erstelle Menge für alle Knoten in der aktuellen Lösung
     unsigned int num_nodes_of_solution = solution_graph.num_nodes();
@@ -155,22 +137,22 @@ SteinerVertexElim::evaluate_neighborhood(Subgraph &input_subgraph, LocalSearchAu
 
     Edge_Heaps vert_edge_heaps(solution_nodeids_of_original_nodes, num_nodes_of_solution);
 
-    //richte den Graph mit beliebiger (?) Wurzel, berechne Reihenfolge der Knoten für die Prozessierung
-    //? hier kann man root_id frei wählen
-    Graph::NodeId root_id = solution_graph.get_terminals()[0];
-    solution_graph.make_rooted_arborescence(root_id);
-    std::vector<Graph::NodeId> nodes_in_postorder = SteinerVertexElim::get_nodes_in_postorder(solution_graph, root_id);
+    //richte den Graph mit pseudo-zufällig gewähltem Terminal als Wurzel,
+    // berechne Reihenfolge der Knoten für die Prozessierung
 
-    //debug
-    /*
-    std::cout << "Hier kommt der Subgraph, der gerade gerichtet wurde: \n";
-    GraphAuxPrint::print_subgraph(input_subgraph);
-    fflush(stdout);*/
+    const std::vector<Graph::NodeId>& terminals = solution_graph.get_terminals();
+    const Graph::NodeId root_id = terminals[ rand() % terminals.size()];
+
+    solution_graph.make_rooted_arborescence(root_id);
+
+    const std::vector<Graph::NodeId> nodes_in_postorder = SteinerVertexElim::get_nodes_in_postorder(solution_graph,
+                                                                                                    root_id);
+
 
     Horizontal_Edges_Lists horiz_edges_lists =
             SteinerVertexElim::compute_horizontal_edges(input_subgraph, root_id);
 
-    // Hilfsstrukturen, um mehrere Verbesserung in einem pass durchführen zu können
+    // Hilfsstrukturen, um mehrere Verbesserungen in einem pass durchführen zu können
     // Knoten, die als forbidden markiert sind, dürfen nicht mehr verwendet werden, um die Subbäume wieder zu verbinden
     std::vector<bool> forbidden(solution_graph.num_nodes(), false);
     // Knoten, die als pinned markiert sind, dürfen nicht mehr entfernt werden
@@ -205,8 +187,6 @@ ImprovingChangement SteinerVertexElim::process_node(const Subgraph& input_subgra
 
     const Graph& original_graph = input_subgraph.original_graph();
     const Graph& solution_graph = input_subgraph.this_graph();
-    //? const std::vector<Graph::NodeId>& solution_nodeids_of_original_nodes = input_subgraph.subgraph_nodeids_of_nodes_in_originalgraph();
-    //? const std::vector<Graph::NodeId>& original_nodeids = input_subgraph.original_nodeids();
 
     const std::vector<Graph::NodeId> children = solution_graph.get_outgoing_neighbors(start_node_id);
 
@@ -232,8 +212,9 @@ ImprovingChangement SteinerVertexElim::process_node(const Subgraph& input_subgra
                                                           horiz_edges_lists.get_list(start_node_id),
                                                           moves_per_pass, forbidden, super_graph);
 
-    //falls der Supergraph nicht zusammenhängend ist, können wir für den aktuellen Knoten keine Nachbarschaftslösung finden,
-    // wir aktualisieren also nun nur noch die Strukturen, die Ausgabe ist dementsprechend leer
+
+    //falls der Supergraph nicht zusammenhängend ist, können wir für den aktuellen Knoten keine Nachbarschaftslösung
+    // finden, wir aktualisieren also nur die Strukturen, die Ausgabe ist dementsprechend leer
     if( not GraphAux::check_if_graph_is_connected(super_graph.this_graph()) ) {
         update_ufs_and_edge_heaps(input_subgraph, start_node_id, children, subtrees_ufs, vert_edge_heaps);
 
@@ -246,32 +227,28 @@ ImprovingChangement SteinerVertexElim::process_node(const Subgraph& input_subgra
 
     // Wert der Verbesserung berechnen
     Graph::PathLength weight_incident_edges = 0;
-    const std::vector<Graph::EdgeId> incident_edges = solution_graph.incident_edge_ids(start_node_id);
+    const std::vector<Graph::EdgeId>& incident_edges = solution_graph.incident_edge_ids(start_node_id);
     for( auto curr_edge_id: incident_edges){
         const Graph::Edge& curr_edge = solution_graph.get_edge(curr_edge_id);
         weight_incident_edges += curr_edge.weight();
     }
-    Graph::PathLength weight_mst_of_supergraph = GraphAux::length_of_all_edges( mst_of_supergraph.this_graph() );
+    const Graph::PathLength weight_mst_of_supergraph = GraphAux::length_of_all_edges( mst_of_supergraph.this_graph() );
     const Graph::PathLength improve_value = weight_incident_edges - weight_mst_of_supergraph;
 
-    //debug
-    /*
-    if( improve_value < 0) {
-        std::cout << "(SteinerVertexElim::process_node) Die Subroutine hat eine schlechtere Lösung als die aktuelle berechnet. \n";
-        //throw std::runtime_error("(SteinerVertexElim::process_node) Die Subroutine hat eine schlechtere Lösung als die aktuelle berechnet");
-    }*/
 
-    //falls wir keine Verbesserung finden, wollen wir nun nur noch die Strukturen aktualisieren
-    // die Ausgabe ist dann leer
+    //falls wir keine Verbesserung finden, wollen wir nur die Strukturen aktualisieren, die Ausgabe ist dann leer
     if( improve_value <= 0) {
         update_ufs_and_edge_heaps(input_subgraph, start_node_id, children, subtrees_ufs, vert_edge_heaps);
 
         return ImprovingChangement(std::vector<Graph::EdgeId>(), std::vector<Graph::EdgeId>(), 0);
     }
 
-    const std::vector<Graph::EdgeId> edges_to_insert = SteinerVertexElim::get_edges_to_insert(input_subgraph, super_graph, mst_of_supergraph);
+    const std::vector<Graph::EdgeId> edges_to_insert = SteinerVertexElim::get_edges_to_insert(input_subgraph,
+                                                                                              super_graph,
+                                                                                              mst_of_supergraph);
 
     if( moves_per_pass == LocalSearchAux::MovesPerPass::several_moves) {
+
         forbidden[start_node_id] = true;
         LocalSearchAux::update_forbidden(solution_graph, forbidden, start_node_id);
 
@@ -287,7 +264,6 @@ ImprovingChangement SteinerVertexElim::process_node(const Subgraph& input_subgra
 
 std::vector<Graph::NodeId> SteinerVertexElim::get_nodes_in_postorder(const Graph &input_graph, Graph::NodeId root_id) {
 
-    // Checks weglassen ?
     if( root_id == Graph::invalid_node_id) {
         throw std::runtime_error("(SteinerVertexElim::get_nodes_in_postorder) Eingabeknoten ungueltig.");
     }
@@ -352,11 +328,12 @@ Horizontal_Edges_Lists SteinerVertexElim::compute_horizontal_edges(const Subgrap
 
     const Graph& original_graph = input_subgraph.original_graph();
     const Graph& solution_graph = input_subgraph.this_graph();
-    const std::vector<Graph::NodeId>& solution_nodeids_of_original_nodes = input_subgraph.subgraph_nodeids_of_nodes_in_originalgraph();
+    const std::vector<Graph::NodeId>& solution_nodeids_of_original_nodes =
+            input_subgraph.subgraph_nodeids_of_nodes_in_originalgraph();
 
     std::vector<Graph::NodeId> steiner_nodes = get_steiner_nodes(solution_graph);
 
-    std::vector<Horizontal_Edges_Lists::ListId> list_ids =
+    const std::vector<Horizontal_Edges_Lists::ListId>& list_ids =
             LocalSearchAux::compute_list_ids_for_horizon_edges_lists(solution_graph.num_nodes(), steiner_nodes);
 
     std::vector<std::vector<Graph::EdgeId> > vect_of_lists(steiner_nodes.size(), std::vector<Graph::EdgeId>());
@@ -407,13 +384,15 @@ void SteinerVertexElim::add_relevant_edges_to_heap(const Subgraph& input_subgrap
 
     std::priority_queue<std::pair<Graph::PathLength, Graph::EdgeId>,
             std::vector<std::pair<Graph::PathLength, Graph::EdgeId>>,
-            std::greater<std::pair<Graph::PathLength, Graph::EdgeId>>>& heap_to_process = vert_edge_heaps.get_heap(start_node_id);
+            std::greater<std::pair<Graph::PathLength, Graph::EdgeId>>>&
+                heap_to_process = vert_edge_heaps.get_heap(start_node_id);
 
-    const std::vector<Graph::NodeId> solution_node_ids = input_subgraph.subgraph_nodeids_of_nodes_in_originalgraph();
+    const std::vector<Graph::NodeId>& solution_node_ids = input_subgraph.subgraph_nodeids_of_nodes_in_originalgraph();
     const Graph& original_graph = input_subgraph.original_graph();
 
     Graph::NodeId start_node_original_id = input_subgraph.original_nodeids()[start_node_id];
-    std::vector<Graph::EdgeId> incident_edges_in_orig_graph = original_graph.get_node(start_node_original_id).incident_edge_ids();
+    const std::vector<Graph::EdgeId>& incident_edges_in_orig_graph =
+            original_graph.get_node(start_node_original_id).incident_edge_ids();
 
     //Schleife über alle Kanten, die mit dem aktuellen Knoten im zugrundeliegenden Graphen inzident sind
     for( auto curr_edge_id: incident_edges_in_orig_graph) {
@@ -421,8 +400,8 @@ void SteinerVertexElim::add_relevant_edges_to_heap(const Subgraph& input_subgrap
         const Graph::Edge& curr_edge = original_graph.get_edge(curr_edge_id);
 
         // finde den zur Kante gehörenden Nachbarn (als NodeId im Lösungsgraphen)
-        Graph::NodeId curr_neighbor_orig_id = curr_edge.get_other_node(start_node_original_id);
-        Graph::NodeId curr_neighbor_sol_id = solution_node_ids[curr_neighbor_orig_id];
+        const Graph::NodeId curr_neighbor_orig_id = curr_edge.get_other_node(start_node_original_id);
+        const Graph::NodeId curr_neighbor_sol_id = solution_node_ids[curr_neighbor_orig_id];
 
         if( curr_neighbor_sol_id == Graph::invalid_node_id) {
             //in dem Fall liegt der Nachbar nicht im Lösungsgraphen
@@ -446,7 +425,8 @@ void SteinerVertexElim::update_ufs_and_edge_heaps(const Subgraph& input_subgraph
 
     vert_edge_heaps.merge(start_node_id, children);
 
-    SteinerVertexElim::add_relevant_edges_to_heap(input_subgraph, start_node_id, subtrees_ufs, vert_edge_heaps, children);
+    SteinerVertexElim::add_relevant_edges_to_heap(input_subgraph, start_node_id, subtrees_ufs,
+                                                  vert_edge_heaps, children);
 
     std::vector<Union_Find_Structure::ElementId> elements_to_union = children;
     elements_to_union.push_back(start_node_id);
@@ -454,25 +434,27 @@ void SteinerVertexElim::update_ufs_and_edge_heaps(const Subgraph& input_subgraph
 }
 
 void SteinerVertexElim::add_vertical_edges_to_supergraph(const Graph& original_graph,
-                                           Graph::NodeId start_node,
-                                           const std::vector<Graph::NodeId>& children,
-                                           Ext_Union_Find_Structure &subtrees_ufs,
-                                           Edge_Heaps& vert_edge_heaps,
-                                           LocalSearchAux::MovesPerPass moves_per_pass,
-                                           const std::vector<bool> &forbidden,
-                                           Supergraph& input_supergraph) {
+                                                         Graph::NodeId start_node,
+                                                         const std::vector<Graph::NodeId>& children,
+                                                         Ext_Union_Find_Structure &subtrees_ufs,
+                                                         Edge_Heaps& vert_edge_heaps,
+                                                         LocalSearchAux::MovesPerPass moves_per_pass,
+                                                         const std::vector<bool> &forbidden,
+                                                         Supergraph& input_supergraph) {
 
-    std::vector<std::pair<Graph::PathLength, Graph::EdgeId>> vertical_edges =
-            vert_edge_heaps.cleanup_heaps_sve(start_node, children, original_graph, subtrees_ufs, moves_per_pass, forbidden);
+    const std::vector<std::pair<Graph::PathLength, Graph::EdgeId>>& vertical_edges =
+            vert_edge_heaps.cleanup_heaps_sve(start_node, children, original_graph, subtrees_ufs,
+                                              moves_per_pass, forbidden);
 
     // vertikale Kanten zum Supergraphen hinzufügen
     for(unsigned int i=0; i<vertical_edges.size(); i++) {
-        std::pair<Graph::PathLength, Graph::EdgeId> curr_edge = vertical_edges[i];
+        const std::pair<Graph::PathLength, Graph::EdgeId>& curr_edge = vertical_edges[i];
 
         //prüfe, ob wir für den i+1-ten Nachfolger eine vertikale Kante gefunden haben
         if( curr_edge.first < Graph::infinite_length) {
 
-            //die Kante verläuft zwischen dem Subbaum, der zum (i+1)-ten Nachfolger gehört, und dem Subbaum des Vorgängers
+            //die Kante verläuft zwischen dem Subbaum, der zum (i+1)-ten Nachfolger gehört,
+            // und dem Subbaum des Vorgängers
             input_supergraph.add_edge(0, i+1, curr_edge.first, curr_edge.second);
         }
     }
@@ -487,7 +469,8 @@ void SteinerVertexElim::add_horizontal_edges_to_supergraph(const Subgraph& input
                                              const std::vector<bool> &forbidden,
                                              Supergraph& input_supergraph) {
 
-    // setze die super_id-Werte der Union-Find so, dass die Mengen, die den crucial children entsprechen, durchnummeriert werden (beginnend bei 1)
+    //setze die super_id-Werte der Union-Find so, dass die Mengen, die den crucial children entsprechen,
+    // durchnummeriert werden (beginnend bei 1)
     Graph::NodeId new_id = 1;
     for( auto curr_child: children) {
         subtrees_ufs.set_superid(curr_child, new_id);
@@ -495,15 +478,16 @@ void SteinerVertexElim::add_horizontal_edges_to_supergraph(const Subgraph& input
     }
 
     const Graph& original_graph = input_subgraph.original_graph();
-    const std::vector<Graph::NodeId>& solution_nodeids_of_original_nodes = input_subgraph.subgraph_nodeids_of_nodes_in_originalgraph();
+    const std::vector<Graph::NodeId>& solution_nodeids_of_original_nodes =
+            input_subgraph.subgraph_nodeids_of_nodes_in_originalgraph();
 
     for( auto curr_edge_id: horiz_edges) {
 
         const Graph::Edge& curr_edge = original_graph.get_edge(curr_edge_id);
 
         // finde die Endpunkte der aktuellen Kante als NodeIds in der aktuellen Lösung
-        Graph::NodeId sol_node_id_a = solution_nodeids_of_original_nodes[curr_edge.node_a()];
-        Graph::NodeId sol_node_id_b = solution_nodeids_of_original_nodes[curr_edge.node_b()];
+        const Graph::NodeId sol_node_id_a = solution_nodeids_of_original_nodes[curr_edge.node_a()];
+        const Graph::NodeId sol_node_id_b = solution_nodeids_of_original_nodes[curr_edge.node_b()];
 
 
         if( moves_per_pass == LocalSearchAux::several_moves) {
@@ -512,21 +496,10 @@ void SteinerVertexElim::add_horizontal_edges_to_supergraph(const Subgraph& input
             }
         }
 
-        Graph::NodeId supernode_id_a = subtrees_ufs.get_superid(sol_node_id_a);
-        Graph::NodeId supernode_id_b = subtrees_ufs.get_superid(sol_node_id_b);
+        const Graph::NodeId supernode_id_a = subtrees_ufs.get_superid(sol_node_id_a);
+        const Graph::NodeId supernode_id_b = subtrees_ufs.get_superid(sol_node_id_b);
 
-        //debug
-        if( supernode_id_a == 0 || supernode_id_b == 0) {
-            throw std::runtime_error("(SteinerVertexElim::add_horizontal_edges_to_supergraph) keine horizontale Kante");
-        }
-        //debug
-        if( supernode_id_a == supernode_id_b) {
-            throw std::runtime_error("(SteinerVertexElim::add_horizontal_edges_to_supergraph) keine horizontale Kante");
-        }
-
-        input_supergraph.add_edge(supernode_id_a, supernode_id_b,
-                             curr_edge.weight(),
-                             curr_edge_id);
+        input_supergraph.add_edge(supernode_id_a, supernode_id_b, curr_edge.weight(), curr_edge_id);
     }
 
     //reset der super_ids
@@ -549,10 +522,10 @@ std::vector<Graph::EdgeId> SteinerVertexElim::get_edges_to_insert(const Subgraph
     for(const auto& curr_edge: mst_of_supergraph.this_graph().edges()) {
 
         //finde die edge id im supergraph
-        Graph::EdgeId curr_edge_id_in_supergraph = mst_of_supergraph.original_edgeids()[ curr_edge.edge_id() ];
+        const Graph::EdgeId curr_edge_id_in_supergraph = mst_of_supergraph.original_edgeids()[ curr_edge.edge_id() ];
 
         //finde die edge id im zugrundeliegenden Graph (zugrundeliegend bzgl. der aktuellen Lösung)
-        Graph::EdgeId curr_original_edge_id = super_graph.original_edge_ids()[ curr_edge_id_in_supergraph ];
+        const Graph::EdgeId curr_original_edge_id = super_graph.original_edge_ids()[ curr_edge_id_in_supergraph ];
 
         // füge diese Kante zur Ausgabe hinzu
         edges_to_insert.push_back(curr_original_edge_id);
@@ -563,18 +536,18 @@ std::vector<Graph::EdgeId> SteinerVertexElim::get_edges_to_insert(const Subgraph
 }
 
 void SteinerVertexElim::mark_endpoints_pinned(const Subgraph& input_subgraph,
-                           std::vector<bool>& pinned,
-                           std::vector<Graph::EdgeId> edges_to_insert) {
+                                              std::vector<bool>& pinned,
+                                              const std::vector<Graph::EdgeId>& edges_to_insert) {
 
     const Graph& original_graph = input_subgraph.original_graph();
-    const std::vector<Graph::NodeId> solution_node_ids = input_subgraph.subgraph_nodeids_of_nodes_in_originalgraph();
+    const std::vector<Graph::NodeId>& solution_node_ids = input_subgraph.subgraph_nodeids_of_nodes_in_originalgraph();
 
     for( auto curr_edge_id: edges_to_insert) {
         const Graph::Edge& curr_edge = original_graph.get_edge(curr_edge_id);
 
         //finde die Endpunkte der aktuellen Kante als NodeIds im Lösungsgraphen
-        Graph::NodeId sol_node_id_a = solution_node_ids[curr_edge.node_a()];
-        Graph::NodeId sol_node_id_b = solution_node_ids[curr_edge.node_b()];
+        const Graph::NodeId sol_node_id_a = solution_node_ids[curr_edge.node_a()];
+        const Graph::NodeId sol_node_id_b = solution_node_ids[curr_edge.node_b()];
 
         pinned[sol_node_id_a] = true;
         pinned[sol_node_id_b] = true;

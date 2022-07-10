@@ -30,8 +30,6 @@ Insertion_Tree_Data_Structure::Insertion_Tree_Data_Structure(const Subgraph &inp
         throw std::runtime_error("(Insertion_Tree_Data_Structure::Insertion_Tree_Data_Structure) Eingabegraph ist kein Baum.");
     }
 
-    GraphAux::check_node_id(root, num_nodes,
-                            "Insertion_Tree_Data_Structure::Insertion_Tree_Data_Structure");
 
     // Werte werden später überschrieben (außer für die Wurzel)
     _parents.assign(num_nodes, Insertion_Tree_Data_Structure::invalid_node_id);
@@ -73,17 +71,14 @@ Insertion_Tree_Data_Structure::Insertion_Tree_Data_Structure(const Subgraph &inp
 }
 
 Insertion_Tree_Data_Structure::NodeId Insertion_Tree_Data_Structure::get_parent(Insertion_Tree_Data_Structure::NodeId input_node) const {
-    GraphAux::check_node_id(input_node, _parents.size(), "Insertion_Tree_Data_Structure::get_parent");
     return _parents[input_node];
 }
 
 Graph::EdgeWeight Insertion_Tree_Data_Structure::get_weight_of_ingoing_edge(Insertion_Tree_Data_Structure::NodeId input_node) const {
-    GraphAux::check_node_id(input_node, _parents.size(), "Insertion_Tree_Data_Structure::get_weight_of_ingoing_edge");
     return _weights_of_ingoing_edges[input_node];
 }
 
 Graph::EdgeId Insertion_Tree_Data_Structure::get_original_edge_id_of_ingoing_edge(Insertion_Tree_Data_Structure::NodeId input_node) const {
-    GraphAux::check_node_id(input_node, _parents.size(), "Insertion_Tree_Data_Structure::get_original_edge_id_of_ingoing_edge");
     return _original_edge_ids_of_ingoing_edges[input_node];
 }
 
@@ -100,8 +95,7 @@ const std::vector<Graph::EdgeId> Insertion_Tree_Data_Structure::get_all_edges_as
 }
 
 Insertion_Tree_Data_Structure::NodeId Insertion_Tree_Data_Structure::get_tree_nodeid_of_original_node(Graph::NodeId input_node) const {
-    GraphAux::check_node_id(input_node, _tree_nodeids_of_original_nodes.size(),
-                            "Insertion_Tree_Data_Structure::get_tree_nodeid_of_original_node");
+
     return _tree_nodeids_of_original_nodes[input_node];
 }
 
@@ -113,10 +107,6 @@ void Insertion_Tree_Data_Structure::add_node(Graph::NodeId node_to_add, Graph::N
 
     Insertion_Tree_Data_Structure::NodeId parent_tree_id = _tree_nodeids_of_original_nodes[parent];
 
-    GraphAux::check_node_id(parent_tree_id, _parents.size(), "Insertion_Tree_Data_Structure::add_node");
-
-    GraphAux::check_if_weight_nonnegative(weight, "Insertion_Tree_Data_Structure::add_node");
-    GraphAux::check_if_weight_finite(weight, "Insertion_Tree_Data_Structure::add_node");
 
     _parents.push_back(parent_tree_id);
     _weights_of_ingoing_edges.push_back(weight);
@@ -124,8 +114,7 @@ void Insertion_Tree_Data_Structure::add_node(Graph::NodeId node_to_add, Graph::N
 }
 
 void Insertion_Tree_Data_Structure::remove_last_node(Graph::NodeId node_to_remove) {
-    GraphAux::check_node_id(node_to_remove, _tree_nodeids_of_original_nodes.size(),
-                            "Insertion_Tree_Data_Structure::remove_last_node");
+
 
     if( _tree_nodeids_of_original_nodes[node_to_remove] != _parents.size()-1) {
         throw std::runtime_error("Eingabeknoten ist nicht der letzte Knoten der Datenstruktur.");
@@ -149,7 +138,6 @@ Insertion_Tree_Data_Structure::get_ingoing_tree_edge(Insertion_Tree_Data_Structu
 
 
 Insertion_Tree_Data_Structure::Depth Insertion_Tree_Data_Structure::compute_depth(Insertion_Tree_Data_Structure::NodeId input_node) const {
-    GraphAux::check_node_id(input_node, _parents.size(), "Insertion_Tree_Data_Structure::compute_depth");
 
     Insertion_Tree_Data_Structure::NodeId next_node = get_parent(input_node);
 
@@ -173,10 +161,6 @@ Insertion_Tree_Data_Structure::try_to_insert_edge(const Graph::Edge& edge_to_ins
     Insertion_Tree_Data_Structure::NodeId input_node_b_tree_id = _tree_nodeids_of_original_nodes[edge_to_insert.node_b()];
     Graph::EdgeWeight input_weight = edge_to_insert.weight();
 
-    GraphAux::check_node_id(input_node_a_tree_id, _parents.size(), "Insertion_Tree_Data_Structure::try_to_insert_edge");
-    GraphAux::check_node_id(input_node_b_tree_id, _parents.size(), "Insertion_Tree_Data_Structure::try_to_insert_edge");
-    GraphAux::check_if_weight_nonnegative(input_weight, "Insertion_Tree_Data_Structure::try_to_insert_edge");
-    GraphAux::check_if_weight_finite(input_weight, "Insertion_Tree_Data_Structure::try_to_insert_edge");
 
     // Variablen, für die Knoten auf dem Weg vom Eingabeknoten zum NCA
     Insertion_Tree_Data_Structure::NodeId next_parent_a = input_node_a_tree_id;
@@ -285,12 +269,6 @@ void Insertion_Tree_Data_Structure::reinsert_removed_edges(const std::vector<Tre
 
 void Insertion_Tree_Data_Structure::set_edge(const Insertion_Tree_Data_Structure::TreeEdge& edge_to_set) {
 
-    GraphAux::check_node_id(edge_to_set.child, _parents.size(), "Insertion_Tree_Data_Structure::set_edge");
-    GraphAux::check_node_id(edge_to_set.parent, _parents.size(), "Insertion_Tree_Data_Structure::set_edge");
-
-    GraphAux::check_if_weight_nonnegative(edge_to_set.weight, "Insertion_Tree_Data_Structure::set_edge");
-    GraphAux::check_if_weight_finite(edge_to_set.weight, "Insertion_Tree_Data_Structure::set_edge");
-
     _parents[edge_to_set.child] = edge_to_set.parent;
     _weights_of_ingoing_edges[edge_to_set.child] = edge_to_set.weight;
     _original_edge_ids_of_ingoing_edges[edge_to_set.child] = edge_to_set.orig_edge_id;
@@ -299,8 +277,6 @@ void Insertion_Tree_Data_Structure::set_edge(const Insertion_Tree_Data_Structure
 
 void Insertion_Tree_Data_Structure::reverse_path(Insertion_Tree_Data_Structure::TreePath path_to_reverse) {
 
-    GraphAux::check_node_id(path_to_reverse.startnode, _parents.size(), "Insertion_Tree_Data_Structure::reverse_path");
-    GraphAux::check_node_id(path_to_reverse.endnode, _parents.size(), "Insertion_Tree_Data_Structure::reverse_path");
 
     Insertion_Tree_Data_Structure::TreeEdge curr_edge = get_ingoing_tree_edge(path_to_reverse.endnode);
 

@@ -39,11 +39,6 @@ private:
     //speichert zu jedem Knoten den Abstand zur Wurzel (in Anzahl Kanten)
     std::vector<Depth> _depths;
 
-
-    Graph::NodeId get_parent(Graph::NodeId input_node) const;
-
-    NCA_Tree_Data_Structure::Depth get_depth(Graph::NodeId input_node) const;
-
 };
 
 

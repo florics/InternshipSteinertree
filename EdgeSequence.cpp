@@ -14,6 +14,9 @@ EdgeSequence::EdgeSequence(const std::vector<Graph::EdgeId> edge_ids, Graph::Nod
         _length(length)
         {}
 
+
+EdgeSequence::EdgeSequence(){}
+
 Graph::NodeId EdgeSequence::endnode_a() const {
     return _endnode_a;
 }
@@ -29,3 +32,4 @@ Graph::PathLength EdgeSequence::length() const {
 const std::vector<Graph::EdgeId>& EdgeSequence::edge_ids() const {
     return _edge_ids;
 }
+
